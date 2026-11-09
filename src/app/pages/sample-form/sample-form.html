@@ -1,0 +1,116 @@
+<div class="row">
+  <div class="col-md-8 offset-md-2">
+    <div class="card">
+      <div class="card-header">
+        <h5 class="mb-0">Contact Form</h5>
+      </div>
+      <div class="card-body">
+        <form [formGroup]="contactForm" (ngSubmit)="onSubmit()">
+          <div class="row mb-3">
+            <div class="col-md-6">
+              <label for="firstName" class="form-label">First Name</label>
+              <input 
+                type="text" 
+                class="form-control" 
+                id="firstName"
+                formControlName="firstName"
+                [class.is-invalid]="submitted && f['firstName'].errors">
+              <div class="invalid-feedback" *ngIf="submitted && f['firstName'].errors">
+                <span *ngIf="f['firstName'].errors['required']">First name is required</span>
+                <span *ngIf="f['firstName'].errors['minlength']">Minimum 2 characters</span>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <label for="lastName" class="form-label">Last Name</label>
+              <input 
+                type="text" 
+                class="form-control" 
+                id="lastName"
+                formControlName="lastName"
+                [class.is-invalid]="submitted && f['lastName'].errors">
+              <div class="invalid-feedback" *ngIf="submitted && f['lastName'].errors">
+                <span *ngIf="f['lastName'].errors['required']">Last name is required</span>
+                <span *ngIf="f['lastName'].errors['minlength']">Minimum 2 characters</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="mb-3">
+            <label for="email" class="form-label">Email</label>
+            <input 
+              type="email" 
+              class="form-control" 
+              id="email"
+              formControlName="email"
+              [class.is-invalid]="submitted && f['email'].errors">
+            <div class="invalid-feedback" *ngIf="submitted && f['email'].errors">
+              <span *ngIf="f['email'].errors['required']">Email is required</span>
+              <span *ngIf="f['email'].errors['email']">Please enter a valid email</span>
+            </div>
+          </div>
+
+          <div class="mb-3">
+            <label for="phone" class="form-label">Phone (Optional)</label>
+            <input 
+              type="tel" 
+              class="form-control" 
+              id="phone"
+              formControlName="phone"
+              [class.is-invalid]="submitted && f['phone'].errors">
+            <div class="invalid-feedback" *ngIf="submitted && f['phone'].errors">
+              Please enter a valid phone number
+            </div>
+          </div>
+
+          <div class="mb-3">
+            <label for="subject" class="form-label">Subject</label>
+            <select 
+              class="form-select" 
+              id="subject"
+              formControlName="subject"
+              [class.is-invalid]="submitted && f['subject'].errors">
+              <option value="">Select a subject</option>
+              <option value="inquiry">General Inquiry</option>
+              <option value="support">Support Request</option>
+              <option value="feedback">Feedback</option>
+              <option value="other">Other</option>
+            </select>
+            <div class="invalid-feedback" *ngIf="submitted && f['subject'].errors">
+              Subject is required
+            </div>
+          </div>
+
+          <div class="mb-3">
+            <label for="message" class="form-label">Message</label>
+            <textarea 
+              class="form-control" 
+              id="message"
+              rows="5"
+              formControlName="message"
+              [class.is-invalid]="submitted && f['message'].errors"></textarea>
+            <div class="invalid-feedback" *ngIf="submitted && f['message'].errors">
+              <span *ngIf="f['message'].errors['required']">Message is required</span>
+              <span *ngIf="f['message'].errors['minlength']">Minimum 10 characters</span>
+            </div>
+          </div>
+
+          <div class="mb-3 form-check">
+            <input 
+              type="checkbox" 
+              class="form-check-input" 
+              id="subscribe"
+              formControlName="subscribe">
+            <label class="form-check-label" for="subscribe">
+              Subscribe to our newsletter
+            </label>
+          </div>
+
+          <div class="d-flex gap-2">
+            <button type="submit" class="btn btn-primary">Submit</button>
+            <button type="button" class="btn btn-secondary" (click)="reset()">Reset</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
