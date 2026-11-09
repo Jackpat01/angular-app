@@ -1,10 +1,11 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { NgbModule, NgbModal } from '@ng-bootstrap/ng-bootstrap';
 import { TitleService } from '../../services/title';
 
 @Component({
-  imports: [CommonModule, ReactiveFormsModule],
+  imports: [CommonModule, ReactiveFormsModule, NgbModule],
   selector: 'app-sample-form',
   styleUrl: './sample-form.scss',
   templateUrl: './sample-form.html',
@@ -13,7 +14,11 @@ export class SampleForm implements OnInit {
   contactForm!: FormGroup;
   submitted = false;
 
-  constructor(private fb: FormBuilder, private titleService: TitleService) {}
+  constructor(
+    private fb: FormBuilder, 
+    private titleService: TitleService,
+    private modalService: NgbModal
+  ) {}
 
   ngOnInit(): void {
     this.titleService.setTitle('Contact Form');
@@ -40,7 +45,6 @@ export class SampleForm implements OnInit {
     this.submitted = true;
     if (this.contactForm.valid) {
       console.log('Form Submitted:', this.contactForm.value);
-      alert('Form submitted successfully!');
       this.contactForm.reset();
       this.submitted = false;
     }

@@ -1,19 +1,23 @@
-<nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+<nav ngbNavbar class="navbar navbar-expand-lg navbar-dark bg-dark">
   <div class="container-fluid">
-    <a class="navbar-brand" href="/">Angular App</a>
-    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+    <a ngbNavbarBrand href="/" class="navbar-brand">Angular App</a>
+    <button ngbNavbarToggler 
+            type="button" 
+            class="navbar-toggler"
+            (click)="toggleNavbar()"
+            [attr.aria-expanded]="navbarOpen">
       <span class="navbar-toggler-icon"></span>
     </button>
-    <div class="collapse navbar-collapse" id="navbarNav">
-      <ul class="navbar-nav ms-auto">
-        <li class="nav-item">
-          <a class="nav-link" href="/">Home</a>
+    <div [ngbCollapse]="!navbarOpen" class="collapse navbar-collapse" id="navbarNav">
+      <ul ngbNav class="navbar-nav ms-auto">
+        <li ngbNavItem>
+          <a ngbNavLink href="/" class="nav-link" (click)="navbarOpen = false">Home</a>
         </li>
-        <li class="nav-item">
-          <a class="nav-link" href="/user-dashboard">Dashboard</a>
+        <li ngbNavItem>
+          <a ngbNavLink href="/user-dashboard" class="nav-link" (click)="navbarOpen = false">Dashboard</a>
         </li>
-        <li class="nav-item">
-          <a class="nav-link" href="/admin">Admin</a>
+        <li ngbNavItem>
+          <a ngbNavLink href="/admin" class="nav-link" (click)="navbarOpen = false">Admin</a>
         </li>
       </ul>
     </div>
