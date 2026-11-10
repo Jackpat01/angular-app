@@ -347,7 +347,7 @@ select[data-tabname] {
 
 /* Expand/Collapse Buttons */
 button.collapses {
-  background: url('feather-icons/dist/icons/chevrons-up.svg') no-repeat center;
+  /* background: url('feather-icons/dist/icons/chevrons-up.svg') no-repeat center; */
   border: solid thin $border-color-6;
   border-radius: 10%;
   padding: 4px;
@@ -357,7 +357,7 @@ button.collapses {
 }
 
 button.expands {
-  background: url('feather-icons/dist/icons/chevrons-down.svg') no-repeat center;
+  /* background: url('feather-icons/dist/icons/chevrons-down.svg') no-repeat center; */
   border: solid thin $border-color-6;
   border-radius: 10%;
   padding: 4px;

@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { HeaderBarComponent } from '../../shared/header-bar/header-bar';
+import { PageTitleBannerComponent } from '../../shared/page-title-banner/page-title-banner';
 import { LogoBrandingComponent } from '../../shared/logo-branding/logo-branding';
 import { FooterSectionComponent } from '../../shared/footer-section/footer-section';
 import { HelpModalComponent } from '../../shared/help-modal/help-modal';
@@ -17,6 +18,7 @@ import { AdminService } from '../../services/admin';
     CommonModule,
     RouterOutlet,
     HeaderBarComponent,
+    PageTitleBannerComponent,
     LogoBrandingComponent,
     FooterSectionComponent,
     HelpModalComponent,

@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { HeaderBarComponent } from '../../shared/header-bar/header-bar';
+import { PageTitleBannerComponent } from '../../shared/page-title-banner/page-title-banner';
 import { LogoBrandingComponent } from '../../shared/logo-branding/logo-branding';
 import { ContentPanelComponent } from '../../shared/content-panel/content-panel';
 import { FooterSectionComponent } from '../../shared/footer-section/footer-section';
@@ -14,6 +15,7 @@ import { UserService, UserInfo } from '../../services/user';
   imports: [
     CommonModule,
     HeaderBarComponent,
+    PageTitleBannerComponent,
     LogoBrandingComponent,
     ContentPanelComponent,
     FooterSectionComponent,
