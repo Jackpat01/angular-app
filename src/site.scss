@@ -1,36 +1,98 @@
-﻿$font-family-1: Arial, Impact, sans-serif;
+/**
+ * SITE.SCSS - REORGANIZED & CONSOLIDATED
+ * 
+ * Structure:
+ * 1. DESIGN TOKENS (SCSS Variables)
+ * 2. GLOBAL STYLES
+ * 3. TYPOGRAPHY
+ * 4. NAVIGATION
+ * 5. FORMS & INPUTS
+ * 6. TABLES & GRIDS
+ * 7. BUTTONS
+ * 8. UTILITY CLASSES
+ */
+
+/* ============================================================================
+   1. DESIGN TOKENS (SCSS Variables)
+   ============================================================================ */
+
+// Typography
+$font-family-1: Arial, Impact, sans-serif;
+$font-family-2: monospace;
+
+// Primary Colors
 $color-1: black;
-$border-bottom-color-1: #389398;
+$color-2: white;
+$color-3: #ECF0F1;
+$color-4: #F8971D;
+$color-5: red;
+
+// Background Colors
 $background-color-1: #D43717;
 $background-color-2: #2C3E50;
 $background-color-3: #2980B9;
-$color-2: white;
-$color-3: #ECF0F1;
 $background-color-4: #979595;
-$border-color-1: #f1f1f1;
 $background-color-5: #f1f1f1;
-$border-color-2: #F8971D;
-$color-4: #F8971D;
 $background-color-6: #F8971D;
 $background-color-7: #696969;
-$border-color-3: #7bba4b;
 $background-color-8: #328532;
-$font-family-2: monospace;
 $background-color-9: #389398;
-$border-color-4: #389398;
 $background-color-10: #9CC5CA;
+
+// Border Colors
+$border-bottom-color-1: #389398;
+$border-color-1: #f1f1f1;
+$border-color-2: #F8971D;
+$border-color-3: #7bba4b;
+$border-color-4: #389398;
 $border-color-5: #9CC5CA;
-$box-shadow-color-1: #9CC5CA;
-$color-5: red;
 $border-color-6: #888888;
+
+// Shadow Colors
+$box-shadow-color-1: #9CC5CA;
+
+/* ============================================================================
+   2. GLOBAL STYLES
+   ============================================================================ */
 
 body {
   font-family: $font-family-1;
   font-size: 10pt;
 }
 
+#contentPanel,
+.ui-widget {
+  font-family: $font-family-1;
+}
+
+#viewport {
+  h1 {
+    font-size: 20pt;
+    letter-spacing: inherit;
+    margin: 1rem 0 0 0;
+    padding: 0;
+  }
+
+  p {
+    margin: .25rem 0;
+    padding: 0 0 0 .5rem;
+    text-indent: -.5rem;
+  }
+}
+
 legend {
   font-size: 1.25rem;
+}
+
+/* ============================================================================
+   3. TYPOGRAPHY
+   ============================================================================ */
+
+h1 {
+  font-size: 20pt;
+  letter-spacing: inherit;
+  margin: 1rem 0 0 0;
+  padding: 0;
 }
 
 a {
@@ -44,51 +106,11 @@ a {
   }
 }
 
-#cssmenu {
-  .has-sub {
-    ui {
-      li {
-        &:hover {
-          a {
-            background-color: $background-color-1;
-          }
-        }
-      }
-    }
-  }
+/* ============================================================================
+   4. NAVIGATION
+   ============================================================================ */
 
-  > div.pull-right {
-    padding-right: 1rem;
-
-    > a {
-      padding: 0;
-    }
-  }
-}
-
-#contentPanel,
-.ui-widget {
-  font-family: $font-family-1;
-}
-
-.ui-jqgrid {
-  > .ui-jqgrid-view {
-    font-size: .75rem;
-
-    input {
-      line-height: 1rem;
-      padding: 0;
-    }
-  }
-
-  .ui-jqgrid-htable {
-    th.ui-th-column-header {
-      border-right: none;
-      padding: 0;
-    }
-  }
-}
-
+/* Main Navigation */
 nav {
   position: absolute;
   top: 2.25em;
@@ -117,6 +139,12 @@ nav {
       background-color: $background-color-3;
       color: $color-2;
     }
+
+    &.active {
+      background-color: $background-color-6;
+      border: solid thin $border-color-2;
+      color: $color-1;
+    }
   }
 
   a {
@@ -129,6 +157,7 @@ nav {
   }
 }
 
+/* Alternative Navigation */
 div.nav {
   display: block;
   margin-top: 1rem;
@@ -153,6 +182,12 @@ div.nav {
       border: solid thin $border-color-2;
       color: $color-4;
     }
+
+    &.active {
+      background-color: $background-color-6;
+      border: solid thin $border-color-2;
+      color: $color-1;
+    }
   }
 
   a {
@@ -169,12 +204,32 @@ div.nav {
   }
 }
 
-nav li.active,
-div.nav li.active {
-  background-color: $background-color-6;
-  border: solid thin $border-color-2;
-  color: $color-1;
+/* CSS Menu */
+#cssmenu {
+  .has-sub {
+    ui {
+      li {
+        &:hover {
+          a {
+            background-color: $background-color-1;
+          }
+        }
+      }
+    }
+  }
+
+  > div.pull-right {
+    padding-right: 1rem;
+
+    > a {
+      padding: 0;
+    }
+  }
 }
+
+/* ============================================================================
+   5. FORMS & INPUTS
+   ============================================================================ */
 
 select[data-tabname] {
   background-color: $background-color-6;
@@ -185,6 +240,33 @@ select[data-tabname] {
   option {
     background-color: $background-color-7;
     color: $color-3;
+  }
+}
+
+.datepicker {
+  padding: 0;
+}
+
+/* ============================================================================
+   6. TABLES & GRIDS
+   ============================================================================ */
+
+/* jqGrid Styles */
+.ui-jqgrid {
+  > .ui-jqgrid-view {
+    font-size: .75rem;
+
+    input {
+      line-height: 1rem;
+      padding: 0;
+    }
+  }
+
+  .ui-jqgrid-htable {
+    th.ui-th-column-header {
+      border-right: none;
+      padding: 0;
+    }
   }
 }
 
@@ -205,10 +287,7 @@ select[data-tabname] {
   }
 }
 
-.datepicker {
-  padding: 0;
-}
-
+/* jQuery UI State Defaults */
 .ui-state-default,
 .ui-widget-content .ui-state-default,
 .ui-widget-header .ui-state-default {
@@ -216,6 +295,7 @@ select[data-tabname] {
   background: $background-color-8;
 }
 
+/* Instruction Table */
 .InstructionTable {
   width: 100%;
   font-family: $font-family-2;
@@ -226,56 +306,15 @@ select[data-tabname] {
   }
 }
 
-.top {
-  vertical-align: top;
-}
-
-.middle {
-  vertical-align: middle;
-}
-
-.bottom {
-  vertical-align: bottom;
-}
-
-.left {
-  text-align: left;
-}
-
-.center {
-  text-align: center;
-}
-
-.right {
-  text-align: right;
-}
-
 #ScheduleInstructions {
   font-size: .8rem;
 }
 
-h1 {
-  font-size: 20pt;
-  letter-spacing: inherit;
-  margin: 1rem 0 0 0;
-  padding: 0;
-}
+/* ============================================================================
+   7. BUTTONS
+   ============================================================================ */
 
-#viewport {
-  h1 {
-    font-size: 20pt;
-    letter-spacing: inherit;
-    margin: 1rem 0 0 0;
-    padding: 0;
-  }
-
-  p {
-    margin: .25rem 0;
-    padding: 0 0 0 .5rem;
-    text-indent: -.5rem;
-  }
-}
-
+/* Primary Button */
 .btn-primary {
   color: $color-1;
   background-color: $background-color-9;
@@ -306,14 +345,7 @@ h1 {
   }
 }
 
-.red {
-  color: $color-5;
-}
-
-.bold {
-  font-weight: bold;
-}
-
+/* Expand/Collapse Buttons */
 button.collapses {
   background: url('feather-icons/dist/icons/chevrons-up.svg') no-repeat center;
   border: solid thin $border-color-6;
@@ -332,4 +364,43 @@ button.expands {
   margin: 0;
   height: 16px;
   width: 16px;
+}
+
+/* ============================================================================
+   8. UTILITY CLASSES
+   ============================================================================ */
+
+/* Vertical Alignment */
+.top {
+  vertical-align: top;
+}
+
+.middle {
+  vertical-align: middle;
+}
+
+.bottom {
+  vertical-align: bottom;
+}
+
+/* Text Alignment */
+.left {
+  text-align: left;
+}
+
+.center {
+  text-align: center;
+}
+
+.right {
+  text-align: right;
+}
+
+/* Text Utilities */
+.red {
+  color: $color-5;
+}
+
+.bold {
+  font-weight: bold;
 }
