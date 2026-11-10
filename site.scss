@@ -1,0 +1,335 @@
+﻿$font-family-1: Arial, Impact, sans-serif;
+$color-1: black;
+$border-bottom-color-1: #389398;
+$background-color-1: #D43717;
+$background-color-2: #2C3E50;
+$background-color-3: #2980B9;
+$color-2: white;
+$color-3: #ECF0F1;
+$background-color-4: #979595;
+$border-color-1: #f1f1f1;
+$background-color-5: #f1f1f1;
+$border-color-2: #F8971D;
+$color-4: #F8971D;
+$background-color-6: #F8971D;
+$background-color-7: #696969;
+$border-color-3: #7bba4b;
+$background-color-8: #328532;
+$font-family-2: monospace;
+$background-color-9: #389398;
+$border-color-4: #389398;
+$background-color-10: #9CC5CA;
+$border-color-5: #9CC5CA;
+$box-shadow-color-1: #9CC5CA;
+$color-5: red;
+$border-color-6: #888888;
+
+body {
+  font-family: $font-family-1;
+  font-size: 10pt;
+}
+
+legend {
+  font-size: 1.25rem;
+}
+
+a {
+  color: $color-1;
+  text-decoration: underline;
+  font-weight: bold;
+
+  &:hover {
+    text-decoration: none;
+    border-bottom: solid thin $border-bottom-color-1;
+  }
+}
+
+#cssmenu {
+  .has-sub {
+    ui {
+      li {
+        &:hover {
+          a {
+            background-color: $background-color-1;
+          }
+        }
+      }
+    }
+  }
+
+  > div.pull-right {
+    padding-right: 1rem;
+
+    > a {
+      padding: 0;
+    }
+  }
+}
+
+#contentPanel,
+.ui-widget {
+  font-family: $font-family-1;
+}
+
+.ui-jqgrid {
+  > .ui-jqgrid-view {
+    font-size: .75rem;
+
+    input {
+      line-height: 1rem;
+      padding: 0;
+    }
+  }
+
+  .ui-jqgrid-htable {
+    th.ui-th-column-header {
+      border-right: none;
+      padding: 0;
+    }
+  }
+}
+
+nav {
+  position: absolute;
+  top: 2.25em;
+  left: 0;
+  right: 0;
+  overflow: hidden;
+  background-color: $background-color-2;
+  display: block;
+
+  div {
+    overflow: hidden;
+    white-space: nowrap;
+  }
+
+  ul {
+    list-style-type: none;
+    margin: 0;
+    padding: .25em;
+    padding: .25rem;
+  }
+
+  li {
+    display: inline-block;
+
+    &:hover {
+      background-color: $background-color-3;
+      color: $color-2;
+    }
+  }
+
+  a {
+    display: block;
+    text-decoration: none;
+    text-align: center;
+    padding: .25rem;
+    margin: 0 .5rem;
+    color: $color-3;
+  }
+}
+
+div.nav {
+  display: block;
+  margin-top: 1rem;
+  margin-bottom: .5rem;
+  font-size: .8rem;
+
+  ul {
+    list-style-type: none;
+    margin: 0;
+    padding: .25rem;
+    background-color: $background-color-4;
+  }
+
+  li {
+    display: inline-block;
+    border: solid thin $border-color-1;
+    margin: 0;
+    padding: 0;
+
+    &:hover {
+      background-color: $background-color-5;
+      border: solid thin $border-color-2;
+      color: $color-4;
+    }
+  }
+
+  a {
+    display: block;
+    text-decoration: none;
+    text-align: center;
+    padding: .125rem .25rem;
+    color: $color-1;
+
+    &:hover {
+      border: none;
+      color: $color-1;
+    }
+  }
+}
+
+nav li.active,
+div.nav li.active {
+  background-color: $background-color-6;
+  border: solid thin $border-color-2;
+  color: $color-1;
+}
+
+select[data-tabname] {
+  background-color: $background-color-6;
+  color: $color-1;
+  margin: 0;
+  border-radius: unset;
+
+  option {
+    background-color: $background-color-7;
+    color: $color-3;
+  }
+}
+
+.ui-th-column-header {
+  table {
+    width: 100%;
+    height: 100%;
+    border-spacing: 0px;
+    line-height: 1rem;
+  }
+
+  tr {
+    &:first-of-type {
+      td {
+        border-top: none;
+      }
+    }
+  }
+}
+
+.datepicker {
+  padding: 0;
+}
+
+.ui-state-default,
+.ui-widget-content .ui-state-default,
+.ui-widget-header .ui-state-default {
+  border: 1px solid $border-color-3;
+  background: $background-color-8;
+}
+
+.InstructionTable {
+  width: 100%;
+  font-family: $font-family-2;
+
+  td {
+    padding: .5rem 0;
+    vertical-align: top;
+  }
+}
+
+.top {
+  vertical-align: top;
+}
+
+.middle {
+  vertical-align: middle;
+}
+
+.bottom {
+  vertical-align: bottom;
+}
+
+.left {
+  text-align: left;
+}
+
+.center {
+  text-align: center;
+}
+
+.right {
+  text-align: right;
+}
+
+#ScheduleInstructions {
+  font-size: .8rem;
+}
+
+h1 {
+  font-size: 20pt;
+  letter-spacing: inherit;
+  margin: 1rem 0 0 0;
+  padding: 0;
+}
+
+#viewport {
+  h1 {
+    font-size: 20pt;
+    letter-spacing: inherit;
+    margin: 1rem 0 0 0;
+    padding: 0;
+  }
+
+  p {
+    margin: .25rem 0;
+    padding: 0 0 0 .5rem;
+    text-indent: -.5rem;
+  }
+}
+
+.btn-primary {
+  color: $color-1;
+  background-color: $background-color-9;
+  border-color: $border-color-4;
+
+  &:hover,
+  &:active {
+    color: $color-1;
+    background-color: $background-color-10;
+    border-color: $border-color-5;
+  }
+
+  &:not(:disabled):not(.disabled):active {
+    color: $color-1;
+    background-color: $background-color-10;
+    border-color: $border-color-5;
+  }
+
+  &:focus {
+    color: $color-1;
+    background-color: $background-color-9;
+    border-color: $border-color-4;
+    box-shadow: 0 0 0 0.2rem $box-shadow-color-1;
+  }
+
+  &:not(:disabled):not(.disabled):active:focus {
+    box-shadow: 0 0 0 0.2rem $box-shadow-color-1;
+  }
+}
+
+.red {
+  color: $color-5;
+}
+
+.bold {
+  font-weight: bold;
+}
+
+button.collapses {
+  background: url('feather-icons/dist/icons/chevrons-up.svg') no-repeat center;
+  border: solid thin $border-color-6;
+  border-radius: 10%;
+  padding: 4px;
+  margin: 0;
+  height: 16px;
+  width: 16px;
+}
+
+button.expands {
+  background: url('feather-icons/dist/icons/chevrons-down.svg') no-repeat center;
+  border: solid thin $border-color-6;
+  border-radius: 10%;
+  padding: 4px;
+  margin: 0;
+  height: 16px;
+  width: 16px;
+}
