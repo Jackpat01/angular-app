@@ -51,19 +51,6 @@
           </div>
         </div>
 
-        <!-- CAPTCHA section - currently hidden -->
-        <div class="mb-3" *ngIf="showCaptcha">
-          <label for="captcha" class="form-label">CAPTCHA</label>
-          <input
-            type="text"
-            class="form-control"
-            id="captcha"
-            formControlName="captcha"
-            placeholder="Enter the text you see above"
-            [disabled]="isLoading"
-          />
-        </div>
-
         <div class="d-grid gap-2">
           <button 
             type="submit" 

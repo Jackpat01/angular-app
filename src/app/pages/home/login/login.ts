@@ -3,7 +3,7 @@ import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { TitleService } from '../../../services/title';
 import { UserService } from '../../../services/user';
-import {AppConfigService} from '../../../services/app-config';
+import { AppConfigService } from '../../../services/app-config';
 
 @Component({
   imports: [CommonModule, ReactiveFormsModule],
@@ -16,7 +16,6 @@ export class Login implements OnInit {
   submitted = false;
   loginError: string | null = null;
   isLoading = false;
-  showCaptcha = false;
   appTitle = 'OHFI';
 
   constructor(
@@ -27,23 +26,15 @@ export class Login implements OnInit {
   ) {}
 
   ngOnInit(): void {
-    this.titleService.setTitle(this.appConfigService.getConfig().WebPortalTitle +' - Home - Login');
+    this.titleService.setTitle(this.appConfigService.getConfig().WebPortalTitle + ' - Home - Login');
     this.initializeForm();
-    this.checkCaptchaRequirement();
   }
 
   private initializeForm(): void {
     this.loginForm = this.formBuilder.group({
       email: ['', [Validators.required, Validators.email]],
       password: ['', [Validators.required, Validators.minLength(6)]],
-      captcha: [''],
     });
-  }
-
-  private checkCaptchaRequirement(): void {
-    // TODO: Check with backend if CAPTCHA is required
-    // Based on PortalConfiguration.RemoveCaptchaAfterFailedReset
-    this.showCaptcha = false;
   }
 
   get f() {
