@@ -1,8 +1,9 @@
 import { Component, OnInit } from '@angular/core';
+import { RouterOutlet } from '@angular/router';
 import { TitleService } from '../../services/title';
 
 @Component({
-  imports: [],
+  imports: [RouterOutlet],
   selector: 'app-home',
   styleUrl: './home.scss',
   templateUrl: './home.html',

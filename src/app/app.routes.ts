@@ -16,9 +16,14 @@ export const routes: Routes = [
     path: '',
     component: PublicLayout,
     children: [
-      { path: '', component: Home },
-      { path: 'login', component: Login },
-      { path: 'error', component: Error },
+      {
+        path: '',
+        component: Home,
+        children: [
+          { path: 'login', component: Login },
+          { path: 'error', component: Error }
+        ]
+      },
       { path: 'form', component: SampleForm }
     ]
   },
