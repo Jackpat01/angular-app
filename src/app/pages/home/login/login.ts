@@ -15,6 +15,9 @@ export class Login implements OnInit {
   loginForm!: FormGroup;
   submitted = false;
   loginError: string | null = null;
+  isLoading = false;
+  showCaptcha = false;
+  appTitle = 'OHFI';
 
   constructor(
     private formBuilder: FormBuilder,
@@ -26,14 +29,21 @@ export class Login implements OnInit {
   ngOnInit(): void {
     this.titleService.setTitle(this.appConfigService.getConfig().WebPortalTitle +' - Home - Login');
     this.initializeForm();
+    this.checkCaptchaRequirement();
   }
 
   private initializeForm(): void {
     this.loginForm = this.formBuilder.group({
       email: ['', [Validators.required, Validators.email]],
       password: ['', [Validators.required, Validators.minLength(6)]],
-      rememberMe: [false],
+      captcha: [''],
     });
+  }
+
+  private checkCaptchaRequirement(): void {
+    // TODO: Check with backend if CAPTCHA is required
+    // Based on PortalConfiguration.RemoveCaptchaAfterFailedReset
+    this.showCaptcha = false;
   }
 
   get f() {
@@ -48,6 +58,7 @@ export class Login implements OnInit {
       return;
     }
 
+    this.isLoading = true;
     const { email, password } = this.loginForm.value;
     const credentials = { email, password };
 
@@ -55,6 +66,7 @@ export class Login implements OnInit {
       next: (response) => {
         this.userService.setUser(response.user);
         this.userService.setAuthenticated(true);
+        this.isLoading = false;
         // Redirect based on user role
         if (response.user.role === 'Administrator') {
           window.location.href = '/admin';
@@ -63,8 +75,13 @@ export class Login implements OnInit {
         }
       },
       error: (error) => {
+        this.isLoading = false;
         this.loginError = error.message || 'Login failed. Please try again.';
       }
     });
+  }
+
+  dismissError(): void {
+    this.loginError = null;
   }
 }
