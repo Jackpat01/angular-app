@@ -1,5 +1,6 @@
 import { Injectable } from '@angular/core';
 import { BehaviorSubject, Observable } from 'rxjs';
+import { ApiService } from './api';
 
 export interface AppConfig {
   appVersion: string;
@@ -20,6 +21,26 @@ export class AppConfigService {
   });
 
   config$ = this.configSubject.asObservable();
+
+  constructor(private apiService: ApiService) {
+    this.loadConfig();
+  }
+
+  /**
+   * Load configuration from API
+   * Endpoint: GET /api/config
+   */
+  private loadConfig(): void {
+    this.apiService.get<AppConfig>('/config').subscribe({
+      next: (config) => {
+        this.configSubject.next(config);
+      },
+      error: (error) => {
+        console.error('Failed to load config from API, using defaults', error);
+        // Keep using default values on error
+      }
+    });
+  }
 
   getConfig(): AppConfig {
     return this.configSubject.value;

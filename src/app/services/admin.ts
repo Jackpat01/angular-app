@@ -1,5 +1,6 @@
 import { Injectable } from '@angular/core';
 import { BehaviorSubject, Observable } from 'rxjs';
+import { ApiService } from './api';
 
 export interface NavItem {
   label: string;
@@ -21,6 +22,26 @@ export class AdminService {
 
   menuItems$ = this.menuItemsSubject.asObservable();
 
+  constructor(private apiService: ApiService) {
+    this.loadMenuItems();
+  }
+
+  /**
+   * Load menu items from API
+   * Endpoint: GET /api/admin/menu
+   */
+  private loadMenuItems(): void {
+    this.apiService.get<NavItem[]>('/admin/menu').subscribe({
+      next: (items) => {
+        this.menuItemsSubject.next(items);
+      },
+      error: (error) => {
+        console.error('Failed to load menu items from API, using defaults', error);
+        // Keep using default values on error
+      }
+    });
+  }
+
   getMenuItems(): NavItem[] {
     return this.menuItemsSubject.value;
   }
@@ -35,5 +56,53 @@ export class AdminService {
       item.route === route ? { ...item, badge } : item
     );
     this.menuItemsSubject.next(updated);
+  }
+
+  /**
+   * Get user statistics for admin dashboard
+   * Endpoint: GET /api/admin/stats
+   */
+  getStatistics(): Observable<any> {
+    return this.apiService.get('/admin/stats');
+  }
+
+  /**
+   * Get all users
+   * Endpoint: GET /api/admin/users
+   */
+  getUsers(): Observable<any[]> {
+    return this.apiService.get<any[]>('/admin/users');
+  }
+
+  /**
+   * Get all reports
+   * Endpoint: GET /api/admin/reports
+   */
+  getReports(): Observable<any[]> {
+    return this.apiService.get<any[]>('/admin/reports');
+  }
+
+  /**
+   * Create a report
+   * Endpoint: POST /api/admin/reports
+   */
+  createReport(reportData: any): Observable<any> {
+    return this.apiService.post('/admin/reports', reportData);
+  }
+
+  /**
+   * Update a report
+   * Endpoint: PUT /api/admin/reports/:id
+   */
+  updateReport(id: string, reportData: any): Observable<any> {
+    return this.apiService.put(`/admin/reports/${id}`, reportData);
+  }
+
+  /**
+   * Delete a report
+   * Endpoint: DELETE /api/admin/reports/:id
+   */
+  deleteReport(id: string): Observable<any> {
+    return this.apiService.delete(`/admin/reports/${id}`);
   }
 }

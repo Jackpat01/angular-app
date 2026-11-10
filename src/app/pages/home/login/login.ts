@@ -47,27 +47,22 @@ export class Login implements OnInit {
     }
 
     const { email, password } = this.loginForm.value;
+    const credentials = { email, password };
 
-    if (email === 'admin@example.com' && password === 'admin123') {
-      this.userService.setUser({
-        email: email,
-        role: 'Administrator',
-        providerType: 'Admin',
-        projectName: 'Admin Portal',
-        isAuthenticated: true,
-      });
-      window.location.href = '/admin';
-    } else if (email === 'user@example.com' && password === 'user123') {
-      this.userService.setUser({
-        email: email,
-        role: 'User',
-        providerType: 'Standard',
-        projectName: 'User Dashboard',
-        isAuthenticated: true,
-      });
-      window.location.href = '/user-dashboard';
-    } else {
-      this.loginError = 'Invalid email or password. Try admin@example.com/admin123 or user@example.com/user123';
-    }
+    this.userService.login(credentials).subscribe({
+      next: (response) => {
+        this.userService.setUser(response.user);
+        this.userService.setAuthenticated(true);
+        // Redirect based on user role
+        if (response.user.role === 'Administrator') {
+          window.location.href = '/admin';
+        } else {
+          window.location.href = '/user-dashboard';
+        }
+      },
+      error: (error) => {
+        this.loginError = error.message || 'Login failed. Please try again.';
+      }
+    });
   }
 }

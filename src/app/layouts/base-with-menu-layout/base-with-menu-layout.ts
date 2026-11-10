@@ -73,8 +73,17 @@ export class BaseWithMenuLayout implements OnInit {
 
   logout(): void {
     console.log('Logging out...');
-    this.userService.logout();
-    window.location.href = '/';
+    this.userService.logout().subscribe({
+      next: () => {
+        this.userService.logoutLocal();
+        window.location.href = '/';
+      },
+      error: (error) => {
+        console.error('Logout failed:', error);
+        this.userService.logoutLocal();
+        window.location.href = '/';
+      }
+    });
   }
 }
 
