@@ -5,6 +5,7 @@ import { LogoBrandingComponent } from '../../shared/logo-branding/logo-branding'
 import { ContentPanelComponent } from '../../shared/content-panel/content-panel';
 import { FooterSectionComponent } from '../../shared/footer-section/footer-section';
 import { TitleService } from '../../services/title';
+import { AppConfigService, AppConfig } from '../../services/app-config';
 
 @Component({
   imports: [CommonModule, HeaderBarComponent, LogoBrandingComponent, ContentPanelComponent, FooterSectionComponent],
@@ -13,13 +14,25 @@ import { TitleService } from '../../services/title';
   templateUrl: './public-layout.html',
 })
 export class PublicLayout implements OnInit {
-  appVersion = '1.0.0';
-  currentYear = new Date().getFullYear();
+  appConfig: AppConfig | null = null;
 
-  constructor(private titleService: TitleService) {}
+  constructor(
+    private titleService: TitleService,
+    private appConfigService: AppConfigService
+  ) {}
 
   ngOnInit(): void {
     this.titleService.setTitle('Welcome');
+    this.appConfig = this.appConfigService.getConfig();
+  }
+
+  get appVersion(): string {
+    return this.appConfig?.appVersion || '';
+  }
+
+  get currentYear(): number {
+    return this.appConfig?.currentYear || new Date().getFullYear();
   }
 }
+
 

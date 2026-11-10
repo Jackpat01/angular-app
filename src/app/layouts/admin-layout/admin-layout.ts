@@ -8,6 +8,9 @@ import { HelpModalComponent } from '../../shared/help-modal/help-modal';
 import { LoadingOverlayComponent } from '../../shared/loading-overlay/loading-overlay';
 import { AdminNavigation, NavItem } from '../../shared/admin-navigation/admin-navigation';
 import { TitleService } from '../../services/title';
+import { AppConfigService, AppConfig } from '../../services/app-config';
+import { UserService, UserInfo } from '../../services/user';
+import { AdminService } from '../../services/admin';
 
 @Component({
   imports: [
@@ -25,30 +28,54 @@ import { TitleService } from '../../services/title';
   templateUrl: './admin-layout.html',
 })
 export class AdminLayout implements OnInit {
-  appVersion = '1.0.0';
-  currentYear = new Date().getFullYear();
-  userEmail = 'admin@example.com';
-  userRole = 'Administrator';
-  providerType = 'Admin';
-  projectName = 'Main Project';
+  appConfig: AppConfig | null = null;
+  userInfo: UserInfo | null = null;
+  menuItems: NavItem[] = [];
   isLoading = false;
 
-  menuItems: NavItem[] = [
-    { label: 'Dashboard', route: '/admin/dashboard' },
-    { label: 'Users', route: '/admin/users' },
-    { label: 'Reports', route: '/admin/reports', badge: 3 },
-    { label: 'Settings', route: '/admin/settings' },
-  ];
-
-  constructor(private titleService: TitleService) {}
+  constructor(
+    private titleService: TitleService,
+    private appConfigService: AppConfigService,
+    private userService: UserService,
+    private adminService: AdminService
+  ) {}
 
   ngOnInit(): void {
     this.titleService.setTitle('Administration');
+    this.appConfig = this.appConfigService.getConfig();
+    this.userInfo = this.userService.getUser();
+    this.menuItems = this.adminService.getMenuItems();
+  }
+
+  get appVersion(): string {
+    return this.appConfig?.appVersion || '';
+  }
+
+  get currentYear(): number {
+    return this.appConfig?.currentYear || new Date().getFullYear();
+  }
+
+  get userEmail(): string {
+    return this.userInfo?.email || '';
+  }
+
+  get userRole(): string {
+    return this.userInfo?.role || '';
+  }
+
+  get providerType(): string {
+    return this.userInfo?.providerType || '';
+  }
+
+  get projectName(): string {
+    return this.userInfo?.projectName || '';
   }
 
   logout(): void {
     console.log('Logging out...');
+    this.userService.logout();
     window.location.href = '/';
   }
 }
+
 
