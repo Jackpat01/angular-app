@@ -1,7 +1,7 @@
 import { Routes } from '@angular/router';
 import { PublicLayout } from './layouts/public-layout/public-layout';
 import { DashboardLayout } from './layouts/dashboard-layout/dashboard-layout';
-import { AdminLayout } from './layouts/admin-layout/admin-layout';
+import { BaseWithMenuLayout } from './layouts/base-with-menu-layout/base-with-menu-layout';
 import { Home } from './pages/home/home';
 import { Login } from './pages/home/login/login';
 import { ErrorPage } from './pages/home/error/error';
@@ -36,7 +36,7 @@ export const routes: Routes = [
   },
   {
     path: 'admin',
-    component: AdminLayout,
+    component: BaseWithMenuLayout,
     children: [
       { path: '', component: AdminDashboard },
       { path: 'dashboard', component: AdminDashboard },

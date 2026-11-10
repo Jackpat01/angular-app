@@ -23,11 +23,11 @@ import { AdminService } from '../../services/admin';
     LoadingOverlayComponent,
     AdminNavigation,
   ],
-  selector: 'app-admin-layout',
-  styleUrl: './admin-layout.scss',
-  templateUrl: './admin-layout.html',
+  selector: 'app-base-with-menu-layout',
+  styleUrl: './base-with-menu-layout.scss',
+  templateUrl: './base-with-menu-layout.html',
 })
-export class AdminLayout implements OnInit {
+export class BaseWithMenuLayout implements OnInit {
   appConfig: AppConfig | null = null;
   userInfo: UserInfo | null = null;
   menuItems: NavItem[] = [];
@@ -77,5 +77,4 @@ export class AdminLayout implements OnInit {
     window.location.href = '/';
   }
 }
-
 
