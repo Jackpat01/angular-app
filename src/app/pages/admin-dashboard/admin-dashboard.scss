@@ -1,0 +1,46 @@
+.admin-dashboard {
+  .stat-card {
+    border-left: 4px solid #74c141;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+
+    &:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    .stat-icon {
+      font-size: 32px;
+      color: #74c141;
+      opacity: 0.3;
+    }
+
+    h3 {
+      color: #333;
+      font-weight: 600;
+    }
+  }
+
+  .table {
+    margin-bottom: 0;
+
+    thead th {
+      border-bottom: 2px solid #dee2e6;
+      font-weight: 600;
+      color: #333;
+    }
+
+    tbody tr {
+      &:hover {
+        background-color: #f9f9f9;
+      }
+
+      td {
+        vertical-align: middle;
+      }
+    }
+  }
+
+  .badge {
+    padding: 6px 12px;
+  }
+}

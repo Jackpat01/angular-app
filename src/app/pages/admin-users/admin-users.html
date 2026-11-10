@@ -1,0 +1,127 @@
+<div class="admin-users">
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <h4>User Management</h4>
+    <button class="btn btn-primary" (click)="toggleForm()">
+      {{ showForm ? 'Cancel' : 'Add User' }}
+    </button>
+  </div>
+
+  <!-- Add User Form -->
+  <div class="card mb-4" *ngIf="showForm">
+    <div class="card-header bg-light">
+      <h5 class="mb-0">Add New User</h5>
+    </div>
+    <div class="card-body">
+      <form [formGroup]="userForm" (ngSubmit)="addUser()">
+        <div class="row">
+          <div class="col-md-6 mb-3">
+            <label for="email" class="form-label">Email</label>
+            <input 
+              type="email" 
+              class="form-control" 
+              id="email"
+              formControlName="email"
+              [class.is-invalid]="userForm.get('email')?.invalid && userForm.get('email')?.touched">
+            <div class="invalid-feedback" *ngIf="userForm.get('email')?.invalid && userForm.get('email')?.touched">
+              Valid email is required
+            </div>
+          </div>
+          <div class="col-md-6 mb-3">
+            <label for="name" class="form-label">Name</label>
+            <input 
+              type="text" 
+              class="form-control" 
+              id="name"
+              formControlName="name"
+              [class.is-invalid]="userForm.get('name')?.invalid && userForm.get('name')?.touched">
+            <div class="invalid-feedback" *ngIf="userForm.get('name')?.invalid && userForm.get('name')?.touched">
+              Name is required (min 2 characters)
+            </div>
+          </div>
+        </div>
+        <div class="mb-3">
+          <label for="role" class="form-label">Role</label>
+          <select 
+            class="form-select" 
+            id="role"
+            formControlName="role">
+            <option value="User">User</option>
+            <option value="Manager">Manager</option>
+            <option value="Admin">Admin</option>
+          </select>
+        </div>
+        <button type="submit" class="btn btn-success" [disabled]="!userForm.valid">
+          Add User
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Search Bar -->
+  <div class="mb-3">
+    <input 
+      type="text" 
+      class="form-control" 
+      placeholder="Search by email or name..."
+      [(ngModel)]="searchTerm"
+      (input)="filterUsers()">
+  </div>
+
+  <!-- Users Table -->
+  <div class="card">
+    <div class="card-header bg-light">
+      <h5 class="mb-0">Users ({{ filteredUsers.length }} found)</h5>
+    </div>
+    <div class="card-body">
+      <div class="table-responsive">
+        <table class="table table-hover">
+          <thead class="table-light">
+            <tr>
+              <th>Email</th>
+              <th>Name</th>
+              <th>Role</th>
+              <th>Status</th>
+              <th>Join Date</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let user of filteredUsers">
+              <td>{{ user.email }}</td>
+              <td>{{ user.name }}</td>
+              <td>
+                <span class="badge bg-info">{{ user.role }}</span>
+              </td>
+              <td>
+                <span 
+                  class="badge" 
+                  [class.bg-success]="user.status === 'active'"
+                  [class.bg-danger]="user.status === 'inactive'">
+                  {{ user.status | uppercase }}
+                </span>
+              </td>
+              <td>{{ user.joinDate }}</td>
+              <td>
+                <button 
+                  class="btn btn-sm btn-warning me-2"
+                  (click)="toggleUserStatus(user.id)">
+                  {{ user.status === 'active' ? 'Deactivate' : 'Activate' }}
+                </button>
+                <button 
+                  class="btn btn-sm btn-danger"
+                  (click)="deleteUser(user.id)">
+                  Delete
+                </button>
+              </td>
+            </tr>
+            <tr *ngIf="filteredUsers.length === 0">
+              <td colspan="6" class="text-center text-muted py-4">
+                No users found
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>

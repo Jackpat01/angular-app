@@ -5,6 +5,8 @@ import { AdminLayout } from './layouts/admin-layout/admin-layout';
 import { Home } from './pages/home/home';
 import { UserDashboard } from './pages/user-dashboard/user-dashboard';
 import { AdminDashboard } from './pages/admin-dashboard/admin-dashboard';
+import { AdminUsersComponent } from './pages/admin-users/admin-users';
+import { AdminReportsComponent } from './pages/admin-reports/admin-reports';
 import { SampleForm } from './pages/sample-form/sample-form';
 
 export const routes: Routes = [
@@ -28,7 +30,9 @@ export const routes: Routes = [
     component: AdminLayout,
     children: [
       { path: '', component: AdminDashboard },
-      { path: 'dashboard', component: AdminDashboard }
+      { path: 'dashboard', component: AdminDashboard },
+      { path: 'users', component: AdminUsersComponent },
+      { path: 'reports', component: AdminReportsComponent }
     ]
   }
 ];
