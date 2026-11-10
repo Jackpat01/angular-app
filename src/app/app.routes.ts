@@ -1,5 +1,5 @@
 import { Routes } from '@angular/router';
-import { PublicLayout } from './layouts/public-layout/public-layout';
+import { BaseLayout } from './layouts/base-layout/base-layout';
 import { BaseWithProjectLayout } from './layouts/base-with-project-layout/base-with-project-layout';
 import { BaseWithMenuLayout } from './layouts/base-with-menu-layout/base-with-menu-layout';
 import { Home } from './pages/home/home';
@@ -14,7 +14,7 @@ import { SampleForm } from './pages/sample-form/sample-form';
 export const routes: Routes = [
   {
     path: '',
-    component: PublicLayout,
+    component: BaseLayout,
     children: [
       {
         path: '',

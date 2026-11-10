@@ -9,11 +9,11 @@ import { AppConfigService, AppConfig } from '../../services/app-config';
 
 @Component({
   imports: [CommonModule, HeaderBarComponent, LogoBrandingComponent, ContentPanelComponent, FooterSectionComponent],
-  selector: 'app-public-layout',
-  styleUrl: './public-layout.scss',
-  templateUrl: './public-layout.html',
+  selector: 'app-base-layout',
+  styleUrl: './base-layout.scss',
+  templateUrl: './base-layout.html',
 })
-export class PublicLayout implements OnInit {
+export class BaseLayout implements OnInit {
   appConfig: AppConfig | null = null;
 
   constructor(
@@ -34,5 +34,4 @@ export class PublicLayout implements OnInit {
     return this.appConfig?.currentYear || new Date().getFullYear();
   }
 }
-
 
