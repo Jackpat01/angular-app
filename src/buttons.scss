@@ -1,6 +1,6 @@
 /**
  * BUTTONS.SCSS - REORGANIZED & CONSOLIDATED
- * 
+ *
  * Structure:
  * 1. DESIGN TOKENS (SCSS Variables)
  * 2. BUTTON BASE MIXIN
@@ -48,45 +48,42 @@ $background-color-20: #66BC29;   // M&S Green
 @mixin btn-base {
   text-decoration: none;
   background-image: none;
-  -ms-text-shadow: 0 -1px 0 #000;
-  text-shadow: 0 -1px 0 $text-shadow-color-1;
   text-shadow: 0 -1px 0 $text-shadow-color-2;
 }
 
-@mixin btn-state($bg-color, $hover-bg-color: null, $text-color: $color-2) {
+@mixin btn-state($bg-color, $hover-bg-color: $bg-color, $text-color: $color-2) {
   background-color: $bg-color;
   color: $text-color;
+
   @include btn-base;
 
   &:hover {
-    background-color: if($hover-bg-color, $hover-bg-color, $bg-color);
+    background-color: $hover-bg-color; // Use hover-bg-color directly
     color: $text-color;
     font-weight: bold;
-    background-image: none;
   }
 
   &:visited {
     background-color: $bg-color;
     color: $text-color;
-    background-image: none;
   }
 
   &:focus,
   &:active,
   &.active {
     color: $text-color !important;
-    background-color: if($hover-bg-color, $hover-bg-color, $bg-color);
-    *background-color: if($hover-bg-color, $hover-bg-color, $bg-color);
+    background-color: $hover-bg-color; // Use hover-bg-color directly
   }
 
   &.disabled,
   &[disabled] {
     color: $text-color !important;
-    background-color: if($hover-bg-color, $hover-bg-color, $bg-color);
-    *background-color: if($hover-bg-color, $hover-bg-color, $bg-color);
+    background-color: $hover-bg-color; // Use hover-bg-color directly
+    opacity: 0.6; // Add modern way to indicate the disabled state visually
+    pointer-events: none; // Disable interaction
+    cursor: not-allowed; // Change the cursor to indicate disabled state
   }
 }
-
 /* ============================================================================
    3. BUTTON VARIANTS
    ============================================================================ */
@@ -166,40 +163,30 @@ $background-color-20: #66BC29;   // M&S Green
 .btn.btn-green {
   background-color: $background-color-19;
   color: $color-1;
+
   @include btn-base;
 
   &:hover {
     background-color: $background-color-19;
     color: $color-1;
     font-weight: bold;
-    background-image: none;
   }
 
   &:visited {
     background-color: $background-color-19;
     color: $color-1;
-    background-image: none;
   }
 
   &.disabled,
   &[disabled] {
-    cursor: default;
+    cursor: not-allowed; // Modern equivalent of 'default' for disabled items
     background-color: $background-color-16;
-    background-image: none;
-    -ms-opacity: 0.65;
-    opacity: 0.65;
-    -moz-filter: alpha(opacity=65);
-    -o-filter: alpha(opacity=65);
-    filter: alpha(opacity=65);
-    -webkit-box-shadow: none;
-    -moz-box-shadow: none;
-    -ms-box-shadow: none;
-    box-shadow: none;
+    opacity: 0.65; // Modern opacity handling
+    pointer-events: none; // Disable interaction for better accessibility
+    box-shadow: none; // Unified property for all browsers
     color: $color-1 !important;
-    *background-color: #999;
   }
 }
-
 /* M&S Green Button */
 .btn.btn-MSGreen {
   background-color: $background-color-20;

@@ -7,6 +7,7 @@ export interface AppConfig {
   currentYear: number;
   appName: string;
   supportEmail: string;
+  WebPortalTitle:string;
 }
 
 @Injectable({
@@ -17,7 +18,7 @@ export class AppConfigService {
     appVersion: '1.0.0',
     currentYear: new Date().getFullYear(),
     appName: 'Web Portal',
-    supportEmail: 'support@example.com',
+    supportEmail: 'support@example.com',WebPortalTitle:'test'
   });
 
   config$ = this.configSubject.asObservable();

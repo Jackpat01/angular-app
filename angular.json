@@ -27,6 +27,11 @@
               {
                 "glob": "**/*",
                 "input": "public"
+              },
+              {
+                "glob": "**/*.svg",
+                "input": "./node_modules/feather-icons/dist/icons/",
+                "output": "./assets/feather-icons/"
               }
             ],
             "styles": [

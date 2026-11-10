@@ -58,14 +58,15 @@ $box-shadow-color-4: #fff3cd;
 *,
 *::before,
 *::after {
-  box-sizing: border-box;
+  box-sizing: content-box;
 }
 
 body {
   font-family: $font-family-1;
   font-size: 14px;
-  line-height: 1.43;
+  line-height: 1.5;
   color: $color-1;
+  text-align: left;
   background-color: $background-color-1 !important;
 
   .subnav {
@@ -160,6 +161,33 @@ body {
         color: $color-13;
       }
     }
+  }
+
+  .footer_new {
+    padding-top: 3px;
+    padding-bottom: 3px;
+    min-height: 40px;
+    width: 1320px;
+    border-top: dashed 1px #ccc;
+    margin-left: auto;
+    margin-right: auto;
+    background-color: #74c141;
+    font-weight: 400;
+  }
+
+  .footer_new-cost-report {
+    padding-top: 3px;
+    padding-bottom: 3px;
+    min-height: 40px;
+    border-top: dashed 1px #ccc;
+    margin-left: auto;
+    margin-right: auto;
+    background-color: #74c141;
+  }
+
+  .footer_text {
+    color: #000;
+    font-size: 11px;
   }
 
   .content {
