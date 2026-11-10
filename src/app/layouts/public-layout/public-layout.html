@@ -1,25 +1,14 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Web Portal</title>
-  <link rel='icon' href='assets/favicon.ico' type='image/x-icon'>
-</head>
-<body>
-  <div class="page-layout">
-    <app-header-bar></app-header-bar>
-    <app-logo-branding [showUserInfo]="false"></app-logo-branding>
+<div class="page-layout">
+  <app-header-bar></app-header-bar>
+  <app-logo-branding [showUserInfo]="false"></app-logo-branding>
+</div>
+
+<app-content-panel></app-content-panel>
+
+<app-footer-section [appVersion]="appVersion" [currentYear]="currentYear"></app-footer-section>
+
+<noscript>
+  <div>
+    <h2>This site requires JavaScript</h2>
   </div>
-
-  <app-content-panel></app-content-panel>
-
-  <app-footer-section [appVersion]="appVersion" [currentYear]="currentYear"></app-footer-section>
-
-  <noscript>
-    <div>
-      <h2>This site requires JavaScript</h2>
-    </div>
-  </noscript>
-</body>
-</html>
+</noscript>
