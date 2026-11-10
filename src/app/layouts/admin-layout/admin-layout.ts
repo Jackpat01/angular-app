@@ -1,23 +1,37 @@
 import { Component, OnInit } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
 import { CommonModule } from '@angular/common';
-import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
+import { HeaderBarComponent } from '../../shared/header-bar/header-bar';
+import { LogoBrandingComponent } from '../../shared/logo-branding/logo-branding';
+import { FooterSectionComponent } from '../../shared/footer-section/footer-section';
+import { HelpModalComponent } from '../../shared/help-modal/help-modal';
+import { LoadingOverlayComponent } from '../../shared/loading-overlay/loading-overlay';
 import { AdminNavigation, NavItem } from '../../shared/admin-navigation/admin-navigation';
 import { TitleService } from '../../services/title';
 
 @Component({
-  imports: [CommonModule, RouterOutlet, AdminNavigation],
+  imports: [
+    CommonModule,
+    RouterOutlet,
+    HeaderBarComponent,
+    LogoBrandingComponent,
+    FooterSectionComponent,
+    HelpModalComponent,
+    LoadingOverlayComponent,
+    AdminNavigation,
+  ],
   selector: 'app-admin-layout',
   styleUrl: './admin-layout.scss',
   templateUrl: './admin-layout.html',
 })
 export class AdminLayout implements OnInit {
   appVersion = '1.0.0';
+  currentYear = new Date().getFullYear();
   userEmail = 'admin@example.com';
   userRole = 'Administrator';
   providerType = 'Admin';
-  currentYear = new Date().getFullYear();
   projectName = 'Main Project';
+  isLoading = false;
 
   menuItems: NavItem[] = [
     { label: 'Dashboard', route: '/admin/dashboard' },
@@ -26,17 +40,10 @@ export class AdminLayout implements OnInit {
     { label: 'Settings', route: '/admin/settings' },
   ];
 
-  constructor(
-    private titleService: TitleService,
-    private modalService: NgbModal
-  ) {}
+  constructor(private titleService: TitleService) {}
 
   ngOnInit(): void {
     this.titleService.setTitle('Administration');
-  }
-
-  showHelpModal(): void {
-    alert('Please contact Customer Support at support@example.com');
   }
 
   logout(): void {

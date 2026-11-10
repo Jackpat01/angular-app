@@ -1,0 +1,17 @@
+<div class="logo-branding" style="border-bottom: 1px dashed #ccc; position: relative;">
+  <img src="assets/logo.png" width="500" height="80" alt="MSLC Logo">
+  <div class="user-info-section" *ngIf="showUserInfo">
+    <div id="dvApplicationName">
+      <b>{{ projectName }}</b>
+    </div>
+    <div id="dvEmail">
+      <b>Email: {{ userEmail }}</b>
+    </div>
+    <div id="dvRole">
+      <b>Role: </b><span id="dvRoleName"><b>{{ userRole }}</b></span>
+    </div>
+    <div id="dvProvType">
+      <b>Provider Type: </b><span id="dvProvType"><b>{{ providerType }}</b></span>
+    </div>
+  </div>
+</div>

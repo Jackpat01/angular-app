@@ -1,33 +1,40 @@
 import { Component, OnInit } from '@angular/core';
-import { RouterOutlet } from '@angular/router';
 import { CommonModule } from '@angular/common';
-import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
+import { HeaderBarComponent } from '../../shared/header-bar/header-bar';
+import { LogoBrandingComponent } from '../../shared/logo-branding/logo-branding';
+import { ContentPanelComponent } from '../../shared/content-panel/content-panel';
+import { FooterSectionComponent } from '../../shared/footer-section/footer-section';
+import { HelpModalComponent } from '../../shared/help-modal/help-modal';
+import { LoadingOverlayComponent } from '../../shared/loading-overlay/loading-overlay';
 import { TitleService } from '../../services/title';
 
 @Component({
-  imports: [CommonModule, RouterOutlet],
+  imports: [
+    CommonModule,
+    HeaderBarComponent,
+    LogoBrandingComponent,
+    ContentPanelComponent,
+    FooterSectionComponent,
+    HelpModalComponent,
+    LoadingOverlayComponent,
+  ],
   selector: 'app-dashboard-layout',
   styleUrl: './dashboard-layout.scss',
   templateUrl: './dashboard-layout.html',
 })
 export class DashboardLayout implements OnInit {
   appVersion = '1.0.0';
+  currentYear = new Date().getFullYear();
   userEmail = 'user@example.com';
   userRole = 'Administrator';
   providerType = 'Provider';
-  currentYear = new Date().getFullYear();
+  projectName = 'Dashboard';
+  isLoading = false;
 
-  constructor(
-    private titleService: TitleService,
-    private modalService: NgbModal
-  ) {}
+  constructor(private titleService: TitleService) {}
 
   ngOnInit(): void {
     this.titleService.setTitle('Dashboard');
-  }
-
-  showHelpModal(): void {
-    alert('Please contact Customer Support at support@example.com');
   }
 
   logout(): void {

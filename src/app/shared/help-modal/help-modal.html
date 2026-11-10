@@ -1,0 +1,22 @@
+<div id="window_HelpNumber" class="modal fade" role="dialog">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3>Need Assistance?</h3>
+        <button type="button" class="close" data-bs-dismiss="modal">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div>
+          Please contact Customer Support at {{ supportEmail }}
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-success" data-bs-dismiss="modal">Close</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<a (click)="showHelpModal()" style="cursor: pointer; padding-right: 10px;">
+  <img style="border-radius: 8px;" src="assets/help.png" alt="Need Help?" title="Need Help?" width="40" height="40" />
+</a>

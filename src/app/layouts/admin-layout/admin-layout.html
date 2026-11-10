@@ -1,52 +1,18 @@
-<div class="overlay" id="loadingOverlay">
-  <div class="overlay-inset"></div>
-  <div class="overlay-banner">
-    <p></p>
-    <img src="assets/loading.gif" alt="Loading" />
-  </div>
-</div>
+<app-loading-overlay [isLoading]="isLoading"></app-loading-overlay>
 
 <input id="logoutURL" type="hidden" value="/logout" />
 <input id="hdnHeartBeat" type="hidden" value="/api/heartbeat" />
 
-<div id="window_HelpNumber" class="modal fade" role="dialog">
-  <div class="modal-dialog" role="document">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h3>Need Assistance?</h3>
-        <button type="button" class="close" data-bs-dismiss="modal">&times;</button>
-      </div>
-      <div class="modal-body">
-        <div>
-          Please contact Customer Support at support@example.com
-        </div>
-      </div>
-      <div class="modal-footer">
-        <button type="button" class="btn btn-success" data-bs-dismiss="modal">Close</button>
-      </div>
-    </div>
-  </div>
-</div>
-
 <div class="page-layout">
-  <div style="background-color: #74c141; height: 40px;"></div>
-  <div style="border-bottom: 1px dashed #ccc; position: relative;">
-    <img src="assets/logo.png" width="500" height="80" alt="MSLC Logo">
-    <div class="pull-right" style="position:absolute; bottom: 0; right: 1rem;">
-      <div id="dvApplicationName">
-        <b>{{ projectName }}</b>
-      </div>
-      <div id="dvEmail">
-        <b>Email: {{ userEmail }}</b>
-      </div>
-      <div id="dvRole">
-        <b>Role: </b><span id="dvRoleName"><b>{{ userRole }}</b></span>
-      </div>
-      <div id="dvProvType">
-        <b>Provider Type: </b><span id="dvProvType"><b>{{ providerType }}</b></span>
-      </div>
-    </div>
-  </div>
+  <app-header-bar></app-header-bar>
+  <app-logo-branding 
+    [showUserInfo]="true"
+    [userEmail]="userEmail"
+    [userRole]="userRole"
+    [providerType]="providerType"
+    [projectName]="projectName">
+  </app-logo-branding>
+  
   <div class="d-flex">
     <div id="cssmenu" class="d-flex justify-content-between flex-grow-1">
       <ul style="list-style: none; padding: 0; margin: 0; display: flex;">
@@ -58,9 +24,7 @@
       </ul>
     </div>
     <div style="border-bottom: 2px solid #74c141;" class="d-flex align-items-center pl-1">
-      <a (click)="showHelpModal()" style="cursor: pointer; padding-right: 10px;">
-        <img style="border-radius: 8px;" src="assets/help.png" alt="Need Help?" title="Need Help?" width="40" height="40" />
-      </a>
+      <app-help-modal></app-help-modal>
     </div>
   </div>
 </div>
@@ -79,28 +43,7 @@
   </div>
 </div>
 
-<div class="footer_new" style="color:black">
-  <div class="d-flex flex-row justify-content-between container footer_text" style="max-width:1280px; width:1280px;">
-    <div style="float:left; width:60%; color:black;">
-      <p>Myers and Stauffer LC - Web Portal</p>
-    </div>
-    <div style="float:left; width:40%;">
-      <div style="padding-left:175px;color:black;">
-        Copyright © 2013–{{ currentYear }} Myers and Stauffer LC. All rights reserved.<br />
-      </div>
-      <div style="padding-right: 15px; text-align:right; color:black;">
-        Version: {{ appVersion }}
-      </div>
-      <div>
-        <a href="https://myersandstauffer.com/accessibility/" target="_blank">
-          <div style="float: right; text-align: right; color: black;">
-            <u>Visit our accessibility information and help page.</u>
-          </div>
-        </a>
-      </div>
-    </div>
-  </div>
-</div>
+<app-footer-section [appVersion]="appVersion" [currentYear]="currentYear"></app-footer-section>
 
 <noscript>
   <div>
