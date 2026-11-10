@@ -3,7 +3,7 @@ import { CommonModule } from '@angular/common';
 
 @Component({
   imports: [CommonModule],
-  selector: 'app-loading-overlay',
+  selector: 'ohfi-loading-overlay',
   styleUrl: './loading-overlay.scss',
   templateUrl: './loading-overlay.html',
 })

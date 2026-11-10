@@ -3,7 +3,7 @@ import { TitleService } from '../../services/title';
 
 @Component({
   imports: [],
-  selector: 'app-user-dashboard',
+  selector: 'ohfi-user-dashboard',
   styleUrl: './user-dashboard.scss',
   templateUrl: './user-dashboard.html',
 })

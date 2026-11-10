@@ -6,7 +6,7 @@ import { TitleService } from '../../services/title';
 
 @Component({
   imports: [CommonModule, NgbModule],
-  selector: 'app-header',
+  selector: 'ohfi-header',
   styleUrl: './header.scss',
   templateUrl: './header.html',
 })

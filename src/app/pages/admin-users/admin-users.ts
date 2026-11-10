@@ -16,7 +16,7 @@ interface User {
 
 @Component({
   imports: [CommonModule, ReactiveFormsModule, FormsModule],
-  selector: 'app-admin-users',
+  selector: 'ohfi-admin-users',
   styleUrl: './admin-users.scss',
   templateUrl: './admin-users.html',
 })

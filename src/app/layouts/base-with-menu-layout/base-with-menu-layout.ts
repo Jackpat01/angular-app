@@ -23,7 +23,7 @@ import { AdminService } from '../../services/admin';
     LoadingOverlayComponent,
     AdminNavigation,
   ],
-  selector: 'app-base-with-menu-layout',
+  selector: 'ohfi-base-with-menu-layout',
   styleUrl: './base-with-menu-layout.scss',
   templateUrl: './base-with-menu-layout.html',
 })

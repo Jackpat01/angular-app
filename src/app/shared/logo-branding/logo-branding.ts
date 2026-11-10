@@ -3,7 +3,7 @@ import { CommonModule } from '@angular/common';
 
 @Component({
   imports: [CommonModule],
-  selector: 'app-logo-branding',
+  selector: 'ohfi-logo-branding',
   styleUrl: './logo-branding.scss',
   templateUrl: './logo-branding.html',
 })

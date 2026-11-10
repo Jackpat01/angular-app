@@ -4,7 +4,7 @@ import { TitleService } from '../../../services/title';
 
 @Component({
   imports: [],
-  selector: 'app-error',
+  selector: 'ohfi-error',
   styleUrl: './error.scss',
   templateUrl: './error.html',
 })

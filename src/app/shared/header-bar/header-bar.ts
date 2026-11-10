@@ -2,7 +2,7 @@ import { Component } from '@angular/core';
 
 @Component({
   imports: [],
-  selector: 'app-header-bar',
+  selector: 'ohfi-header-bar',
   styleUrl: './header-bar.scss',
   templateUrl: './header-bar.html',
 })

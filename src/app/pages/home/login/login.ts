@@ -6,7 +6,7 @@ import { UserService } from '../../../services/user';
 
 @Component({
   imports: [CommonModule, ReactiveFormsModule],
-  selector: 'app-login',
+  selector: 'ohfi-login',
   styleUrl: './login.scss',
   templateUrl: './login.html',
 })

@@ -3,7 +3,7 @@ import { CommonModule } from '@angular/common';
 
 @Component({
   imports: [CommonModule],
-  selector: 'app-footer-section',
+  selector: 'ohfi-footer-section',
   styleUrl: './footer-section.scss',
   templateUrl: './footer-section.html',
 })

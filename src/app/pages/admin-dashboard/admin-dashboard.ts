@@ -16,7 +16,7 @@ interface Activity {
 
 @Component({
   imports: [CommonModule],
-  selector: 'app-admin-dashboard',
+  selector: 'ohfi-admin-dashboard',
   styleUrl: './admin-dashboard.scss',
   templateUrl: './admin-dashboard.html',
 })

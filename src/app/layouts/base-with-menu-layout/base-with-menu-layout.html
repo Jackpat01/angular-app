@@ -1,17 +1,17 @@
-<app-loading-overlay [isLoading]="isLoading"></app-loading-overlay>
+<ohfi-loading-overlay [isLoading]="isLoading"></ohfi-loading-overlay>
 
 <input id="logoutURL" type="hidden" value="/logout" />
 <input id="hdnHeartBeat" type="hidden" value="/api/heartbeat" />
 
 <div class="page-layout">
-  <app-header-bar></app-header-bar>
-  <app-logo-branding 
+  <ohfi-header-bar></ohfi-header-bar>
+  <ohfi-logo-branding 
     [showUserInfo]="true"
     [userEmail]="userEmail"
     [userRole]="userRole"
     [providerType]="providerType"
     [projectName]="projectName">
-  </app-logo-branding>
+  </ohfi-logo-branding>
   
   <div class="d-flex">
     <div id="cssmenu" class="d-flex justify-content-between flex-grow-1">
@@ -24,7 +24,7 @@
       </ul>
     </div>
     <div style="border-bottom: 2px solid #74c141;" class="d-flex align-items-center pl-1">
-      <app-help-modal></app-help-modal>
+      <ohfi-help-modal></ohfi-help-modal>
     </div>
   </div>
 </div>
@@ -35,7 +35,7 @@
   </div>
   <div class="row">
     <div class="col-md-3 mb-4">
-      <app-admin-navigation [menuItems]="menuItems"></app-admin-navigation>
+      <ohfi-admin-navigation [menuItems]="menuItems"></ohfi-admin-navigation>
     </div>
     <div class="col-md-9">
       <router-outlet></router-outlet>
@@ -43,7 +43,7 @@
   </div>
 </div>
 
-<app-footer-section [appVersion]="appVersion" [currentYear]="currentYear"></app-footer-section>
+<ohfi-footer-section [appVersion]="appVersion" [currentYear]="currentYear"></ohfi-footer-section>
 
 <noscript>
   <div>

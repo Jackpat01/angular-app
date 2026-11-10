@@ -6,7 +6,7 @@ import { TitleService } from '../../services/title';
 
 @Component({
   imports: [CommonModule, ReactiveFormsModule, NgbModule],
-  selector: 'app-sample-form',
+  selector: 'ohfi-sample-form',
   styleUrl: './sample-form.scss',
   templateUrl: './sample-form.html',
 })

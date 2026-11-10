@@ -2,7 +2,7 @@ import { Component } from '@angular/core';
 
 @Component({
   imports: [],
-  selector: 'app-footer',
+  selector: 'ohfi-footer',
   styleUrl: './footer.scss',
   templateUrl: './footer.html',
 })

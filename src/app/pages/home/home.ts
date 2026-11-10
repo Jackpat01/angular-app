@@ -4,7 +4,7 @@ import { TitleService } from '../../services/title';
 
 @Component({
   imports: [RouterOutlet],
-  selector: 'app-home',
+  selector: 'ohfi-home',
   styleUrl: './home.scss',
   templateUrl: './home.html',
 })

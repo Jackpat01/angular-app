@@ -3,7 +3,7 @@ import { CommonModule } from '@angular/common';
 
 @Component({
   imports: [CommonModule],
-  selector: 'app-help-modal',
+  selector: 'ohfi-help-modal',
   styleUrl: './help-modal.scss',
   templateUrl: './help-modal.html',
 })

@@ -20,7 +20,7 @@ import { UserService, UserInfo } from '../../services/user';
     HelpModalComponent,
     LoadingOverlayComponent,
   ],
-  selector: 'app-base-with-project-layout',
+  selector: 'ohfi-base-with-project-layout',
   styleUrl: './base-with-project-layout.scss',
   templateUrl: './base-with-project-layout.html',
 })

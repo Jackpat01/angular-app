@@ -9,7 +9,7 @@ import { AppConfigService, AppConfig } from '../../services/app-config';
 
 @Component({
   imports: [CommonModule, HeaderBarComponent, LogoBrandingComponent, ContentPanelComponent, FooterSectionComponent],
-  selector: 'app-base-layout',
+  selector: 'ohfi-base-layout',
   styleUrl: './base-layout.scss',
   templateUrl: './base-layout.html',
 })
