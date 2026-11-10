@@ -2,10 +2,11 @@ import { Component, OnInit } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
+import { AdminNavigation, NavItem } from '../../shared/admin-navigation/admin-navigation';
 import { TitleService } from '../../services/title';
 
 @Component({
-  imports: [CommonModule, RouterOutlet],
+  imports: [CommonModule, RouterOutlet, AdminNavigation],
   selector: 'app-admin-layout',
   styleUrl: './admin-layout.scss',
   templateUrl: './admin-layout.html',
@@ -17,6 +18,13 @@ export class AdminLayout implements OnInit {
   providerType = 'Admin';
   currentYear = new Date().getFullYear();
   projectName = 'Main Project';
+
+  menuItems: NavItem[] = [
+    { label: 'Dashboard', route: '/admin/dashboard' },
+    { label: 'Users', route: '/admin/users' },
+    { label: 'Reports', route: '/admin/reports', badge: 3 },
+    { label: 'Settings', route: '/admin/settings' },
+  ];
 
   constructor(
     private titleService: TitleService,
