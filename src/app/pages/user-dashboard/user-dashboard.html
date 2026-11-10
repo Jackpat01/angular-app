@@ -1,49 +1,100 @@
-<div class="row">
-  <div class="col-md-3">
-    <div class="card mb-3">
-      <div class="card-header bg-primary text-white">
-        <h6 class="mb-0">Profile</h6>
+<div class="container mt-4">
+  <!-- Example: Display user info from JWT claims -->
+  <div class="alert alert-info" *ngIf="dashboardData">
+    <h5>Dashboard Loaded from JWT Claims</h5>
+    <p><strong>{{ dashboardData.greeting }}</strong></p>
+    <p>Role: <code>{{ dashboardData.role }}</code></p>
+    <p>Company: <code>{{ dashboardData.company }}</code></p>
+  </div>
+
+  <div class="row">
+    <div class="col-md-3">
+      <div class="card mb-3">
+        <div class="card-header bg-primary text-white">
+          <h6 class="mb-0">User Profile</h6>
+        </div>
+        <div class="card-body">
+          <p *ngIf="userClaims?.email"><strong>{{ userClaims.email }}</strong></p>
+          <p class="text-muted" *ngIf="userClaims?.role">Role: {{ userClaims.role }}</p>
+          <p class="text-muted" *ngIf="userClaims?.company">Company: {{ userClaims.company }}</p>
+          <a href="/form" class="btn btn-sm btn-outline-primary">Edit Profile</a>
+        </div>
       </div>
-      <div class="card-body">
-        <p><strong>John Doe</strong></p>
-        <p class="text-muted">john@example.com</p>
-        <a href="/form" class="btn btn-sm btn-outline-primary">Edit Profile</a>
+    </div>
+    <div class="col-md-9">
+      <div class="card">
+        <div class="card-header">
+          <h6 class="mb-0">JWT Claims (Replaces Session Variables)</h6>
+        </div>
+        <div class="card-body">
+          <p class="text-muted"><small>These claims come from your JWT token and replace old ASP.NET session variables.</small></p>
+          <table class="table table-sm">
+            <thead>
+              <tr>
+                <th>Claim</th>
+                <th>Value</th>
+                <th>Old Pattern</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngIf="userClaims?.email">
+                <td><code>email</code></td>
+                <td>{{ userClaims.email }}</td>
+                <td><code>Session["Email"]</code></td>
+              </tr>
+              <tr *ngIf="userClaims?.role">
+                <td><code>role</code></td>
+                <td>{{ userClaims.role }}</td>
+                <td><code>Session["UserRole"]</code></td>
+              </tr>
+              <tr *ngIf="userClaims?.company">
+                <td><code>company</code></td>
+                <td>{{ userClaims.company }}</td>
+                <td><code>Session["CompanyName"]</code></td>
+              </tr>
+              <tr *ngIf="userClaims?.provider">
+                <td><code>provider</code></td>
+                <td>{{ userClaims.provider }}</td>
+                <td><code>Session["ProviderType"]</code></td>
+              </tr>
+              <tr *ngIf="userClaims?.sub">
+                <td><code>sub</code></td>
+                <td>{{ userClaims.sub }}</td>
+                <td><code>Session["UserId"]</code></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
   </div>
-  <div class="col-md-9">
-    <div class="card">
-      <div class="card-header">
-        <h6 class="mb-0">Recent Activity</h6>
-      </div>
-      <div class="card-body">
-        <table class="table table-sm">
-          <thead>
-            <tr>
-              <th>Date</th>
-              <th>Action</th>
-              <th>Status</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr>
-              <td>2026-11-09</td>
-              <td>Login</td>
-              <td><span class="badge bg-success">Success</span></td>
-            </tr>
-            <tr>
-              <td>2026-11-08</td>
-              <td>Form Submission</td>
-              <td><span class="badge bg-success">Success</span></td>
-            </tr>
-            <tr>
-              <td>2026-11-07</td>
-              <td>Profile Update</td>
-              <td><span class="badge bg-success">Success</span></td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
+
+  <!-- Example: How to use claims in your component -->
+  <div class="card mt-4">
+    <div class="card-header">
+      <h6 class="mb-0">How to Use JWT Claims (Code Examples)</h6>
+    </div>
+    <div class="card-body">
+      <h6>Method 1: Use Observable (Reactive)</h6>
+      <pre><code>this.authService.userClaims$.subscribe(claims => {{'{'}
+  console.log(claims.email);
+  console.log(claims.role);
+  console.log(claims.company);
+{'}'})</code></pre>
+
+      <h6 class="mt-3">Method 2: Get Synchronously</h6>
+      <pre><code>const claims = this.authService.getClaims();
+const email = claims?.email;</code></pre>
+
+      <h6 class="mt-3">Method 3: Get Specific Claim</h6>
+      <pre><code>const userRole = this.authService.getUserRole();
+const company = this.authService.getCompany();
+const customValue = this.authService.getClaim('provider');</code></pre>
+
+      <h6 class="mt-3">Method 4: Use UserService Helpers</h6>
+      <pre><code>const email = this.userService.getUserEmail();
+const role = this.userService.getUserRole();
+const company = this.userService.getCompany();</code></pre>
     </div>
   </div>
 </div>

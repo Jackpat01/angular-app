@@ -8,6 +8,18 @@ export interface AuthToken {
   tokenType?: string;
 }
 
+export interface UserClaims {
+  sub?: string;
+  email?: string;
+  role?: string;
+  company?: string;
+  provider?: string;
+  nameIdentifier?: string;
+  exp?: number;
+  iat?: number;
+  [key: string]: any;
+}
+
 @Injectable({
   providedIn: 'root',
 })
@@ -15,8 +27,10 @@ export class AuthService {
   private tokenKey = 'ohfi_access_token';
   private refreshTokenKey = 'ohfi_refresh_token';
   private isAuthenticatedSubject = new BehaviorSubject<boolean>(this.hasValidToken());
+  private userClaimsSubject = new BehaviorSubject<UserClaims | null>(this.extractClaims());
 
   isAuthenticated$ = this.isAuthenticatedSubject.asObservable();
+  userClaims$ = this.userClaimsSubject.asObservable();
 
   constructor() {}
 
@@ -29,6 +43,7 @@ export class AuthService {
       localStorage.setItem(this.refreshTokenKey, authToken.refreshToken);
     }
     this.isAuthenticatedSubject.next(true);
+    this.userClaimsSubject.next(this.extractClaims());
   }
 
   /**
@@ -66,6 +81,7 @@ export class AuthService {
     localStorage.removeItem(this.tokenKey);
     localStorage.removeItem(this.refreshTokenKey);
     this.isAuthenticatedSubject.next(false);
+    this.userClaimsSubject.next(null);
   }
 
   /**
@@ -112,5 +128,76 @@ export class AuthService {
 
     const currentTime = Math.floor(Date.now() / 1000);
     return decoded.exp < currentTime;
+  }
+
+  /**
+   * Extract claims from current token
+   * Maps JWT standard claims to UserClaims interface
+   */
+  private extractClaims(): UserClaims | null {
+    const token = this.getAccessToken();
+    if (!token) {
+      return null;
+    }
+
+    const decoded = this.decodeToken(token);
+    if (!decoded) {
+      return null;
+    }
+
+    return {
+      sub: decoded.sub,
+      email: decoded.email,
+      role: decoded.role,
+      company: decoded.company,
+      provider: decoded.provider,
+      nameIdentifier: decoded['http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier'],
+      exp: decoded.exp,
+      iat: decoded.iat,
+      ...decoded, // Include all other claims
+    };
+  }
+
+  /**
+   * Get current user claims synchronously
+   */
+  getClaims(): UserClaims | null {
+    return this.userClaimsSubject.getValue();
+  }
+
+  /**
+   * Get specific claim value
+   */
+  getClaim(key: string): any {
+    const claims = this.getClaims();
+    return claims ? claims[key] : null;
+  }
+
+  /**
+   * Get user email from claims
+   */
+  getUserEmail(): string | null {
+    return this.getClaim('email');
+  }
+
+  /**
+   * Get user role from claims
+   */
+  getUserRole(): string | null {
+    return this.getClaim('role');
+  }
+
+  /**
+   * Get company from claims (custom claim)
+   */
+  getCompany(): string | null {
+    return this.getClaim('company');
+  }
+
+  /**
+   * Get provider from claims (custom claim)
+   */
+  getProvider(): string | null {
+    return this.getClaim('provider');
   }
 }

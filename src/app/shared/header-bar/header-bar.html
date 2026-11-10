@@ -1,3 +1,10 @@
 <div class="header-bar">
-  <div style="background-color: #74c141; height: 40px;"></div>
-</div>
+  <div style="background-color: #74c141; height: 40px; display: flex; align-items: center; padding: 0 20px;">
+    <!-- Example: Display user info from JWT claims -->
+    <div style="color: white; font-size: 14px;">
+      <span *ngIf="userEmail">{{ userEmail }}</span>
+      <span *ngIf="userRole"> | Role: {{ userRole }}</span>
+      <span *ngIf="company"> | {{ company }}</span>
+    </div>
+  </div>
+

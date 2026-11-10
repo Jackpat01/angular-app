@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
-import { BehaviorSubject, Observable, tap } from 'rxjs';
+import { BehaviorSubject, Observable, tap, map } from 'rxjs';
 import { ApiService } from './api';
-import { AuthService, AuthToken } from './auth';
+import { AuthService, AuthToken, UserClaims } from './auth';
 
 export interface UserInfo {
   email: string;
@@ -39,7 +39,28 @@ export class UserService {
     private apiService: ApiService,
     private authService: AuthService
   ) {
-    this.loadCurrentUser();
+    this.initializeUserFromClaims();
+  }
+
+  /**
+   * Initialize user data from JWT claims
+   * This replaces session variables from old ASP.NET pattern
+   */
+  private initializeUserFromClaims(): void {
+    if (!this.authService.isAuthenticated()) {
+      return;
+    }
+
+    const claims = this.authService.getClaims();
+    if (claims) {
+      this.userSubject.next({
+        email: claims.email || '',
+        role: claims.role || 'User',
+        providerType: claims.provider || 'Standard',
+        projectName: claims.company || 'Main Project',
+        isAuthenticated: true,
+      });
+    }
   }
 
   /**
@@ -66,11 +87,12 @@ export class UserService {
   /**
    * Login user
    * Endpoint: POST /api/auth/login
+   * Stores JWT token which contains claims (replaces session variables)
    */
   login(credentials: LoginRequest): Observable<LoginResponse> {
     return this.apiService.post<LoginResponse>('/auth/login', credentials).pipe(
       tap((response) => {
-        // Store tokens
+        // Store tokens in localStorage
         this.authService.setTokens(response.token);
         // Set user data
         this.userSubject.next({ ...response.user, isAuthenticated: true });
@@ -101,6 +123,50 @@ export class UserService {
   setAuthenticated(isAuth: boolean): void {
     const current = this.userSubject.value;
     this.userSubject.next({ ...current, isAuthenticated: isAuth });
+  }
+
+  /**
+   * Get user claims from JWT token
+   * Replaces Session["UserId"], Session["UserRole"], etc.
+   */
+  getUserClaims(): UserClaims | null {
+    return this.authService.getClaims();
+  }
+
+  /**
+   * Get specific claim value by key
+   * Example: getClaim('company') replaces Session["CompanyName"]
+   */
+  getClaim(key: string): any {
+    return this.authService.getClaim(key);
+  }
+
+  /**
+   * Get user email from JWT claims
+   */
+  getUserEmail(): string | null {
+    return this.authService.getUserEmail();
+  }
+
+  /**
+   * Get user role from JWT claims
+   */
+  getUserRole(): string | null {
+    return this.authService.getUserRole();
+  }
+
+  /**
+   * Get company/organization from JWT claims
+   */
+  getCompany(): string | null {
+    return this.authService.getCompany();
+  }
+
+  /**
+   * Get provider type from JWT claims
+   */
+  getProvider(): string | null {
+    return this.authService.getProvider();
   }
 
   logoutLocal(): void {
