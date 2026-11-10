@@ -21,6 +21,7 @@ export const routes: Routes = [
         path: '',
         component: Home,
         children: [
+          { path: '', redirectTo: 'login', pathMatch: 'full' },
           { path: 'login', component: Login },
           { path: 'error', component: ErrorPage }
         ]
