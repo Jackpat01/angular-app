@@ -1,8 +1,8 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
-import { TitleService } from '../../services/title';
-import { UserService } from '../../services/user';
+import { TitleService } from '../../../services/title';
+import { UserService } from '../../../services/user';
 
 @Component({
   imports: [CommonModule, ReactiveFormsModule],

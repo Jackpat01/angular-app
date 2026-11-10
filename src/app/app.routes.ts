@@ -3,8 +3,8 @@ import { PublicLayout } from './layouts/public-layout/public-layout';
 import { DashboardLayout } from './layouts/dashboard-layout/dashboard-layout';
 import { AdminLayout } from './layouts/admin-layout/admin-layout';
 import { Home } from './pages/home/home';
-import { Login } from './pages/login/login';
-import { Error } from './pages/error/error';
+import { Login } from './pages/home/login/login';
+import { ErrorPage } from './pages/home/error/error';
 import { UserDashboard } from './pages/user-dashboard/user-dashboard';
 import { AdminDashboard } from './pages/admin-dashboard/admin-dashboard';
 import { AdminUsersComponent } from './pages/admin-users/admin-users';
@@ -21,7 +21,7 @@ export const routes: Routes = [
         component: Home,
         children: [
           { path: 'login', component: Login },
-          { path: 'error', component: Error }
+          { path: 'error', component: ErrorPage }
         ]
       },
       { path: 'form', component: SampleForm }

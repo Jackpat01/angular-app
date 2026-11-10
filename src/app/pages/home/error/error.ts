@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
-import { TitleService } from '../../services/title';
+import { TitleService } from '../../../services/title';
 
 @Component({
   imports: [],
@@ -8,7 +8,7 @@ import { TitleService } from '../../services/title';
   styleUrl: './error.scss',
   templateUrl: './error.html',
 })
-export class Error implements OnInit {
+export class ErrorPage implements OnInit {
   errorCode: number = 404;
   errorMessage: string = 'Page Not Found';
   errorDescription: string = 'The page you are looking for does not exist.';
@@ -42,3 +42,4 @@ export class Error implements OnInit {
     window.location.href = '/';
   }
 }
+
