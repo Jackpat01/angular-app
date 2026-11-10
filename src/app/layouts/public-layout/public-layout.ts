@@ -1,12 +1,22 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
-import { Header } from '../../shared/header/header';
-import { Footer } from '../../shared/footer/footer';
+import { CommonModule } from '@angular/common';
+import { TitleService } from '../../services/title';
 
 @Component({
-  imports: [RouterOutlet, Header, Footer],
+  imports: [CommonModule, RouterOutlet],
   selector: 'app-public-layout',
   styleUrl: './public-layout.scss',
   templateUrl: './public-layout.html',
 })
-export class PublicLayout {}
+export class PublicLayout implements OnInit {
+  appVersion = '1.0.0';
+  currentYear = new Date().getFullYear();
+
+  constructor(private titleService: TitleService) {}
+
+  ngOnInit(): void {
+    this.titleService.setTitle('Welcome');
+  }
+}
+

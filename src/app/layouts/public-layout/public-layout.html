@@ -1,7 +1,51 @@
-<app-header></app-header>
-<main class="main-content py-5">
-  <div class="container">
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Web Portal</title>
+  <link rel='icon' href='assets/favicon.ico' type='image/x-icon'>
+</head>
+<body>
+  <div class="page-layout">
+    <div style="background-color: #74c141; height: 40px;"></div>
+    <div style="border-bottom: 1px dashed #ccc;">
+      <img src="assets/logo.png" width="500" height="80" alt="MSLC Logo">
+    </div>
+  </div>
+
+  <div id="contentPanel" style="width: 1280px; margin-left: auto; margin-right: auto;">
+    <div class="clearFixedFloatingDiv"></div>
     <router-outlet></router-outlet>
   </div>
-</main>
-<app-footer></app-footer>
+
+  <div class="footer_new" style="color:black">
+    <div class="d-flex flex-row justify-content-between container footer_text" style="max-width:1280px; width:1280px;">
+      <div style="float:left; width:60%; color:black;">
+        <p>Myers and Stauffer LC - Web Portal</p>
+      </div>
+      <div style="float:left; width:40%;">
+        <div style="padding-left:175px;color:black;">
+          Copyright © 2013–{{ currentYear }} Myers and Stauffer LC. All rights reserved.<br />
+        </div>
+        <div style="padding-right: 15px; text-align:right; color:black;">
+          Version: {{ appVersion }}
+        </div>
+        <div>
+          <a href="https://myersandstauffer.com/accessibility/" target="_blank">
+            <div style="float: right; text-align: right; color: black;">
+              <u>Visit our accessibility information and help page.</u>
+            </div>
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <noscript>
+    <div>
+      <h2>This site requires JavaScript</h2>
+    </div>
+  </noscript>
+</body>
+</html>
