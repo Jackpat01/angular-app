@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { TitleService } from '../../../services/title';
 import { UserService } from '../../../services/user';
+import {AppConfigService} from '../../../services/app-config';
 
 @Component({
   imports: [CommonModule, ReactiveFormsModule],
@@ -18,11 +19,12 @@ export class Login implements OnInit {
   constructor(
     private formBuilder: FormBuilder,
     private titleService: TitleService,
-    private userService: UserService
+    private userService: UserService,
+    private appConfigService: AppConfigService
   ) {}
 
   ngOnInit(): void {
-    this.titleService.setTitle('Login');
+    this.titleService.setTitle(this.appConfigService.getConfig().WebPortalTitle +' - Home - Login');
     this.initializeForm();
   }
 

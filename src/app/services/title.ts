@@ -19,7 +19,7 @@ export class TitleService {
   setTitle(title: string): void {
     this.titleSubject.next(title);
     // Update browser tab title
-    this.browserTitle.setTitle(`${title} | OHFI`);
+    this.browserTitle.setTitle(`${title}`);
   }
 
   fetchTitleFromApi(endpoint: string): Observable<string> {
