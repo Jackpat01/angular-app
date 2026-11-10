@@ -20,11 +20,11 @@ import { UserService, UserInfo } from '../../services/user';
     HelpModalComponent,
     LoadingOverlayComponent,
   ],
-  selector: 'app-dashboard-layout',
-  styleUrl: './dashboard-layout.scss',
-  templateUrl: './dashboard-layout.html',
+  selector: 'app-base-with-project-layout',
+  styleUrl: './base-with-project-layout.scss',
+  templateUrl: './base-with-project-layout.html',
 })
-export class DashboardLayout implements OnInit {
+export class BaseWithProjectLayout implements OnInit {
   appConfig: AppConfig | null = null;
   userInfo: UserInfo | null = null;
   isLoading = false;
@@ -71,5 +71,4 @@ export class DashboardLayout implements OnInit {
     window.location.href = '/';
   }
 }
-
 
