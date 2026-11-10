@@ -10,6 +10,7 @@ import { AdminDashboard } from './pages/admin-dashboard/admin-dashboard';
 import { AdminUsersComponent } from './pages/admin-users/admin-users';
 import { AdminReportsComponent } from './pages/admin-reports/admin-reports';
 import { SampleForm } from './pages/sample-form/sample-form';
+import { AuthGuard } from './guards/auth.guard';
 
 export const routes: Routes = [
   {
@@ -30,6 +31,7 @@ export const routes: Routes = [
   {
     path: 'user-dashboard',
     component: BaseWithProjectLayout,
+    canActivate: [AuthGuard],
     children: [
       { path: '', component: UserDashboard }
     ]
@@ -37,6 +39,7 @@ export const routes: Routes = [
   {
     path: 'admin',
     component: BaseWithMenuLayout,
+    canActivate: [AuthGuard],
     children: [
       { path: '', component: AdminDashboard },
       { path: 'dashboard', component: AdminDashboard },

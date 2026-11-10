@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
-import { BehaviorSubject, Observable } from 'rxjs';
+import { BehaviorSubject, Observable, tap } from 'rxjs';
 import { ApiService } from './api';
+import { AuthService, AuthToken } from './auth';
 
 export interface UserInfo {
   email: string;
@@ -17,7 +18,7 @@ export interface LoginRequest {
 
 export interface LoginResponse {
   user: UserInfo;
-  token?: string;
+  token: AuthToken;
 }
 
 @Injectable({
@@ -34,7 +35,10 @@ export class UserService {
 
   user$ = this.userSubject.asObservable();
 
-  constructor(private apiService: ApiService) {
+  constructor(
+    private apiService: ApiService,
+    private authService: AuthService
+  ) {
     this.loadCurrentUser();
   }
 
@@ -43,13 +47,18 @@ export class UserService {
    * Endpoint: GET /api/auth/user
    */
   private loadCurrentUser(): void {
+    if (!this.authService.isAuthenticated()) {
+      return;
+    }
+
     this.apiService.get<UserInfo>('/auth/user').subscribe({
       next: (user) => {
-        this.userSubject.next(user);
+        this.userSubject.next({ ...user, isAuthenticated: true });
       },
       error: (error) => {
         console.error('Failed to load current user', error);
         // User stays logged out on error
+        this.authService.clearTokens();
       }
     });
   }
@@ -59,7 +68,14 @@ export class UserService {
    * Endpoint: POST /api/auth/login
    */
   login(credentials: LoginRequest): Observable<LoginResponse> {
-    return this.apiService.post<LoginResponse>('/auth/login', credentials);
+    return this.apiService.post<LoginResponse>('/auth/login', credentials).pipe(
+      tap((response) => {
+        // Store tokens
+        this.authService.setTokens(response.token);
+        // Set user data
+        this.userSubject.next({ ...response.user, isAuthenticated: true });
+      })
+    );
   }
 
   /**
@@ -67,7 +83,11 @@ export class UserService {
    * Endpoint: POST /api/auth/logout
    */
   logout(): Observable<any> {
-    return this.apiService.post('/auth/logout', {});
+    return this.apiService.post('/auth/logout', {}).pipe(
+      tap(() => {
+        this.logoutLocal();
+      })
+    );
   }
 
   getUser(): UserInfo {
@@ -84,6 +104,7 @@ export class UserService {
   }
 
   logoutLocal(): void {
+    this.authService.clearTokens();
     this.userSubject.next({
       email: '',
       role: '',
