@@ -1,7 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { HeaderBarComponent } from '../../shared/header-bar/header-bar';
-import { PageTitleBannerComponent } from '../../shared/page-title-banner/page-title-banner';
 import { LogoBrandingComponent } from '../../shared/logo-branding/logo-branding';
 import { ContentPanelComponent } from '../../shared/content-panel/content-panel';
 import { FooterSectionComponent } from '../../shared/footer-section/footer-section';
@@ -9,7 +8,7 @@ import { TitleService } from '../../services/title';
 import { AppConfigService, AppConfig } from '../../services/app-config';
 
 @Component({
-  imports: [CommonModule, HeaderBarComponent, PageTitleBannerComponent, LogoBrandingComponent, ContentPanelComponent, FooterSectionComponent],
+  imports: [CommonModule, HeaderBarComponent, LogoBrandingComponent, ContentPanelComponent, FooterSectionComponent],
   selector: 'ohfi-base-layout',
   styleUrl: './base-layout.scss',
   templateUrl: './base-layout.html',
