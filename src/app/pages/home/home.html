@@ -4,7 +4,7 @@
     <p class="lead">A modern, multi-layout application with reactive forms and Bootstrap styling.</p>
     <hr class="my-4">
     <p>Explore our application features:</p>
-    <a class="btn btn-primary btn-lg" href="/user-dashboard" role="button">User Dashboard</a>
+    <a class="btn btn-primary btn-lg" href="/login" role="button">Login</a>
     <a class="btn btn-secondary btn-lg ms-2" href="/form" role="button">Sample Form</a>
   </div>
 </div>
@@ -36,4 +36,31 @@
       </div>
     </div>
   </div>
+
+  <div class="row mt-5">
+    <div class="col-md-6 mb-4">
+      <div class="card border-info">
+        <div class="card-body">
+          <h5 class="card-title">Demo Accounts</h5>
+          <p class="card-text">Use these credentials to test the application:</p>
+          <ul class="list-unstyled small">
+            <li><strong>Admin:</strong> admin@example.com / admin123</li>
+            <li><strong>User:</strong> user@example.com / user123</li>
+          </ul>
+          <a href="/login" class="btn btn-info btn-sm mt-2">Go to Login</a>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-6 mb-4">
+      <div class="card border-warning">
+        <div class="card-body">
+          <h5 class="card-title">Error Handling</h5>
+          <p class="card-text">Test the error page with custom error codes:</p>
+          <a href="/error" class="btn btn-warning btn-sm me-2">404 Error</a>
+          <a href="/error?code=500&message=Server Error" class="btn btn-warning btn-sm">500 Error</a>
+        </div>
+      </div>
+    </div>
+  </div>
 </div>
+

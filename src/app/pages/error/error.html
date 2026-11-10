@@ -1,0 +1,26 @@
+<div class="error-container">
+  <div class="error-content">
+    <div class="error-code">{{ errorCode }}</div>
+    <h1 class="error-title">{{ errorMessage }}</h1>
+    <p class="error-description">{{ errorDescription }}</p>
+
+    <div class="error-actions">
+      <button class="btn btn-primary me-2" (click)="goHome()">
+        Go to Home
+      </button>
+      <button class="btn btn-secondary" (click)="goBack()">
+        Go Back
+      </button>
+    </div>
+
+    <div class="error-suggestions mt-5">
+      <h5>Here are some helpful links:</h5>
+      <ul class="list-unstyled">
+        <li><a href="/">Home</a></li>
+        <li><a href="/user-dashboard">User Dashboard</a></li>
+        <li><a href="/admin">Admin Dashboard</a></li>
+        <li><a href="/form">Sample Form</a></li>
+      </ul>
+    </div>
+  </div>
+</div>
