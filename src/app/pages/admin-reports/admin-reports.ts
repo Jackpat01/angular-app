@@ -16,7 +16,7 @@ interface Report {
 @Component({
   imports: [CommonModule, ReactiveFormsModule],
   selector: 'ohfi-admin-reports',
-  styleUrl: './admin-reports.scss',
+  styleUrl: './admin-reports.css',
   templateUrl: './admin-reports.html',
 })
 export class AdminReportsComponent implements OnInit {

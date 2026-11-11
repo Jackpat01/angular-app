@@ -5,7 +5,7 @@ import { TitleService } from '../../../services/title';
 @Component({
   imports: [],
   selector: 'ohfi-error',
-  styleUrl: './error.scss',
+  styleUrl: './error.css',
   templateUrl: './error.html',
 })
 export class ErrorPage implements OnInit {

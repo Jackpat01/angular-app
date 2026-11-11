@@ -24,7 +24,7 @@ import { AdminService } from '../../services/admin';
     AdminNavigation,
   ],
   selector: 'ohfi-base-with-menu-layout',
-  styleUrl: './base-with-menu-layout.scss',
+  styleUrl: './base-with-menu-layout.css',
   templateUrl: './base-with-menu-layout.html',
 })
 export class BaseWithMenuLayout implements OnInit {

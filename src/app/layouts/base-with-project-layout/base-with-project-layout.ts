@@ -21,7 +21,7 @@ import { UserService, UserInfo } from '../../services/user';
     LoadingOverlayComponent,
   ],
   selector: 'ohfi-base-with-project-layout',
-  styleUrl: './base-with-project-layout.scss',
+  styleUrl: './base-with-project-layout.css',
   templateUrl: './base-with-project-layout.html',
 })
 export class BaseWithProjectLayout implements OnInit {

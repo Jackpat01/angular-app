@@ -8,7 +8,7 @@ import { AppConfigService } from '../../../services/app-config';
 @Component({
   imports: [CommonModule, ReactiveFormsModule],
   selector: 'ohfi-login',
-  styleUrl: './login.scss',
+  styleUrl: './login.css',
   templateUrl: './login.html',
 })
 export class Login implements OnInit {

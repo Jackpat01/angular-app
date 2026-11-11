@@ -7,7 +7,7 @@ import { AuthService, UserClaims } from '../../services/auth';
 @Component({
   imports: [CommonModule],
   selector: 'ohfi-user-dashboard',
-  styleUrl: './user-dashboard.scss',
+  styleUrl: './user-dashboard.css',
   templateUrl: './user-dashboard.html',
 })
 export class UserDashboard implements OnInit {

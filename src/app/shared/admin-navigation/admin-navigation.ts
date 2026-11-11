@@ -12,7 +12,7 @@ export interface NavItem {
 @Component({
   imports: [CommonModule, RouterLink],
   selector: 'ohfi-admin-navigation',
-  styleUrl: './admin-navigation.scss',
+  styleUrl: './admin-navigation.css',
   templateUrl: './admin-navigation.html',
 })
 export class AdminNavigation {

@@ -6,7 +6,7 @@ import { AuthService, UserClaims } from '../../services/auth';
 @Component({
   imports: [CommonModule],
   selector: 'ohfi-header-bar',
-  styleUrl: './header-bar.scss',
+  styleUrl: './header-bar.css',
   templateUrl: './header-bar.html',
 })
 export class HeaderBarComponent implements OnInit {

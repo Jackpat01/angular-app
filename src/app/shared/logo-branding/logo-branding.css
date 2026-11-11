@@ -3,11 +3,9 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-
   img {
     display: block;
   }
-
   .user-info-section {
     position: absolute;
     bottom: 0;
@@ -15,20 +13,16 @@
     text-align: right;
     color: #333;
     font-size: 12px;
-
     div {
       line-height: 1.4;
     }
-
     b {
       font-weight: 600;
     }
-
     #dvApplicationName {
       font-size: 14px;
       margin-bottom: 2px;
     }
-
     #dvEmail,
     #dvRole,
     #dvProvType {

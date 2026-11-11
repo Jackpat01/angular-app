@@ -17,7 +17,7 @@ interface User {
 @Component({
   imports: [CommonModule, ReactiveFormsModule, FormsModule],
   selector: 'ohfi-admin-users',
-  styleUrl: './admin-users.scss',
+  styleUrl: './admin-users.css',
   templateUrl: './admin-users.html',
 })
 export class AdminUsersComponent implements OnInit {

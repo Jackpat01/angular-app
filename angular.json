@@ -35,9 +35,9 @@
               }
             ],
             "styles": [
-              "src/styles.scss",
-              "src/buttons.scss",
-              "src/site.scss"
+              "src/styles.css",
+              "src/buttons.css",
+              "src/site.css"
             ]
           },
           "configurations": {

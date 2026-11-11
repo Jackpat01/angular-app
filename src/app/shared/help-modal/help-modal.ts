@@ -4,7 +4,7 @@ import { CommonModule } from '@angular/common';
 @Component({
   imports: [CommonModule],
   selector: 'ohfi-help-modal',
-  styleUrl: './help-modal.scss',
+  styleUrl: './help-modal.css',
   templateUrl: './help-modal.html',
 })
 export class HelpModalComponent {

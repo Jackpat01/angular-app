@@ -17,7 +17,7 @@ interface Activity {
 @Component({
   imports: [CommonModule],
   selector: 'ohfi-admin-dashboard',
-  styleUrl: './admin-dashboard.scss',
+  styleUrl: './admin-dashboard.css',
   templateUrl: './admin-dashboard.html',
 })
 export class AdminDashboard implements OnInit {

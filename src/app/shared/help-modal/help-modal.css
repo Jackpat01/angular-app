@@ -3,11 +3,9 @@
     display: inline-block;
     cursor: pointer;
     transition: transform 0.2s ease;
-
     &:hover {
       transform: scale(1.05);
     }
-
     img {
       border-radius: 8px;
       cursor: pointer;

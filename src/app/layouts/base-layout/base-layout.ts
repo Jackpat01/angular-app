@@ -10,7 +10,7 @@ import { AppConfigService, AppConfig } from '../../services/app-config';
 @Component({
   imports: [CommonModule, HeaderBarComponent, LogoBrandingComponent, ContentPanelComponent, FooterSectionComponent],
   selector: 'ohfi-base-layout',
-  styleUrl: './base-layout.scss',
+  styleUrl: './base-layout.css',
   templateUrl: './base-layout.html',
 })
 export class BaseLayout implements OnInit {

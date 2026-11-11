@@ -11,60 +11,20 @@
  * 7. BUTTONS
  * 8. UTILITY CLASSES
  */
-
 /* ============================================================================
    1. DESIGN TOKENS (SCSS Variables)
    ============================================================================ */
-
-// Typography
-$font-family-1: Arial, Impact, sans-serif;
-$font-family-2: monospace;
-
-// Primary Colors
-$color-1: black;
-$color-2: white;
-$color-3: #ECF0F1;
-$color-4: #F8971D;
-$color-5: red;
-
-// Background Colors
-$background-color-1: #D43717;
-$background-color-2: #2C3E50;
-$background-color-3: #2980B9;
-$background-color-4: #979595;
-$background-color-5: #f1f1f1;
-$background-color-6: #F8971D;
-$background-color-7: #696969;
-$background-color-8: #328532;
-$background-color-9: #389398;
-$background-color-10: #9CC5CA;
-
-// Border Colors
-$border-bottom-color-1: #389398;
-$border-color-1: #f1f1f1;
-$border-color-2: #F8971D;
-$border-color-3: #7bba4b;
-$border-color-4: #389398;
-$border-color-5: #9CC5CA;
-$border-color-6: #888888;
-
-// Shadow Colors
-$box-shadow-color-1: #9CC5CA;
-
 /* ============================================================================
    2. GLOBAL STYLES
    ============================================================================ */
-
 body {
-  font-family: $font-family-1;
+  font-family: var(--font-family-1);
   font-size: 10pt;
 }
-
 #contentPanel,
 .ui-widget {
-  font-family: $font-family-1;
+  font-family: var(--font-family-1);
 }
-
 #viewport {
   h1 {
     font-size: 20pt;
@@ -72,44 +32,36 @@ body {
     margin: 1rem 0 0 0;
     padding: 0;
   }
-
   p {
     margin: .25rem 0;
     padding: 0 0 0 .5rem;
     text-indent: -.5rem;
   }
 }
-
 legend {
   font-size: 1.25rem;
 }
-
 /* ============================================================================
    3. TYPOGRAPHY
    ============================================================================ */
-
 h1 {
   font-size: 20pt;
   letter-spacing: inherit;
   margin: 1rem 0 0 0;
   padding: 0;
 }
-
 a {
-  color: $color-1;
+  color: var(--color-1);
   text-decoration: underline;
   font-weight: bold;
-
   &:hover {
     text-decoration: none;
-    border-bottom: solid thin $border-bottom-color-1;
+    border-bottom: solid thin var(--border-bottom-color-1);
   }
 }
-
 /* ============================================================================
    4. NAVIGATION
    ============================================================================ */
-
 /* Main Navigation */
 nav {
   position: absolute;
@@ -117,93 +69,79 @@ nav {
   left: 0;
   right: 0;
   overflow: hidden;
-  background-color: $background-color-2;
+  background-color: var(--background-color-2);
   display: block;
-
   div {
     overflow: hidden;
     white-space: nowrap;
   }
-
   ul {
     list-style-type: none;
     margin: 0;
     padding: .25em;
     padding: .25rem;
   }
-
   li {
     display: inline-block;
-
     &:hover {
-      background-color: $background-color-3;
-      color: $color-2;
+      background-color: var(--background-color-3);
+      color: var(--color-2);
     }
-
     &.active {
-      background-color: $background-color-6;
-      border: solid thin $border-color-2;
-      color: $color-1;
+      background-color: var(--background-color-6);
+      border: solid thin var(--border-color-2);
+      color: var(--color-1);
     }
   }
-
   a {
     display: block;
     text-decoration: none;
     text-align: center;
     padding: .25rem;
     margin: 0 .5rem;
-    color: $color-3;
+    color: var(--color-3);
   }
 }
-
 /* Alternative Navigation */
 div.nav {
   display: block;
   margin-top: 1rem;
   margin-bottom: .5rem;
   font-size: .8rem;
-
   ul {
     list-style-type: none;
     margin: 0;
     padding: .25rem;
-    background-color: $background-color-4;
+    background-color: var(--background-color-4);
   }
-
   li {
     display: inline-block;
-    border: solid thin $border-color-1;
+    border: solid thin var(--border-color-1);
     margin: 0;
     padding: 0;
-
     &:hover {
-      background-color: $background-color-5;
-      border: solid thin $border-color-2;
-      color: $color-4;
+      background-color: var(--background-color-5);
+      border: solid thin var(--border-color-2);
+      color: var(--color-4);
     }
-
     &.active {
-      background-color: $background-color-6;
-      border: solid thin $border-color-2;
-      color: $color-1;
+      background-color: var(--background-color-6);
+      border: solid thin var(--border-color-2);
+      color: var(--color-1);
     }
   }
-
   a {
     display: block;
     text-decoration: none;
     text-align: center;
     padding: .125rem .25rem;
-    color: $color-1;
-
+    color: var(--color-1);
     &:hover {
       border: none;
-      color: $color-1;
+      color: var(--color-1);
     }
   }
 }
-
 /* CSS Menu */
 #cssmenu {
   .has-sub {
@@ -211,57 +149,47 @@ div.nav {
       li {
         &:hover {
           a {
-            background-color: $background-color-1;
+            background-color: var(--background-color-1);
           }
         }
       }
     }
   }
-
   > div.pull-right {
     padding-right: 1rem;
-
     > a {
       padding: 0;
     }
   }
 }
-
 /* ============================================================================
    5. FORMS & INPUTS
    ============================================================================ */
-
 select[data-tabname] {
-  background-color: $background-color-6;
-  color: $color-1;
+  background-color: var(--background-color-6);
+  color: var(--color-1);
   margin: 0;
   border-radius: unset;
-
   option {
-    background-color: $background-color-7;
-    color: $color-3;
+    background-color: var(--background-color-7);
+    color: var(--color-3);
   }
 }
-
 .datepicker {
   padding: 0;
 }
-
 /* ============================================================================
    6. TABLES & GRIDS
    ============================================================================ */
-
 /* jqGrid Styles */
 .ui-jqgrid {
   > .ui-jqgrid-view {
     font-size: .75rem;
-
     input {
       line-height: 1rem;
       padding: 0;
     }
   }
-
   .ui-jqgrid-htable {
     th.ui-th-column-header {
       border-right: none;
@@ -269,7 +197,6 @@ select[data-tabname] {
     }
   }
 }
-
 .ui-th-column-header {
   table {
     width: 100%;
@@ -277,7 +204,6 @@ select[data-tabname] {
     border-spacing: 0px;
     line-height: 1rem;
   }
-
   tr {
     &:first-of-type {
       td {
@@ -286,121 +212,100 @@ select[data-tabname] {
     }
   }
 }
-
 /* jQuery UI State Defaults */
 .ui-state-default,
 .ui-widget-content .ui-state-default,
 .ui-widget-header .ui-state-default {
-  border: 1px solid $border-color-3;
-  background: $background-color-8;
+  border: 1px solid var(--border-color-3);
+  background: var(--background-color-8);
 }
-
 /* Instruction Table */
 .InstructionTable {
   width: 100%;
-  font-family: $font-family-2;
-
+  font-family: var(--font-family-2);
   td {
     padding: .5rem 0;
     vertical-align: top;
   }
 }
-
 #ScheduleInstructions {
   font-size: .8rem;
 }
-
 /* ============================================================================
    7. BUTTONS
    ============================================================================ */
-
 /* Primary Button */
 .btn-primary {
-  color: $color-1;
-  background-color: $background-color-9;
-  border-color: $border-color-4;
-
+  color: var(--color-1);
+  background-color: var(--background-color-9);
+  border-color: var(--border-color-4);
   &:hover,
   &:active {
-    color: $color-1;
-    background-color: $background-color-10;
-    border-color: $border-color-5;
+    color: var(--color-1);
+    background-color: var(--background-color-1)0;
+    border-color: var(--border-color-5);
   }
-
   &:not(:disabled):not(.disabled):active {
-    color: $color-1;
-    background-color: $background-color-10;
-    border-color: $border-color-5;
+    color: var(--color-1);
+    background-color: var(--background-color-1)0;
+    border-color: var(--border-color-5);
   }
-
   &:focus {
-    color: $color-1;
-    background-color: $background-color-9;
-    border-color: $border-color-4;
-    box-shadow: 0 0 0 0.2rem $box-shadow-color-1;
+    color: var(--color-1);
+    background-color: var(--background-color-9);
+    border-color: var(--border-color-4);
+    box-shadow: 0 0 0 0.2rem var(--box-shadow-color-1);
   }
-
   &:not(:disabled):not(.disabled):active:focus {
-    box-shadow: 0 0 0 0.2rem $box-shadow-color-1;
+    box-shadow: 0 0 0 0.2rem var(--box-shadow-color-1);
   }
 }
-
 /* Expand/Collapse Buttons */
 button.collapses {
   /* background: url('feather-icons/dist/icons/chevrons-up.svg') no-repeat center; */
-  border: solid thin $border-color-6;
+  border: solid thin var(--border-color-6);
   border-radius: 10%;
   padding: 4px;
   margin: 0;
   height: 16px;
   width: 16px;
 }
-
 button.expands {
   /* background: url('feather-icons/dist/icons/chevrons-down.svg') no-repeat center; */
-  border: solid thin $border-color-6;
+  border: solid thin var(--border-color-6);
   border-radius: 10%;
   padding: 4px;
   margin: 0;
   height: 16px;
   width: 16px;
 }
-
 /* ============================================================================
    8. UTILITY CLASSES
    ============================================================================ */
-
 /* Vertical Alignment */
 .top {
   vertical-align: top;
 }
-
 .middle {
   vertical-align: middle;
 }
-
 .bottom {
   vertical-align: bottom;
 }
-
 /* Text Alignment */
 .left {
   text-align: left;
 }
-
 .center {
   text-align: center;
 }
-
 .right {
   text-align: right;
 }
-
 /* Text Utilities */
 .red {
-  color: $color-5;
+  color: var(--color-5);
 }
-
 .bold {
   font-weight: bold;
 }
