@@ -2,7 +2,7 @@ import {Component, OnInit, inject, signal} from '@angular/core';
 import {FormBuilder, FormGroup, ReactiveFormsModule, Validators} from '@angular/forms';
 import {TitleService} from '../../../services/title';
 import {AppConfigService} from '../../../services/app-config';
-import {PortalConfigService} from '../../../services/portal-config-service';
+import {PortalConfigService} from '../../../services/portal-config';
 
 @Component({
   imports: [ReactiveFormsModule],
@@ -29,6 +29,7 @@ export class Login implements OnInit {
 
   ngOnInit(): void {
     this.titleService.setTitle(this.appConfigService.getConfig().WebPortalTitle + ' - Home - Login');
+    this.portalConfig.refreshConfig();
   }
 
 

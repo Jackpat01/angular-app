@@ -1,8 +1,9 @@
-import {Component, OnInit, signal} from '@angular/core';
+import {Component, inject, OnInit, signal} from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { TitleService } from '../../services/title';
 import { AppConfigService, AppConfig } from '../../services/app-config';
 import {RouterLink, RouterOutlet} from '@angular/router';
+import {PortalConfigService} from '../../services/portal-config';
 
 @Component({
   imports: [CommonModule, RouterOutlet, RouterLink],
@@ -12,8 +13,7 @@ import {RouterLink, RouterOutlet} from '@angular/router';
 })
 export class BaseLayout implements OnInit {
   appConfig: AppConfig | null = null;
-  lineArray = signal<string[]>([]);
-  version = '1.0.0';
+  protected readonly portalConfig = inject(PortalConfigService);
 
   constructor(
     private titleService: TitleService,
@@ -23,6 +23,7 @@ export class BaseLayout implements OnInit {
   ngOnInit(): void {
     this.titleService.setTitle('Welcome');
     this.appConfig = this.appConfigService.getConfig();
+    this.portalConfig.refreshConfig();
   }
 
   get appVersion(): string {

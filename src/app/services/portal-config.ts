@@ -1,9 +1,11 @@
-import { Injectable } from '@angular/core';
-import { BehaviorSubject, Observable } from 'rxjs';
-import { ApiService } from './api';
+import {Injectable} from '@angular/core';
+import {BehaviorSubject, Observable} from 'rxjs';
+import {ApiService} from './api';
 
 export interface PortalConfig {
   applicationName: string;
+  loginMessage: string[];
+
   [key: string]: any;
 }
 
@@ -12,7 +14,12 @@ export interface PortalConfig {
 })
 export class PortalConfigService {
   private defaultConfig: PortalConfig = {
-    applicationName: 'OHFI Application'
+    applicationName: 'OHFI Application',
+    loginMessage: [
+      'Legal Notice',
+      'This system is for authorized users only, and its use may be monitored. Unauthorized or improper use may result in disciplinary action, civil/criminal penalties, ',
+      'and sanctions. By using this system, you consent to the terms and conditions of use.'
+    ],
   };
 
   private configSubject = new BehaviorSubject<PortalConfig>(this.defaultConfig);
@@ -50,6 +57,13 @@ export class PortalConfigService {
    */
   getApplicationName(): string {
     return this.configSubject.value.applicationName;
+  }
+
+  /**
+   * Get the login message from config
+   */
+  getLoginMessage(): string[] {
+    return this.configSubject.value.loginMessage;
   }
 
   /**

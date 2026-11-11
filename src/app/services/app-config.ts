@@ -15,7 +15,7 @@ export interface AppConfig {
 })
 export class AppConfigService {
   private configSubject = new BehaviorSubject<AppConfig>({
-    appVersion: '1.0.0',
+    appVersion: '0.0.1',
     currentYear: new Date().getFullYear(),
     appName: 'Web Portal',
     supportEmail: 'support@example.com',WebPortalTitle:'test'
