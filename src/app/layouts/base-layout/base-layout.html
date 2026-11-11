@@ -1,9 +1,41 @@
 <div class="page-layout">
-  <ohfi-header-bar></ohfi-header-bar>
-  <ohfi-logo-branding [showUserInfo]="false"></ohfi-logo-branding>
+  <div style="background-color: #74c141; height: 40px;"></div>
+  <div style="border-bottom: 1px dashed #ccc;">
+    <a routerLink="/home/login">
+      <img src="/images/logo.png" width="500" height="80" alt="MSLC Logo">
+    </a>
+  </div>
 </div>
-
-<ohfi-content-panel></ohfi-content-panel>
-
-<ohfi-footer-section [appVersion]="appVersion" [currentYear]="currentYear"></ohfi-footer-section>
-
+<div id="contentPanel" style="width: 1280px; margin-left: auto; margin-right: auto;">
+  <div class="clearFixedFloatingDiv"></div>
+  <section class="featured-wrapper">
+    <router-outlet name="featured"/>
+  </section>
+  <main>
+    <router-outlet/>
+  </main>
+</div>
+<div class="footer_new" style="color:black">
+  <div class="d-flex flex-row justify-content-between container footer_text" style="max-width:1280px; width:1280px;">
+    <div style="float:left; width:60%; color:black;">
+      @for (line of lineArray(); track $index) {
+        {{ line }} <br/>
+      }
+    </div>
+    <div style="float:left; width:40%;">
+      <div style="padding-left: 175px; color: black;">
+        Copyright © 2013–{{ currentYear }} Myers and Stauffer LC. All rights reserved.<br/>
+      </div>
+      <div style="padding-right: 15px; text-align: right; color: black;">
+        Version: {{ version }}
+      </div>
+      <div>
+        <a href="https://myersandstauffer.com/accessibility/" target="_blank">
+          <div style="float: right; text-align: right; color: black;">
+            <u>Visit our accessibility information and help page.</u>
+          </div>
+        </a>
+      </div>
+    </div>
+  </div>
+</div>

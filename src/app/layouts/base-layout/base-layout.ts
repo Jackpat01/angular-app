@@ -1,20 +1,19 @@
-import { Component, OnInit } from '@angular/core';
+import {Component, OnInit, signal} from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { HeaderBarComponent } from '../../shared/header-bar/header-bar';
-import { LogoBrandingComponent } from '../../shared/logo-branding/logo-branding';
-import { ContentPanelComponent } from '../../shared/content-panel/content-panel';
-import { FooterSectionComponent } from '../../shared/footer-section/footer-section';
 import { TitleService } from '../../services/title';
 import { AppConfigService, AppConfig } from '../../services/app-config';
+import {RouterLink, RouterOutlet} from '@angular/router';
 
 @Component({
-  imports: [CommonModule, HeaderBarComponent, LogoBrandingComponent, ContentPanelComponent, FooterSectionComponent],
+  imports: [CommonModule, RouterOutlet, RouterLink],
   selector: 'ohfi-base-layout',
   styleUrl: './base-layout.css',
   templateUrl: './base-layout.html',
 })
 export class BaseLayout implements OnInit {
   appConfig: AppConfig | null = null;
+  lineArray = signal<string[]>([]);
+  version = '1.0.0';
 
   constructor(
     private titleService: TitleService,
