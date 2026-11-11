@@ -11,7 +11,11 @@ export interface PortalConfig {
   providedIn: 'root',
 })
 export class PortalConfigService {
-  private configSubject = new BehaviorSubject<PortalConfig | null>(null);
+  private defaultConfig: PortalConfig = {
+    applicationName: 'OHFI Application'
+  };
+
+  private configSubject = new BehaviorSubject<PortalConfig>(this.defaultConfig);
   config$ = this.configSubject.asObservable();
 
   constructor(private apiService: ApiService) {
@@ -29,15 +33,15 @@ export class PortalConfigService {
       },
       error: (error) => {
         console.error('Failed to load portal config from API', error);
-        this.configSubject.next(null);
+        // Keep using default config on error
       }
     });
   }
 
   /**
-   * Get the current portal configuration
+   * Get the current portal configuration (never null)
    */
-  getConfig(): PortalConfig | null {
+  getConfig(): PortalConfig {
     return this.configSubject.value;
   }
 
@@ -45,7 +49,7 @@ export class PortalConfigService {
    * Get the application name from config
    */
   getApplicationName(): string {
-    return this.configSubject.value?.applicationName || 'OHFI Application';
+    return this.configSubject.value.applicationName;
   }
 
   /**
