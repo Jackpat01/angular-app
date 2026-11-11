@@ -1,0 +1,30 @@
+<form [formGroup]="acceptForm" (ngSubmit)="onSubmit()">
+  <div>
+    <div class="center">
+      <div class="myImage" style="display: none;">
+        <div class="center">
+          <img ngSrc="images/loading.GIF" alt="Loading" width="32" height="32"/>
+        </div>
+      </div>
+      <div class="myControls">
+        <table class="clean-table">
+          <tr>
+            <td>
+              @if (eula.getEula(); as eulaText) {
+                <div style="margin-top: 15px; margin-bottom: 15px;" [innerHTML]="eulaText"></div>
+              } @else {
+                <p>Loading EULA...</p>
+              }
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <div class="center"><input id="btnAcceptTerms" value="Accept Terms" type="submit"
+                                         class="btn btn-success BoldMe"/></div>
+            </td>
+          </tr>
+        </table>
+      </div>
+    </div>
+  </div>
+</form>

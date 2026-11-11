@@ -1,0 +1,12 @@
+.clean-table {
+  width: 95%;               /* Replaces width="95%" */
+  border-collapse: collapse; /* Replaces cellspacing="0" */
+  border-spacing: 0;         /* Ensures zero gap between cells */
+  border: 0;                 /* Replaces border="0" */
+}
+
+.clean-table th,
+.clean-table td {
+  padding: 0;                /* Replaces cellpadding="0" */
+  border: 0;
+}

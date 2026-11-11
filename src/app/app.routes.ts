@@ -11,6 +11,7 @@ import { AdminUsersComponent } from './pages/admin-users/admin-users';
 import { AdminReportsComponent } from './pages/admin-reports/admin-reports';
 import { SampleForm } from './pages/sample-form/sample-form';
 import { AuthGuard } from './guards/auth.guard';
+import {AcceptTerms} from './pages/home/accept-terms/accept-terms';
 
 export const routes: Routes = [
   {
@@ -23,6 +24,7 @@ export const routes: Routes = [
         children: [
           { path: '', redirectTo: 'login', pathMatch: 'full' },
           { path: 'login', component: Login },
+          { path: 'accept', component: AcceptTerms },
           { path: 'error', component: ErrorPage }
         ]
       },
