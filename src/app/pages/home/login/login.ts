@@ -1,5 +1,5 @@
 import { Component, OnInit, inject } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import {CommonModule, NgOptimizedImage} from '@angular/common';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import { TitleService } from '../../../services/title';
@@ -8,7 +8,7 @@ import { AppConfigService } from '../../../services/app-config';
 import { PortalConfigService } from '../../../services/portal-config';
 
 @Component({
-  imports: [CommonModule, ReactiveFormsModule],
+  imports: [CommonModule, ReactiveFormsModule, NgOptimizedImage],
   selector: 'ohfi-login',
   styleUrl: './login.css',
   templateUrl: './login.html',
@@ -18,14 +18,14 @@ export class Login implements OnInit {
   loginForm!: FormGroup;
   submitted = false;
   loginError: string | null = null;
+  loginMessage: string | null = null;
   isLoading = false;
-  appTitle = 'OHFI';
 
   constructor(
     private titleService: TitleService,
     private loginService: LoginService,
     private appConfigService: AppConfigService,
-    private portalConfigService: PortalConfigService,
+    private portalConfig: PortalConfigService,
     private router: Router
   ) {}
 
