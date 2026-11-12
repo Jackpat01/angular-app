@@ -1,30 +1,64 @@
-<form [formGroup]="acceptForm" (ngSubmit)="onSubmit()">
-  <div>
-    <div class="center">
-      <div class="myImage" style="display: none;">
-        <div class="center">
-          <img ngSrc="images/loading.GIF" alt="Loading" width="32" height="32"/>
+<div class="accept-terms-wrapper">
+  <div class="accept-terms-container">
+    <div class="accept-terms-card">
+      <div class="accept-terms-header mb-4">
+        <h2>{{ appTitle }} - Terms of Use</h2>
+      </div>
+
+      <ng-container *ngIf="acceptError">
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+          {{ acceptError }}
+          <button type="button" class="btn-close" (click)="dismissError()"></button>
         </div>
+      </ng-container>
+
+      <div class="eula-content mb-4">
+        <ng-container *ngIf="isLoading">
+          <div class="text-center">
+            <div class="spinner-border" role="status">
+              <span class="visually-hidden">Loading EULA...</span>
+            </div>
+          </div>
+        </ng-container>
+        <ng-container *ngIf="!isLoading && eulaText">
+          <div [innerHTML]="eulaText" class="eula-text"></div>
+        </ng-container>
       </div>
-      <div class="myControls">
-        <table class="clean-table">
-          <tr>
-            <td>
-              @if (eula.getEula(); as eulaText) {
-                <div style="margin-top: 15px; margin-bottom: 15px;" [innerHTML]="eulaText"></div>
-              } @else {
-                <p>Loading EULA...</p>
-              }
-            </td>
-          </tr>
-          <tr>
-            <td>
-              <div class="center"><input id="btnAcceptTerms" value="Accept Terms" type="submit"
-                                         class="btn btn-success BoldMe"/></div>
-            </td>
-          </tr>
-        </table>
-      </div>
+
+      <form [formGroup]="acceptForm" (ngSubmit)="onSubmit()">
+        <div class="mb-3">
+          <div class="form-check">
+            <input
+              type="checkbox"
+              class="form-check-input"
+              id="acceptCheckbox"
+              formControlName="acceptCheckbox"
+              [disabled]="isLoading"
+            />
+            <label class="form-check-label" for="acceptCheckbox">
+              I accept the Terms of Use
+            </label>
+            <div class="invalid-feedback d-block" *ngIf="submitted && f['acceptCheckbox'].errors">
+              You must accept the Terms of Use to continue
+            </div>
+          </div>
+        </div>
+
+        <div class="d-grid gap-2 mb-2">
+          <button 
+            type="submit" 
+            class="btn btn-success" 
+            [disabled]="isLoading"
+          >
+            <span *ngIf="isLoading" class="spinner-border spinner-border-sm me-2"></span>
+            {{ isLoading ? 'Processing...' : 'Accept Terms' }}
+          </button>
+        </div>
+
+        <div class="text-center">
+          <p class="text-muted small">By accepting, you agree to our Terms of Use and Privacy Policy</p>
+        </div>
+      </form>
     </div>
   </div>
-</form>
+</div>
