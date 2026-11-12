@@ -1,5 +1,5 @@
 import { Component, inject, OnInit } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import {CommonModule, NgOptimizedImage} from '@angular/common';
 import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import { TitleService } from '../../../services/title';
@@ -11,7 +11,7 @@ import { LoginService } from '../../../services/login';
   templateUrl: './accept-terms.html',
   styleUrl: './accept-terms.css',
   standalone: true,
-  imports: [CommonModule, FormsModule, ReactiveFormsModule],
+  imports: [CommonModule, FormsModule, ReactiveFormsModule, NgOptimizedImage],
 })
 export class AcceptTerms implements OnInit {
   private titleService = inject(TitleService);
@@ -34,10 +34,10 @@ export class AcceptTerms implements OnInit {
   ngOnInit(): void {
     this.appTitle = this.portalConfig.getConfig().applicationName;
     this.titleService.setTitle(`${this.appTitle} - Accept Terms of Use`);
-    
+
     // Get email from sessionStorage
     this.email = sessionStorage.getItem('userEmail') || '';
-    
+
     if (!this.email) {
       // No email in session, redirect to login
       this.router.navigate(['/login']);
