@@ -8,7 +8,7 @@ export interface LoginRequest {
   password: string;
 }
 
-export interface ARUMUser {
+export interface ARUMProxy_User {
   userID: number;
   email: string;
   acceptedTerms: boolean | null;
@@ -18,12 +18,11 @@ export interface ARUMUser {
 
 export interface LoginResponse {
   successful: boolean;
-  message: string;
-  lstARUMUsers: ARUMUser[];
-  results?: {
-    successful: boolean;
-    message: string;
-  };
+  redirectToTerm:boolean;
+  errorMessage: string;
+  userName:string;
+  email:string;
+  ARUMUser?: ARUMProxy_User;
 }
 
 export interface EULAResponse {
@@ -59,7 +58,7 @@ export class LoginService {
   loginToPage(credentials: LoginRequest): Observable<LoginResponse> {
     this.isLoadingSubject.next(true);
     return new Observable(observer => {
-      this.apiService.post<LoginResponse>('/LoginToPage', credentials).subscribe({
+      this.apiService.post<LoginResponse>('/loginToPage', credentials).subscribe({
         next: (response) => {
           this.isLoadingSubject.next(false);
           observer.next(response);
@@ -90,13 +89,6 @@ export class LoginService {
     return this.apiService.post<AcceptTermsResponse>('/accept-terms', request);
   }
 
-  /**
-   * Check if user needs to accept terms
-   * Returns true if any ARUM user has not accepted terms
-   */
-  userNeedsToAcceptTerms(arumUsers: ARUMUser[]): boolean {
-    return arumUsers.some(user => user.acceptedTerms === null || user.acceptedTerms === false);
-  }
 
   /**
    * Check if login is currently in progress

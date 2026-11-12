@@ -6,6 +6,7 @@ import { TitleService } from '../../../services/title';
 import { LoginService } from '../../../services/login';
 import { AppConfigService } from '../../../services/app-config';
 import { PortalConfigService } from '../../../services/portal-config';
+import {TempDataService} from '../../../services/temp-data';
 
 @Component({
   imports: [CommonModule, ReactiveFormsModule, NgOptimizedImage],
@@ -17,8 +18,6 @@ export class Login implements OnInit {
   private fb = inject(FormBuilder);
   loginForm!: FormGroup;
   submitted = false;
-  loginError: string | null = null;
-  loginMessage: string | null = null;
   isLoading = false;
 
   constructor(
@@ -26,7 +25,8 @@ export class Login implements OnInit {
     private loginService: LoginService,
     private appConfigService: AppConfigService,
     private portalConfig: PortalConfigService,
-    private router: Router
+    private router: Router,
+    private tempData:TempDataService
   ) {}
 
   ngOnInit(): void {
@@ -49,7 +49,6 @@ export class Login implements OnInit {
 
   onSubmit(): void {
     this.submitted = true;
-    this.loginError = null;
 
     if (this.loginForm.invalid) {
       return;
@@ -63,21 +62,21 @@ export class Login implements OnInit {
         this.isLoading = false;
 
         if (!response.successful) {
-          this.loginError = response.message || 'Login failed. Please try again.';
+          this.tempData.setTempData('errorMessage',response.errorMessage || 'Login failed. Please try again.');
           return;
         }
 
-        if (!response.lstARUMUsers || response.lstARUMUsers.length === 0) {
-          this.loginError = 'Username/password invalid';
+        if (!response.ARUMUser) {
+          this.tempData.setTempData('errorMessage','Username/password invalid');
           return;
         }
 
         // Store email in session storage for use in other components
-        sessionStorage.setItem('email', email);
-        sessionStorage.setItem('arumUsers', JSON.stringify(response.lstARUMUsers));
+        sessionStorage.setItem('email', response.ARUMUser.email);
+        sessionStorage.setItem('arumUser', JSON.stringify(response.ARUMUser));
 
         // Check if user needs to accept terms
-        if (this.loginService.userNeedsToAcceptTerms(response.lstARUMUsers)) {
+        if (response.redirectToTerm) {
           this.router.navigate(['/accept-terms']);
         } else {
           // Navigate to projects/dashboard
@@ -86,14 +85,13 @@ export class Login implements OnInit {
       },
       error: (error) => {
         this.isLoading = false;
-        this.loginError =
-          error.message || 'Login failed. Please check your credentials and try again.';
+        this.tempData.setTempData('errorMessage', error.message || 'Login failed. Please check your credentials and try again.');
         console.error('Login error:', error);
       }
     });
   }
 
   dismissError(): void {
-    this.loginError = null;
+    this.tempData.removeTempData('errorMessage');
   }
 }
