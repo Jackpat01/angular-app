@@ -1,7 +1,7 @@
-import { Injectable } from '@angular/core';
-import { HttpClient, HttpErrorResponse } from '@angular/common/http';
-import { Observable, throwError } from 'rxjs';
-import { catchError } from 'rxjs/operators';
+import {Injectable} from '@angular/core';
+import {HttpClient, HttpErrorResponse} from '@angular/common/http';
+import {Observable, throwError} from 'rxjs';
+import {catchError} from 'rxjs/operators';
 
 @Injectable({
   providedIn: 'root',
@@ -10,13 +10,20 @@ export class ApiService {
   // Configure backend URL here
   private apiBaseUrl = 'http://localhost:5239/api';
 
-  constructor(private http: HttpClient) {}
+  constructor(private http: HttpClient) {
+  }
 
   /**
    * GET request
    */
   get<T>(endpoint: string): Observable<T> {
     return this.http.get<T>(`${this.apiBaseUrl}${endpoint}`).pipe(
+      catchError((error) => this.handleError(error))
+    );
+  }
+
+  getRemoteData(endpoint: string): Observable<string> {
+    return this.http.get(endpoint, { responseType: 'text' }).pipe(
       catchError((error) => this.handleError(error))
     );
   }

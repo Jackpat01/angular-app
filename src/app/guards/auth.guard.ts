@@ -1,6 +1,6 @@
-import { Injectable } from '@angular/core';
-import { CanActivate, ActivatedRouteSnapshot, RouterStateSnapshot, Router } from '@angular/router';
-import { AuthService } from '../services/auth';
+import {Injectable} from '@angular/core';
+import {ActivatedRouteSnapshot, CanActivate, Router, RouterStateSnapshot} from '@angular/router';
+import {AuthService} from '../services/auth';
 
 @Injectable({
   providedIn: 'root',
@@ -9,7 +9,8 @@ export class AuthGuard implements CanActivate {
   constructor(
     private authService: AuthService,
     private router: Router
-  ) {}
+  ) {
+  }
 
   canActivate(
     route: ActivatedRouteSnapshot,
@@ -21,7 +22,7 @@ export class AuthGuard implements CanActivate {
 
     // Not authenticated - redirect to login
     console.warn('Access denied - redirecting to login');
-    this.router.navigate(['/login'], { queryParams: { returnUrl: state.url } });
+    this.router.navigate(['/login'], {queryParams: {returnUrl: state.url}});
     return false;
   }
 }

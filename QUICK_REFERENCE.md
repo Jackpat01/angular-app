@@ -1,30 +1,36 @@
 # Quick Reference - Angular 22 Multi-Layout App
 
 ## 🚀 Start Development
+
 ```bash
 cd /root/angular-app
 npm start
 ```
+
 Open http://localhost:4200
 
 ## 📄 File Locations
 
 ### Key Files
+
 - Routes: `src/app/app.routes.ts`
 - Configuration: `src/app/app.config.ts`
 - Title Service: `src/app/services/title.ts`
 - Global Styles: `src/styles.scss`
 
 ### Layouts
+
 - Public: `src/app/layouts/public-layout/`
 - Dashboard: `src/app/layouts/dashboard-layout/`
 - Admin: `src/app/layouts/admin-layout/`
 
 ### Shared Components
+
 - Header: `src/app/shared/header/`
 - Footer: `src/app/shared/footer/`
 
 ### Pages
+
 - Home: `src/app/pages/home/`
 - User Dashboard: `src/app/pages/user-dashboard/`
 - Admin Dashboard: `src/app/pages/admin-dashboard/`
@@ -32,27 +38,30 @@ Open http://localhost:4200
 
 ## 📍 Application Routes
 
-| URL | Layout | Component |
-|-----|--------|-----------|
-| `/` | Public | Home |
-| `/form` | Public | Sample Form |
-| `/user-dashboard` | Dashboard | User Dashboard |
-| `/admin` | Admin | Admin Dashboard |
-| `/admin/dashboard` | Admin | Admin Dashboard |
+| URL                | Layout    | Component       |
+|--------------------|-----------|-----------------|
+| `/`                | Public    | Home            |
+| `/form`            | Public    | Sample Form     |
+| `/user-dashboard`  | Dashboard | User Dashboard  |
+| `/admin`           | Admin     | Admin Dashboard |
+| `/admin/dashboard` | Admin     | Admin Dashboard |
 
 ## 💻 Common Tasks
 
 ### Create New Page
+
 ```bash
 npx ng generate component pages/my-page --skip-tests
 ```
 
 ### Create New Service
+
 ```bash
 npx ng generate service services/my-service --skip-tests
 ```
 
 ### Set Page Title
+
 ```typescript
 constructor(private titleService: TitleService) {}
 
@@ -62,6 +71,7 @@ ngOnInit(): void {
 ```
 
 ### Fetch Title from API
+
 ```typescript
 ngOnInit(): void {
   this.titleService.fetchTitleFromApi('/api/titles/123')
@@ -70,6 +80,7 @@ ngOnInit(): void {
 ```
 
 ### Create Reactive Form
+
 ```typescript
 import { FormBuilder, Validators } from '@angular/forms';
 
@@ -84,7 +95,9 @@ ngOnInit(): void {
 ```
 
 ### Add New Route
+
 Edit `src/app/app.routes.ts`:
+
 ```typescript
 {
   path: 'my-path',
@@ -98,6 +111,7 @@ Edit `src/app/app.routes.ts`:
 ## 🎨 Bootstrap Classes
 
 ### Grid
+
 ```html
 <div class="row">
   <div class="col-md-6">Half width</div>
@@ -106,6 +120,7 @@ Edit `src/app/app.routes.ts`:
 ```
 
 ### Cards
+
 ```html
 <div class="card">
   <div class="card-header">Header</div>
@@ -114,6 +129,7 @@ Edit `src/app/app.routes.ts`:
 ```
 
 ### Buttons
+
 ```html
 <button class="btn btn-primary">Primary</button>
 <button class="btn btn-secondary">Secondary</button>
@@ -121,6 +137,7 @@ Edit `src/app/app.routes.ts`:
 ```
 
 ### Alerts
+
 ```html
 <div class="alert alert-success">Success</div>
 <div class="alert alert-warning">Warning</div>
@@ -128,6 +145,7 @@ Edit `src/app/app.routes.ts`:
 ```
 
 ### Forms
+
 ```html
 <input class="form-control" placeholder="Name">
 <select class="form-select">
@@ -139,27 +157,32 @@ Edit `src/app/app.routes.ts`:
 ## 🔍 Validation Rules
 
 ### Required
+
 ```typescript
 Validators.required
 ```
 
 ### Email
+
 ```typescript
 Validators.email
 ```
 
 ### Min/Max Length
+
 ```typescript
 Validators.minLength(2)
 Validators.maxLength(50)
 ```
 
 ### Pattern
+
 ```typescript
 Validators.pattern(/^[0-9\-\+\(\)]{10,}$/)  // Phone
 ```
 
 ### Multiple Validators
+
 ```typescript
 firstName: ['', [Validators.required, Validators.minLength(2)]]
 ```
@@ -172,6 +195,7 @@ firstName: ['', [Validators.required, Validators.minLength(2)]]
 - TypeScript
 
 Install new package:
+
 ```bash
 npm install package-name
 ```
@@ -199,12 +223,12 @@ export class MyComponent implements OnInit {
 
 ## 🔧 Build Commands
 
-| Command | Purpose |
-|---------|---------|
-| `npm start` | Start dev server |
+| Command         | Purpose          |
+|-----------------|------------------|
+| `npm start`     | Start dev server |
 | `npm run build` | Production build |
-| `npm run test` | Run tests |
-| `npm run lint` | Lint code |
+| `npm run test`  | Run tests        |
+| `npm run lint`  | Lint code        |
 
 ## 📂 Project Structure
 
@@ -232,12 +256,15 @@ src/
 ## 🐛 Debugging
 
 ### Check Console
+
 Open DevTools (F12) and look at Console tab for errors
 
 ### Check Network
+
 Network tab shows HTTP requests/responses
 
 ### Check Component
+
 Angular DevTools extension for debugging components
 
 ## 🌐 Browser DevTools
@@ -266,16 +293,19 @@ Angular DevTools extension for debugging components
 ## 🆘 Common Issues
 
 **Build fails**
+
 - Check TypeScript errors
 - Verify imports
 - Clear node_modules: `rm -rf node_modules && npm install`
 
 **Forms not working**
+
 - Import ReactiveFormsModule
 - Check formControlName matches property names
 - Verify form group structure
 
 **Styles not applied**
+
 - Check Bootstrap CSS is loaded
 - Verify class names are correct
 - Check CSS specificity

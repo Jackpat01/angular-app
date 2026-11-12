@@ -1,6 +1,6 @@
-import { Injectable } from '@angular/core';
-import { BehaviorSubject, Observable } from 'rxjs';
-import { ApiService } from './api';
+import {Injectable} from '@angular/core';
+import {BehaviorSubject, Observable} from 'rxjs';
+import {ApiService} from './api';
 
 export interface NavItem {
   label: string;
@@ -14,32 +14,16 @@ export interface NavItem {
 })
 export class AdminService {
   private menuItemsSubject = new BehaviorSubject<NavItem[]>([
-    { label: 'Dashboard', route: '/admin/dashboard' },
-    { label: 'Users', route: '/admin/users' },
-    { label: 'Reports', route: '/admin/reports', badge: 3 },
-    { label: 'Settings', route: '/admin/settings' },
+    {label: 'Dashboard', route: '/admin/dashboard'},
+    {label: 'Users', route: '/admin/users'},
+    {label: 'Reports', route: '/admin/reports', badge: 3},
+    {label: 'Settings', route: '/admin/settings'},
   ]);
 
   menuItems$ = this.menuItemsSubject.asObservable();
 
   constructor(private apiService: ApiService) {
     this.loadMenuItems();
-  }
-
-  /**
-   * Load menu items from API
-   * Endpoint: GET /api/admin/menu
-   */
-  private loadMenuItems(): void {
-    this.apiService.get<NavItem[]>('/admin/menu').subscribe({
-      next: (items) => {
-        this.menuItemsSubject.next(items);
-      },
-      error: (error) => {
-        console.error('Failed to load menu items from API, using defaults', error);
-        // Keep using default values on error
-      }
-    });
   }
 
   getMenuItems(): NavItem[] {
@@ -53,7 +37,7 @@ export class AdminService {
   updateMenuItemBadge(route: string, badge: number | undefined): void {
     const items = this.menuItemsSubject.value;
     const updated = items.map((item) =>
-      item.route === route ? { ...item, badge } : item
+      item.route === route ? {...item, badge} : item
     );
     this.menuItemsSubject.next(updated);
   }
@@ -104,5 +88,21 @@ export class AdminService {
    */
   deleteReport(id: string): Observable<any> {
     return this.apiService.delete(`/admin/reports/${id}`);
+  }
+
+  /**
+   * Load menu items from API
+   * Endpoint: GET /api/admin/menu
+   */
+  private loadMenuItems(): void {
+    this.apiService.get<NavItem[]>('/admin/menu').subscribe({
+      next: (items) => {
+        this.menuItemsSubject.next(items);
+      },
+      error: (error) => {
+        console.error('Failed to load menu items from API, using defaults', error);
+        // Keep using default values on error
+      }
+    });
   }
 }

@@ -1,6 +1,6 @@
-import { Component, Input } from '@angular/core';
-import { CommonModule } from '@angular/common';
-import { RouterLink } from '@angular/router';
+import {Component, Input} from '@angular/core';
+import {CommonModule} from '@angular/common';
+import {RouterLink} from '@angular/router';
 
 export interface NavItem {
   label: string;
@@ -17,9 +17,9 @@ export interface NavItem {
 })
 export class AdminNavigation {
   @Input() menuItems: NavItem[] = [
-    { label: 'Dashboard', route: '/admin/dashboard' },
-    { label: 'Users', route: '/admin/users' },
-    { label: 'Reports', route: '/admin/reports' },
-    { label: 'Settings', route: '/admin/settings' },
+    {label: 'Dashboard', route: '/admin/dashboard'},
+    {label: 'Users', route: '/admin/users'},
+    {label: 'Reports', route: '/admin/reports'},
+    {label: 'Settings', route: '/admin/settings'},
   ];
 }

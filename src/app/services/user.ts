@@ -1,7 +1,7 @@
-import { Injectable } from '@angular/core';
-import { BehaviorSubject, Observable, tap, map } from 'rxjs';
-import { ApiService } from './api';
-import { AuthService, AuthToken, UserClaims } from './auth';
+import {Injectable} from '@angular/core';
+import {BehaviorSubject, Observable, tap} from 'rxjs';
+import {ApiService} from './api';
+import {AuthService, AuthToken, UserClaims} from './auth';
 
 export interface UserInfo {
   email: string;
@@ -43,48 +43,6 @@ export class UserService {
   }
 
   /**
-   * Initialize user data from JWT claims
-   * This replaces session variables from old ASP.NET pattern
-   */
-  private initializeUserFromClaims(): void {
-    if (!this.authService.isAuthenticated()) {
-      return;
-    }
-
-    const claims = this.authService.getClaims();
-    if (claims) {
-      this.userSubject.next({
-        email: claims.email || '',
-        role: claims.role || 'User',
-        providerType: claims.provider || 'Standard',
-        projectName: claims.company || 'Main Project',
-        isAuthenticated: true,
-      });
-    }
-  }
-
-  /**
-   * Load current user from API
-   * Endpoint: GET /api/auth/user
-   */
-  private loadCurrentUser(): void {
-    if (!this.authService.isAuthenticated()) {
-      return;
-    }
-
-    this.apiService.get<UserInfo>('/auth/user').subscribe({
-      next: (user) => {
-        this.userSubject.next({ ...user, isAuthenticated: true });
-      },
-      error: (error) => {
-        console.error('Failed to load current user', error);
-        // User stays logged out on error
-        this.authService.clearTokens();
-      }
-    });
-  }
-
-  /**
    * Login user
    * Endpoint: POST /api/auth/login
    * Stores JWT token which contains claims (replaces session variables)
@@ -95,7 +53,7 @@ export class UserService {
         // Store tokens in localStorage
         this.authService.setTokens(response.token);
         // Set user data
-        this.userSubject.next({ ...response.user, isAuthenticated: true });
+        this.userSubject.next({...response.user, isAuthenticated: true});
       })
     );
   }
@@ -122,7 +80,7 @@ export class UserService {
 
   setAuthenticated(isAuth: boolean): void {
     const current = this.userSubject.value;
-    this.userSubject.next({ ...current, isAuthenticated: isAuth });
+    this.userSubject.next({...current, isAuthenticated: isAuth});
   }
 
   /**
@@ -177,6 +135,48 @@ export class UserService {
       providerType: '',
       projectName: '',
       isAuthenticated: false,
+    });
+  }
+
+  /**
+   * Initialize user data from JWT claims
+   * This replaces session variables from old ASP.NET pattern
+   */
+  private initializeUserFromClaims(): void {
+    if (!this.authService.isAuthenticated()) {
+      return;
+    }
+
+    const claims = this.authService.getClaims();
+    if (claims) {
+      this.userSubject.next({
+        email: claims.email || '',
+        role: claims.role || 'User',
+        providerType: claims.provider || 'Standard',
+        projectName: claims.company || 'Main Project',
+        isAuthenticated: true,
+      });
+    }
+  }
+
+  /**
+   * Load current user from API
+   * Endpoint: GET /api/auth/user
+   */
+  private loadCurrentUser(): void {
+    if (!this.authService.isAuthenticated()) {
+      return;
+    }
+
+    this.apiService.get<UserInfo>('/auth/user').subscribe({
+      next: (user) => {
+        this.userSubject.next({...user, isAuthenticated: true});
+      },
+      error: (error) => {
+        console.error('Failed to load current user', error);
+        // User stays logged out on error
+        this.authService.clearTokens();
+      }
     });
   }
 }

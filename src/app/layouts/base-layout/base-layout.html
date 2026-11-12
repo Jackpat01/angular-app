@@ -2,7 +2,7 @@
   <div style="background-color: #74c141; height: 40px;"></div>
   <div style="border-bottom: 1px dashed #ccc;">
     <a routerLink="/home/login">
-      <img src="/images/logo.png" width="500" height="80" alt="MSLC Logo">
+      <img alt="MSLC Logo" height="80" src="/images/logo.png" width="500">
     </a>
   </div>
 </div>
@@ -18,16 +18,16 @@
 <div class="footer_new" style="color:black">
   <div class="d-flex flex-row justify-content-between container footer_text" style="max-width:1280px; width:1280px;">
     <div style="float:left; width:60%; color:black;">
-      @for (line of portalConfig.getConfig().loginMessage; track $index) {
+      @for (line of loginMessage; track $index) {
         {{ line }} <br/>
       }
     </div>
     <div style="float:left; width:40%;">
       <div style="padding-left: 175px; color: black;">
-        Copyright © 2013–{{ appConfig?.currentYear }} Myers and Stauffer LC. All rights reserved.<br/>
+        Copyright © 2013–{{ currentYear }} Myers and Stauffer LC. All rights reserved.<br/>
       </div>
       <div style="padding-right: 15px; text-align: right; color: black;">
-        Version: {{ appConfig?.appVersion }}
+        Version: {{ appVersion }}
       </div>
       <div>
         <a href="https://myersandstauffer.com/accessibility/" target="_blank">

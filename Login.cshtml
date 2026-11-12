@@ -5,101 +5,105 @@
 @using WebPortal_OH_FI.Web
 @model WebPortal_OH_FI.Models.HomeViewModel
 @{
-    Layout = "~/Views/Shared/_Layout.cshtml";
-    ViewBag.Title = PortalConfiguration.WebPortal_Title + " - Home - Login";
+Layout = "~/Views/Shared/_Layout.cshtml";
+ViewBag.Title = PortalConfiguration.WebPortal_Title + " - Home - Login";
 
-    var captcha = Html.Captcha("Try another", "Enter the text you see above:", 5, "Is required field.", true);
-    bool multipleClassifications = PortalConfiguration.GetAllClassifications().Length > 1;
+var captcha = Html.Captcha("Try another", "Enter the text you see above:", 5, "Is required field.", true);
+bool multipleClassifications = PortalConfiguration.GetAllClassifications().Length > 1;
 }
 @Html.Script("~/Scripts/Pages/Login.js", "jquery")
 @using (Html.BeginForm("LoginToPage", "Home", FormMethod.Post, new { id = "frmSubmit", enctype = "multipart/form-data" }))
 {
-    <div>
-        <center>
-            <br />
-            <div class="border" style="border: 1px solid #ccc; width: 500px; border-radius: 5px;">
-                <div class="header" style="padding: 18px 10px 10px 10px; background-color: #74c141; color: black; text-align: center; border-top-left-radius: 5px; border-top-right-radius: 5px;">
-                    <p class="class_title" style="color: black; font-weight: bold; font-size: 18px;">@PortalConfiguration.Application Login</p>
-                </div>
-                <div class="body_text">
-                    <div class="panel-body">
-                        <br />
-                        <div class="form-group" style="width: 60%; margin-left: auto; margin-right: auto;">
-                            <div>
-                                <label for="txtEmail">Email</label>
-                                @Html.TextBoxFor(x => x.Email, new { id = "txtEmail", @class = "form-control", tabindex = "1", @autocomplete = "username" })
-                            </div>
-                            <div class="errorLabel">@Html.ValidationMessageFor(x => x.Email)</div>
-                        </div>
-
-                        <div class="form-group" style="width: 60%; margin-left: auto; margin-right: auto;">
-                            <label for="txtNonHashedPassword">Password</label>
-                            @Html.PasswordFor(x => x.NonHashedPassword, new { id = "txtNonHashedPassword", @class = "form-control", tabindex = "2", @autocomplete = "current-password" })
-                            <div class="errorLabel">@Html.ValidationMessageFor(x => x.NonHashedPassword)</div>
-                        </div>
-                        <div>
-                            @if (PortalConfiguration.RemoveCaptchaAfterFailedReset != 0)
-                            {
-                                if (RetrieveSession.GetBoolDataFromSession("RemoveCaptcha"))
-                                {
-                                    <text>&nbsp;&nbsp;</text>
-
-                                }
-                                else
-                                {
-                                    @captcha
-                                    @*@mathcaptcha*@
-                                    @*<div class="errorLabel">@Html.ValidationMessage(captcha.BuildInfo.InputElementId)</div>*@
-                                }
-                            }
-                            else
-                            {
-                                if (PortalConfiguration.RemoveCaptchaAfterFailedReset == 0)
-                                {
-                                    @captcha
-                                }
-                            }
-                        </div>
-
-                        <div style="text-align: center;">
-                            <div class="myImage" style="display: none;">
-                                <center>
-                                    <img src="~/Images/loading.GIF" alt="Loading" width="32" height="32" />
-                                </center>
-                            </div>
-                            <div class="myControls">
-                                <input value="Login" type="submit" class="btn btn-success" tabindex="3" />
-                            </div>
-                            <br />
-                            @if (TempData["Message"] != null)
-                            {
-                                <div class="errorLabel" style="margin-bottom: 50px;">
-                                    @Html.Raw(TempData["Message"].ToString())
-                                </div>
-                            }
-                            @if (TempData["ErrorMessage"] != null)
-                            {
-                                <div class="errorLabel" style="margin-bottom: 50px;">
-                                    @Html.Raw(TempData["ErrorMessage"].ToString())
-                                </div>
-                            }
-                            @if (!RetrieveSession.GetBoolDataFromSession("RemoveCaptcha"))
-                            {
-                                if (TempData["CaptchaMessage"] != null)
-                                {
-                                    <div class="errorLabel" style="margin-bottom: 50px;">
-                                        @Html.Raw(TempData["CaptchaMessage"].ToString())
-                                    </div>
-                                }
-                            }
-                        </div>
-                    </div>
-                    <div class="pull-right" style="margin-top: -50px; margin-right: 18px;">
-                        <a href="" data-toggle="modal" data-target="#window_HelpView"><img src="~/Images/Messaging.png" alt="Need Help?" title="Need Help?" width="32" height="32" /></a>
-                    </div>
-                </div>
+<div>
+  <center>
+    <br/>
+    <div class="border" style="border: 1px solid #ccc; width: 500px; border-radius: 5px;">
+      <div class="header"
+           style="padding: 18px 10px 10px 10px; background-color: #74c141; color: black; text-align: center; border-top-left-radius: 5px; border-top-right-radius: 5px;">
+        <p class="class_title"
+           style="color: black; font-weight: bold; font-size: 18px;">@PortalConfiguration.Application Login</p>
+      </div>
+      <div class="body_text">
+        <div class="panel-body">
+          <br/>
+          <div class="form-group" style="width: 60%; margin-left: auto; margin-right: auto;">
+            <div>
+              <label for="txtEmail">Email</label>
+              @Html.TextBoxFor(x => x.Email, new { id = "txtEmail", @class = "form-control", tabindex = "1", @autocomplete = "username" })
             </div>
+            <div class="errorLabel">@Html.ValidationMessageFor(x => x.Email)</div>
+          </div>
 
-        </center>
+          <div class="form-group" style="width: 60%; margin-left: auto; margin-right: auto;">
+            <label for="txtNonHashedPassword">Password</label>
+            @Html.PasswordFor(x => x.NonHashedPassword, new { id = "txtNonHashedPassword", @class = "form-control", tabindex = "2", @autocomplete = "current-password" })
+            <div class="errorLabel">@Html.ValidationMessageFor(x => x.NonHashedPassword)</div>
+          </div>
+          <div>
+            @if (PortalConfiguration.RemoveCaptchaAfterFailedReset != 0)
+            {
+            if (RetrieveSession.GetBoolDataFromSession("RemoveCaptcha"))
+            {
+            <text>&nbsp;&nbsp;</text>
+
+            }
+            else
+            {
+            @captcha
+            @*@mathcaptcha*@
+            @*<div class="errorLabel">@Html.ValidationMessage(captcha.BuildInfo.InputElementId)</div>*@
+            }
+            }
+            else
+            {
+            if (PortalConfiguration.RemoveCaptchaAfterFailedReset == 0)
+            {
+            @captcha
+            }
+            }
+          </div>
+
+          <div style="text-align: center;">
+            <div class="myImage" style="display: none;">
+              <center>
+                <img src="~/Images/loading.GIF" alt="Loading" width="32" height="32"/>
+              </center>
+            </div>
+            <div class="myControls">
+              <input value="Login" type="submit" class="btn btn-success" tabindex="3"/>
+            </div>
+            <br/>
+            @if (TempData["Message"] != null)
+            {
+            <div class="errorLabel" style="margin-bottom: 50px;">
+              @Html.Raw(TempData["Message"].ToString())
+            </div>
+            }
+            @if (TempData["ErrorMessage"] != null)
+            {
+            <div class="errorLabel" style="margin-bottom: 50px;">
+              @Html.Raw(TempData["ErrorMessage"].ToString())
+            </div>
+            }
+            @if (!RetrieveSession.GetBoolDataFromSession("RemoveCaptcha"))
+            {
+            if (TempData["CaptchaMessage"] != null)
+            {
+            <div class="errorLabel" style="margin-bottom: 50px;">
+              @Html.Raw(TempData["CaptchaMessage"].ToString())
+            </div>
+            }
+            }
+          </div>
+        </div>
+        <div class="pull-right" style="margin-top: -50px; margin-right: 18px;">
+          <a href="" data-toggle="modal" data-target="#window_HelpView"><img src="~/Images/Messaging.png"
+                                                                             alt="Need Help?" title="Need Help?"
+                                                                             width="32" height="32"/></a>
+        </div>
+      </div>
     </div>
+
+  </center>
+</div>
 }

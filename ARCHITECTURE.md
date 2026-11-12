@@ -1,6 +1,7 @@
 # Angular 22 Multi-Layout Application Architecture
 
 ## Overview
+
 This is a modern Angular 22 application featuring three distinct layouts with shared components, reactive forms, and Bootstrap 5 styling.
 
 ## Project Structure
@@ -29,33 +30,38 @@ src/app/
 ## Key Features
 
 ### 1. Three Layout System
+
 - **Public Layout**: Used for home page and general content
 - **Dashboard Layout**: Full-width layout for user dashboard
 - **Admin Layout**: Sidebar navigation layout for admin pages
 
 Each layout includes:
+
 - Header component with dynamic title
 - Footer component with links
 - Content area with router outlet
 - Bootstrap 5 styling
 
 ### 2. Dynamic Page Titles
+
 - Titles are managed by `TitleService` using RxJS `BehaviorSubject`
 - Components set titles on initialization: `this.titleService.setTitle('Page Name')`
 - Header component displays title from API call via Observable
 - Can fetch titles from API using `fetchTitleFromApi(endpoint)`
 
 ### 3. Reactive Forms
+
 - Sample form demonstrates best practices with `FormBuilder` and `Validators`
 - Form validation includes:
-  - Required fields
-  - Email validation
-  - Pattern matching (phone)
-  - Minimum length constraints
+    - Required fields
+    - Email validation
+    - Pattern matching (phone)
+    - Minimum length constraints
 - Validation error messages displayed dynamically
 - Bootstrap form styling with error states
 
 ### 4. Bootstrap 5 Integration
+
 - Navbar with responsive toggling
 - Card components for content sections
 - Alert boxes for notifications
@@ -76,7 +82,9 @@ Each layout includes:
 ## Services
 
 ### TitleService
+
 Provides Observable-based title management:
+
 ```typescript
 // Set title directly
 titleService.setTitle('My Page Title');
@@ -92,22 +100,27 @@ titleService.fetchTitleFromApi('/api/page-title')
 ## Components
 
 ### Header (Shared)
+
 - Navigation bar with links to all main sections
 - Displays current page title from `TitleService`
 - Responsive Bootstrap navbar
 
 ### Footer (Shared)
+
 - Company information
 - Quick links
 - Contact information
 
 ### Layouts
+
 Each layout component:
+
 - Imports router outlet for page content
 - Includes header and footer
 - Provides specific layout styling (sidebar for admin, etc.)
 
 ### Pages
+
 - **Home**: Welcome page with feature highlights
 - **AdminDashboard**: System statistics display with sidebar menu
 - **UserDashboard**: User profile and activity log
@@ -123,18 +136,21 @@ Each layout component:
 ## Running the Application
 
 ### Development Server
+
 ```bash
 npm start
 # Navigate to http://localhost:4200/
 ```
 
 ### Build for Production
+
 ```bash
 npm run build
 # Output: dist/angular-app/
 ```
 
 ### Running Tests
+
 ```bash
 npm run test
 ```
@@ -152,6 +168,7 @@ npm run test
 ## Browser Support
 
 Angular 22 supports:
+
 - Chrome (latest)
 - Firefox (latest)
 - Safari (latest)

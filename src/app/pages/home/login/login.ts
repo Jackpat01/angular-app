@@ -1,11 +1,10 @@
-import { Component, OnInit, inject } from '@angular/core';
+import {Component, inject, OnInit} from '@angular/core';
 import {CommonModule, NgOptimizedImage} from '@angular/common';
-import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
-import { Router } from '@angular/router';
-import { TitleService } from '../../../services/title';
-import { LoginService } from '../../../services/login';
-import { AppConfigService } from '../../../services/app-config';
-import { PortalConfigService } from '../../../services/portal-config';
+import {FormBuilder, FormGroup, ReactiveFormsModule, Validators} from '@angular/forms';
+import {Router} from '@angular/router';
+import {TitleService} from '../../../services/title';
+import {LoginService} from '../../../services/login';
+import {PortalConfigService} from '../../../services/portal-config';
 import {TempDataService} from '../../../services/temp-data';
 
 @Component({
@@ -15,36 +14,29 @@ import {TempDataService} from '../../../services/temp-data';
   templateUrl: './login.html',
 })
 export class Login implements OnInit {
-  private fb = inject(FormBuilder);
   loginForm!: FormGroup;
   submitted = false;
   isLoading = false;
+  private fb = inject(FormBuilder);
 
   constructor(
     private titleService: TitleService,
     private loginService: LoginService,
-    private appConfigService: AppConfigService,
     private portalConfig: PortalConfigService,
     private router: Router,
-    private tempData:TempDataService
-  ) {}
-
-  ngOnInit(): void {
-    this.titleService.setTitle(
-      this.appConfigService.getConfig().WebPortalTitle + ' - Home - Login'
-    );
-    this.initializeForm();
-  }
-
-  private initializeForm(): void {
-    this.loginForm = this.fb.group({
-      email: ['', [Validators.required, Validators.email]],
-      password: ['', [Validators.required, Validators.minLength(6)]],
-    });
+    private tempData: TempDataService
+  ) {
   }
 
   get f() {
     return this.loginForm.controls;
+  }
+
+  ngOnInit(): void {
+    this.titleService.setTitle(
+      this.portalConfig.getWebPortalTitle() + ' - Home - Login'
+    );
+    this.initializeForm();
   }
 
   onSubmit(): void {
@@ -55,19 +47,19 @@ export class Login implements OnInit {
     }
 
     this.isLoading = true;
-    const { email, password } = this.loginForm.value;
+    const {email, password} = this.loginForm.value;
 
-    this.loginService.loginToPage({ email, password }).subscribe({
+    this.loginService.loginToPage({email, password}).subscribe({
       next: (response) => {
         this.isLoading = false;
 
         if (!response.successful) {
-          this.tempData.setTempData('errorMessage',response.errorMessage || 'Login failed. Please try again.');
+          this.tempData.setTempData('errorMessage', response.errorMessage || 'Login failed. Please try again.');
           return;
         }
 
         if (!response.ARUMUser) {
-          this.tempData.setTempData('errorMessage','Username/password invalid');
+          this.tempData.setTempData('errorMessage', 'Username/password invalid');
           return;
         }
 
@@ -93,5 +85,12 @@ export class Login implements OnInit {
 
   dismissError(): void {
     this.tempData.removeTempData('errorMessage');
+  }
+
+  private initializeForm(): void {
+    this.loginForm = this.fb.group({
+      email: ['', [Validators.required, Validators.email]],
+      password: ['', [Validators.required, Validators.minLength(6)]],
+    });
   }
 }

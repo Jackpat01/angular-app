@@ -1,5 +1,5 @@
-import { Injectable } from '@angular/core';
-import { BehaviorSubject, Observable } from 'rxjs';
+import {Injectable} from '@angular/core';
+import {BehaviorSubject, Observable} from 'rxjs';
 
 /**
  * TempDataService provides MVC TempData-like functionality for Angular
@@ -44,13 +44,13 @@ export class TempDataService {
   peek(key: string): any {
     const currentData = this.tempDataSubject.getValue();
     const data = currentData.get(key);
-    
+
     if (data !== undefined) {
       currentData.delete(key);
       this.tempDataSubject.next(currentData);
       return data;
     }
-    
+
     return null;
   }
 

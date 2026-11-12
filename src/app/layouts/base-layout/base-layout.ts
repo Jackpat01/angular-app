@@ -1,7 +1,7 @@
-import {Component, inject, OnInit, signal} from '@angular/core';
-import { CommonModule } from '@angular/common';
-import { TitleService } from '../../services/title';
-import { AppConfigService, AppConfig } from '../../services/app-config';
+import {Component, inject, OnInit} from '@angular/core';
+import {CommonModule} from '@angular/common';
+import {TitleService} from '../../services/title';
+import {AppConfigService} from '../../services/app-config';
 import {RouterLink, RouterOutlet} from '@angular/router';
 import {PortalConfigService} from '../../services/portal-config';
 
@@ -12,26 +12,32 @@ import {PortalConfigService} from '../../services/portal-config';
   templateUrl: './base-layout.html',
 })
 export class BaseLayout implements OnInit {
-  appConfig: AppConfig | null = null;
   protected readonly portalConfig = inject(PortalConfigService);
+  private _loginMessages: string[] = [];
 
   constructor(
     private titleService: TitleService,
-    private appConfigService: AppConfigService
-  ) {}
+    private appConfig: AppConfigService
+  ) {
+  }
 
-  ngOnInit(): void {
-    this.titleService.setTitle('Welcome');
-    this.appConfig = this.appConfigService.getConfig();
-    this.portalConfig.refreshConfig();
+  get loginMessage(): string[] {
+    return this._loginMessages;
   }
 
   get appVersion(): string {
-    return this.appConfig?.appVersion || '';
+    return this.appConfig.getAppVersion() || '';
   }
 
   get currentYear(): number {
-    return this.appConfig?.currentYear || new Date().getFullYear();
+    return this.appConfig.getCurrentYear() || new Date().getFullYear();
+  }
+
+  async ngOnInit(): Promise<void> {
+    this.titleService.setTitle('Welcome');
+    this.portalConfig.refreshConfig();
+    this._loginMessages = await this.portalConfig.retrieveLoginMessage();
+
   }
 }
 

@@ -1,5 +1,5 @@
-import { Injectable } from '@angular/core';
-import { BehaviorSubject, Observable } from 'rxjs';
+import {Injectable} from '@angular/core';
+import {BehaviorSubject} from 'rxjs';
 
 export interface AuthToken {
   accessToken: string;
@@ -17,6 +17,7 @@ export interface UserClaims {
   nameIdentifier?: string;
   exp?: number;
   iat?: number;
+
   [key: string]: any;
 }
 
@@ -27,12 +28,12 @@ export class AuthService {
   private tokenKey = 'ohfi_access_token';
   private refreshTokenKey = 'ohfi_refresh_token';
   private isAuthenticatedSubject = new BehaviorSubject<boolean>(this.hasValidToken());
-  private userClaimsSubject = new BehaviorSubject<UserClaims | null>(this.extractClaims());
-
   isAuthenticated$ = this.isAuthenticatedSubject.asObservable();
+  private userClaimsSubject = new BehaviorSubject<UserClaims | null>(this.extractClaims());
   userClaims$ = this.userClaimsSubject.asObservable();
 
-  constructor() {}
+  constructor() {
+  }
 
   /**
    * Store tokens in localStorage
@@ -131,34 +132,6 @@ export class AuthService {
   }
 
   /**
-   * Extract claims from current token
-   * Maps JWT standard claims to UserClaims interface
-   */
-  private extractClaims(): UserClaims | null {
-    const token = this.getAccessToken();
-    if (!token) {
-      return null;
-    }
-
-    const decoded = this.decodeToken(token);
-    if (!decoded) {
-      return null;
-    }
-
-    return {
-      sub: decoded.sub,
-      email: decoded.email,
-      role: decoded.role,
-      company: decoded.company,
-      provider: decoded.provider,
-      nameIdentifier: decoded['http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier'],
-      exp: decoded.exp,
-      iat: decoded.iat,
-      ...decoded, // Include all other claims
-    };
-  }
-
-  /**
    * Get current user claims synchronously
    */
   getClaims(): UserClaims | null {
@@ -199,5 +172,33 @@ export class AuthService {
    */
   getProvider(): string | null {
     return this.getClaim('provider');
+  }
+
+  /**
+   * Extract claims from current token
+   * Maps JWT standard claims to UserClaims interface
+   */
+  private extractClaims(): UserClaims | null {
+    const token = this.getAccessToken();
+    if (!token) {
+      return null;
+    }
+
+    const decoded = this.decodeToken(token);
+    if (!decoded) {
+      return null;
+    }
+
+    return {
+      sub: decoded.sub,
+      email: decoded.email,
+      role: decoded.role,
+      company: decoded.company,
+      provider: decoded.provider,
+      nameIdentifier: decoded['http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier'],
+      exp: decoded.exp,
+      iat: decoded.iat,
+      ...decoded, // Include all other claims
+    };
   }
 }

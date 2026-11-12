@@ -1,13 +1,12 @@
-import { Injectable } from '@angular/core';
-import { BehaviorSubject, Observable } from 'rxjs';
-import { ApiService } from './api';
+import {Injectable} from '@angular/core';
+import {BehaviorSubject} from 'rxjs';
+import {ApiService} from './api';
 
 export interface AppConfig {
   appVersion: string;
   currentYear: number;
   appName: string;
   supportEmail: string;
-  WebPortalTitle:string;
 }
 
 @Injectable({
@@ -18,13 +17,33 @@ export class AppConfigService {
     appVersion: '0.0.1',
     currentYear: new Date().getFullYear(),
     appName: 'Web Portal',
-    supportEmail: 'support@example.com',WebPortalTitle:'test'
+    supportEmail: 'support@example.com',
   });
 
   config$ = this.configSubject.asObservable();
 
   constructor(private apiService: ApiService) {
     this.loadConfig();
+  }
+
+  getConfig(): AppConfig {
+    return this.configSubject.value;
+  }
+
+  getAppVersion(): string {
+    return this.configSubject.value.appVersion;
+  }
+
+  getAppName(): string {
+    return this.configSubject.value.appName;
+  }
+
+  getCurrentYear(): number {
+    return this.configSubject.value.currentYear;
+  }
+
+  getSupportEmail(): string {
+    return this.configSubject.value.supportEmail;
   }
 
   /**
@@ -41,19 +60,5 @@ export class AppConfigService {
         // Keep using default values on error
       }
     });
-  }
-
-  getConfig(): AppConfig {
-    return this.configSubject.value;
-  }
-
-  setAppVersion(version: string): void {
-    const current = this.configSubject.value;
-    this.configSubject.next({ ...current, appVersion: version });
-  }
-
-  setSupportEmail(email: string): void {
-    const current = this.configSubject.value;
-    this.configSubject.next({ ...current, supportEmail: email });
   }
 }

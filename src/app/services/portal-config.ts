@@ -1,25 +1,19 @@
 import {Injectable} from '@angular/core';
-import {BehaviorSubject, Observable} from 'rxjs';
+import {BehaviorSubject, firstValueFrom, Observable, of} from 'rxjs';
 import {ApiService} from './api';
-
-export interface PortalConfig {
-  applicationName: string;
-  loginMessage: string[];
-
-  [key: string]: any;
-}
+import {PortalConfig} from '../../models/portal-config';
+import {catchError, map} from 'rxjs/operators';
+import {Classification} from '../models/Classification';
 
 @Injectable({
   providedIn: 'root',
 })
 export class PortalConfigService {
   private defaultConfig: PortalConfig = {
-    applicationName: 'OHFI Application',
-    loginMessage: [
-      'Legal Notice',
-      'This system is for authorized users only, and its use may be monitored. Unauthorized or improper use may result in disciplinary action, civil/criminal penalties, ',
-      'and sanctions. By using this system, you consent to the terms and conditions of use.'
-    ],
+    WebPortalTitle: 'OMES Cost Report and Rate Setting',
+    applicationName: 'OMES Cost Report and Rate Setting',
+    loginMessageHyperLink: 'https://myersandstauffer.com/wp-content/uploads/2021/09/ExternalLoginMessage.txt',
+    loginSessionKey: 'ClassificationSession'
   };
 
   private configSubject = new BehaviorSubject<PortalConfig>(this.defaultConfig);
@@ -27,22 +21,6 @@ export class PortalConfigService {
 
   constructor(private apiService: ApiService) {
     this.loadConfig();
-  }
-
-  /**
-   * Load portal configuration from API
-   * Endpoint: GET /app/portal-config
-   */
-  private loadConfig(): void {
-    this.apiService.get<PortalConfig>('/app/portal-config').subscribe({
-      next: (config) => {
-        this.configSubject.next(config);
-      },
-      error: (error) => {
-        console.error('Failed to load portal config from API', error);
-        // Keep using default config on error
-      }
-    });
   }
 
   /**
@@ -59,12 +37,44 @@ export class PortalConfigService {
     return this.configSubject.value.applicationName;
   }
 
-  /**
-   * Get the login message from config
-   */
-  getLoginMessage(): string[] {
-    return this.configSubject.value.loginMessage;
+  getWebPortalTitle(): string {
+    return this.configSubject.value.WebPortalTitle;
   }
+
+  getClassificationReplacementTerm(): string {
+
+  }
+
+  getAllClassifications(): Classification[] {
+  }
+
+  async retrieveLoginMessage(): Promise<string[]> {
+    const messageHyperlink = this.configSubject.value.loginMessageHyperLink;
+
+    if (!messageHyperlink) {
+      return [];
+    }
+
+    return firstValueFrom(
+      this.apiService.getRemoteData(messageHyperlink).pipe(
+        map((responseText: string) => {
+          // Split on \r\n, \r, or \n and filter out empty entries
+          return responseText
+            .split(/\r?\n|\r/)
+            .filter(line => line.trim().length > 0);
+        }),
+        catchError(() => {
+          // Equivalent to the empty catch block returning an empty array
+          return of([]);
+        })
+      )
+    );
+  }
+
+  getClassificationSessionKey(): string {
+    return this.configSubject.value.loginSessionKey;
+  }
+
 
   /**
    * Refresh configuration from API
@@ -82,6 +92,22 @@ export class PortalConfigService {
           observer.error(error);
         }
       });
+    });
+  }
+
+  /**
+   * Load portal configuration from API
+   * Endpoint: GET /app/portal-config
+   */
+  private loadConfig(): void {
+    this.apiService.get<PortalConfig>('/app/portal-config').subscribe({
+      next: (config) => {
+        this.configSubject.next(config);
+      },
+      error: (error) => {
+        console.error('Failed to load portal config from API', error);
+        // Keep using default config on error
+      }
     });
   }
 }

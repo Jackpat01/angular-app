@@ -1,8 +1,8 @@
-import { Component, OnInit } from '@angular/core';
-import { CommonModule } from '@angular/common';
-import { TitleService } from '../../services/title';
-import { UserService } from '../../services/user';
-import { AuthService, UserClaims } from '../../services/auth';
+import {Component, OnInit} from '@angular/core';
+import {CommonModule} from '@angular/common';
+import {TitleService} from '../../services/title';
+import {UserService} from '../../services/user';
+import {AuthService, UserClaims} from '../../services/auth';
 
 @Component({
   imports: [CommonModule],
@@ -18,7 +18,8 @@ export class UserDashboard implements OnInit {
     private titleService: TitleService,
     private userService: UserService,
     private authService: AuthService
-  ) {}
+  ) {
+  }
 
   ngOnInit(): void {
     this.titleService.setTitle('User Dashboard');
@@ -31,6 +32,30 @@ export class UserDashboard implements OnInit {
         this.loadDashboardData(claims);
       }
     });
+  }
+
+  /**
+   * Example: Get specific claim
+   * Replaces: (string)Session["UserRole"]
+   */
+  getUserRole(): string | null {
+    return this.userService.getUserRole();
+  }
+
+  /**
+   * Example: Get another claim
+   * Replaces: (string)Session["CompanyName"]
+   */
+  getCompany(): string | null {
+    return this.userService.getCompany();
+  }
+
+  /**
+   * Example: Access all claims
+   * Replaces: Session.Keys enumeration
+   */
+  getAllClaimsKeys(): string[] {
+    return this.userClaims ? Object.keys(this.userClaims) : [];
   }
 
   /**
@@ -58,29 +83,5 @@ export class UserDashboard implements OnInit {
       company: claims.company || 'N/A',
       claims: claims, // Full claims object for debugging
     };
-  }
-
-  /**
-   * Example: Get specific claim
-   * Replaces: (string)Session["UserRole"]
-   */
-  getUserRole(): string | null {
-    return this.userService.getUserRole();
-  }
-
-  /**
-   * Example: Get another claim
-   * Replaces: (string)Session["CompanyName"]
-   */
-  getCompany(): string | null {
-    return this.userService.getCompany();
-  }
-
-  /**
-   * Example: Access all claims
-   * Replaces: Session.Keys enumeration
-   */
-  getAllClaimsKeys(): string[] {
-    return this.userClaims ? Object.keys(this.userClaims) : [];
   }
 }

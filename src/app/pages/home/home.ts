@@ -1,6 +1,6 @@
-import { Component, OnInit } from '@angular/core';
-import { RouterOutlet } from '@angular/router';
-import { TitleService } from '../../services/title';
+import {Component, OnInit} from '@angular/core';
+import {RouterOutlet} from '@angular/router';
+import {TitleService} from '../../services/title';
 
 @Component({
   imports: [RouterOutlet],
@@ -9,7 +9,8 @@ import { TitleService } from '../../services/title';
   templateUrl: './home.html',
 })
 export class Home implements OnInit {
-  constructor(private titleService: TitleService) {}
+  constructor(private titleService: TitleService) {
+  }
 
   ngOnInit(): void {
     this.titleService.setTitle('Home');

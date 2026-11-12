@@ -1,8 +1,8 @@
-import { Component, OnInit } from '@angular/core';
-import { CommonModule } from '@angular/common';
-import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
-import { NgbModule, NgbModal } from '@ng-bootstrap/ng-bootstrap';
-import { TitleService } from '../../services/title';
+import {Component, OnInit} from '@angular/core';
+import {CommonModule} from '@angular/common';
+import {FormBuilder, FormGroup, ReactiveFormsModule, Validators} from '@angular/forms';
+import {NgbModal, NgbModule} from '@ng-bootstrap/ng-bootstrap';
+import {TitleService} from '../../services/title';
 
 @Component({
   imports: [CommonModule, ReactiveFormsModule, NgbModule],
@@ -15,10 +15,15 @@ export class SampleForm implements OnInit {
   submitted = false;
 
   constructor(
-    private fb: FormBuilder, 
+    private fb: FormBuilder,
     private titleService: TitleService,
     private modalService: NgbModal
-  ) {}
+  ) {
+  }
+
+  get f() {
+    return this.contactForm.controls;
+  }
 
   ngOnInit(): void {
     this.titleService.setTitle('Contact Form');
@@ -35,10 +40,6 @@ export class SampleForm implements OnInit {
       message: ['', [Validators.required, Validators.minLength(10)]],
       subscribe: [false]
     });
-  }
-
-  get f() {
-    return this.contactForm.controls;
   }
 
   onSubmit(): void {

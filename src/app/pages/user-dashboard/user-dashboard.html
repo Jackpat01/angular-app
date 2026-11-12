@@ -1,6 +1,6 @@
 <div class="container mt-4">
   <!-- Example: Display user info from JWT claims -->
-  <div class="alert alert-info" *ngIf="dashboardData">
+  <div *ngIf="dashboardData" class="alert alert-info">
     <h5>Dashboard Loaded from JWT Claims</h5>
     <p><strong>{{ dashboardData.greeting }}</strong></p>
     <p>Role: <code>{{ dashboardData.role }}</code></p>
@@ -15,9 +15,9 @@
         </div>
         <div class="card-body">
           <p *ngIf="userClaims?.email"><strong>{{ userClaims.email }}</strong></p>
-          <p class="text-muted" *ngIf="userClaims?.role">Role: {{ userClaims.role }}</p>
-          <p class="text-muted" *ngIf="userClaims?.company">Company: {{ userClaims.company }}</p>
-          <a href="/form" class="btn btn-sm btn-outline-primary">Edit Profile</a>
+          <p *ngIf="userClaims?.role" class="text-muted">Role: {{ userClaims.role }}</p>
+          <p *ngIf="userClaims?.company" class="text-muted">Company: {{ userClaims.company }}</p>
+          <a class="btn btn-sm btn-outline-primary" href="/form">Edit Profile</a>
         </div>
       </div>
     </div>
@@ -27,41 +27,42 @@
           <h6 class="mb-0">JWT Claims (Replaces Session Variables)</h6>
         </div>
         <div class="card-body">
-          <p class="text-muted"><small>These claims come from your JWT token and replace old ASP.NET session variables.</small></p>
+          <p class="text-muted"><small>These claims come from your JWT token and replace old ASP.NET session
+            variables.</small></p>
           <table class="table table-sm">
             <thead>
-              <tr>
-                <th>Claim</th>
-                <th>Value</th>
-                <th>Old Pattern</th>
-              </tr>
+            <tr>
+              <th>Claim</th>
+              <th>Value</th>
+              <th>Old Pattern</th>
+            </tr>
             </thead>
             <tbody>
-              <tr *ngIf="userClaims?.email">
-                <td><code>email</code></td>
-                <td>{{ userClaims.email }}</td>
-                <td><code>Session["Email"]</code></td>
-              </tr>
-              <tr *ngIf="userClaims?.role">
-                <td><code>role</code></td>
-                <td>{{ userClaims.role }}</td>
-                <td><code>Session["UserRole"]</code></td>
-              </tr>
-              <tr *ngIf="userClaims?.company">
-                <td><code>company</code></td>
-                <td>{{ userClaims.company }}</td>
-                <td><code>Session["CompanyName"]</code></td>
-              </tr>
-              <tr *ngIf="userClaims?.provider">
-                <td><code>provider</code></td>
-                <td>{{ userClaims.provider }}</td>
-                <td><code>Session["ProviderType"]</code></td>
-              </tr>
-              <tr *ngIf="userClaims?.sub">
-                <td><code>sub</code></td>
-                <td>{{ userClaims.sub }}</td>
-                <td><code>Session["UserId"]</code></td>
-              </tr>
+            <tr *ngIf="userClaims?.email">
+              <td><code>email</code></td>
+              <td>{{ userClaims.email }}</td>
+              <td><code>Session["Email"]</code></td>
+            </tr>
+            <tr *ngIf="userClaims?.role">
+              <td><code>role</code></td>
+              <td>{{ userClaims.role }}</td>
+              <td><code>Session["UserRole"]</code></td>
+            </tr>
+            <tr *ngIf="userClaims?.company">
+              <td><code>company</code></td>
+              <td>{{ userClaims.company }}</td>
+              <td><code>Session["CompanyName"]</code></td>
+            </tr>
+            <tr *ngIf="userClaims?.provider">
+              <td><code>provider</code></td>
+              <td>{{ userClaims.provider }}</td>
+              <td><code>Session["ProviderType"]</code></td>
+            </tr>
+            <tr *ngIf="userClaims?.sub">
+              <td><code>sub</code></td>
+              <td>{{ userClaims.sub }}</td>
+              <td><code>Session["UserId"]</code></td>
+            </tr>
             </tbody>
           </table>
         </div>

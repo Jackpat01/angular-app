@@ -1,43 +1,12 @@
-import { Injectable } from '@angular/core';
-import { Observable, BehaviorSubject } from 'rxjs';
-import { ApiService } from './api';
-import { AuthService } from './auth';
-
-export interface LoginRequest {
-  email: string;
-  password: string;
-}
-
-export interface ARUMProxy_User {
-  userID: number;
-  email: string;
-  acceptedTerms: boolean | null;
-  token: string;
-  ipAddress: string;
-}
-
-export interface LoginResponse {
-  successful: boolean;
-  redirectToTerm:boolean;
-  errorMessage: string;
-  userName:string;
-  email:string;
-  ARUMUser?: ARUMProxy_User;
-}
-
-export interface EULAResponse {
-  email: string;
-  eulaText: string;
-}
-
-export interface AcceptTermsRequest {
-  email: string;
-}
-
-export interface AcceptTermsResponse {
-  successful: boolean;
-  message: string;
-}
+import {Injectable} from '@angular/core';
+import {BehaviorSubject, Observable} from 'rxjs';
+import {ApiService} from './api';
+import {AuthService} from './auth';
+import {AcceptTermsResponse} from '../models/acceptTermsResponse';
+import {AcceptTermsRequest} from '../models/acceptTermsRequest';
+import {EULAResponse} from '../models/EULAResponse';
+import {LoginResponse} from '../models/loginResponse';
+import {LoginRequest} from '../models/loginRequest';
 
 @Injectable({
   providedIn: 'root',
@@ -49,7 +18,8 @@ export class LoginService {
   constructor(
     private apiService: ApiService,
     private authService: AuthService
-  ) {}
+  ) {
+  }
 
   /**
    * Login with email and password
@@ -76,8 +46,8 @@ export class LoginService {
    * Get EULA text
    * Endpoint: GET /eula
    */
-  getEULAText(email: string): Observable<EULAResponse> {
-    return this.apiService.get<EULAResponse>(`/eula?email=${encodeURIComponent(email)}`);
+  getEULAText(): Observable<EULAResponse> {
+    return this.apiService.get<EULAResponse>('/eulaText');
   }
 
   /**
@@ -85,7 +55,7 @@ export class LoginService {
    * Endpoint: POST /accept-terms
    */
   acceptTermsOfUse(email: string): Observable<AcceptTermsResponse> {
-    const request: AcceptTermsRequest = { email };
+    const request: AcceptTermsRequest = {email};
     return this.apiService.post<AcceptTermsResponse>('/accept-terms', request);
   }
 

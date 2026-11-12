@@ -1,16 +1,16 @@
-import { Component, OnInit } from '@angular/core';
-import { RouterOutlet } from '@angular/router';
-import { CommonModule } from '@angular/common';
-import { HeaderBarComponent } from '../../shared/header-bar/header-bar';
-import { LogoBrandingComponent } from '../../shared/logo-branding/logo-branding';
-import { FooterSectionComponent } from '../../shared/footer-section/footer-section';
-import { HelpModalComponent } from '../../shared/help-modal/help-modal';
-import { LoadingOverlayComponent } from '../../shared/loading-overlay/loading-overlay';
-import { AdminNavigation, NavItem } from '../../shared/admin-navigation/admin-navigation';
-import { TitleService } from '../../services/title';
-import { AppConfigService, AppConfig } from '../../services/app-config';
-import { UserService, UserInfo } from '../../services/user';
-import { AdminService } from '../../services/admin';
+import {Component, OnInit} from '@angular/core';
+import {RouterOutlet} from '@angular/router';
+import {CommonModule} from '@angular/common';
+import {HeaderBarComponent} from '../../shared/header-bar/header-bar';
+import {LogoBrandingComponent} from '../../shared/logo-branding/logo-branding';
+import {FooterSectionComponent} from '../../shared/footer-section/footer-section';
+import {HelpModalComponent} from '../../shared/help-modal/help-modal';
+import {LoadingOverlayComponent} from '../../shared/loading-overlay/loading-overlay';
+import {AdminNavigation, NavItem} from '../../shared/admin-navigation/admin-navigation';
+import {TitleService} from '../../services/title';
+import {AppConfigService} from '../../services/app-config';
+import {UserInfo, UserService} from '../../services/user';
+import {AdminService} from '../../services/admin';
 
 @Component({
   imports: [
@@ -28,31 +28,24 @@ import { AdminService } from '../../services/admin';
   templateUrl: './base-with-menu-layout.html',
 })
 export class BaseWithMenuLayout implements OnInit {
-  appConfig: AppConfig | null = null;
   userInfo: UserInfo | null = null;
   menuItems: NavItem[] = [];
   isLoading = false;
 
   constructor(
     private titleService: TitleService,
-    private appConfigService: AppConfigService,
+    private appConfig: AppConfigService,
     private userService: UserService,
     private adminService: AdminService
-  ) {}
-
-  ngOnInit(): void {
-    this.titleService.setTitle('Administration');
-    this.appConfig = this.appConfigService.getConfig();
-    this.userInfo = this.userService.getUser();
-    this.menuItems = this.adminService.getMenuItems();
+  ) {
   }
 
   get appVersion(): string {
-    return this.appConfig?.appVersion || '';
+    return this.appConfig.getAppVersion() || '';
   }
 
   get currentYear(): number {
-    return this.appConfig?.currentYear || new Date().getFullYear();
+    return this.appConfig.getCurrentYear() || new Date().getFullYear();
   }
 
   get userEmail(): string {
@@ -69,6 +62,12 @@ export class BaseWithMenuLayout implements OnInit {
 
   get projectName(): string {
     return this.userInfo?.projectName || '';
+  }
+
+  ngOnInit(): void {
+    this.titleService.setTitle('Administration');
+    this.userInfo = this.userService.getUser();
+    this.menuItems = this.adminService.getMenuItems();
   }
 
   logout(): void {

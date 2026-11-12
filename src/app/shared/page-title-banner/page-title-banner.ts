@@ -1,6 +1,6 @@
-import { Component } from '@angular/core';
-import { CommonModule } from '@angular/common';
-import { TitleService } from '../../services/title';
+import {Component} from '@angular/core';
+import {CommonModule} from '@angular/common';
+import {TitleService} from '../../services/title';
 
 @Component({
   imports: [CommonModule],
@@ -38,5 +38,6 @@ import { TitleService } from '../../services/title';
   `]
 })
 export class PageTitleBannerComponent {
-  constructor(readonly titleService: TitleService) {}
+  constructor(readonly titleService: TitleService) {
+  }
 }

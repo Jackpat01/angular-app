@@ -1,10 +1,10 @@
-import { Component, inject, OnInit } from '@angular/core';
+import {Component, inject, OnInit} from '@angular/core';
 import {CommonModule, NgOptimizedImage} from '@angular/common';
-import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
-import { Router } from '@angular/router';
-import { TitleService } from '../../../services/title';
-import { PortalConfigService } from '../../../services/portal-config';
-import { LoginService } from '../../../services/login';
+import {FormBuilder, FormGroup, FormsModule, ReactiveFormsModule, Validators} from '@angular/forms';
+import {Router} from '@angular/router';
+import {TitleService} from '../../../services/title';
+import {PortalConfigService} from '../../../services/portal-config';
+import {LoginService} from '../../../services/login';
 
 @Component({
   selector: 'ohfi-accept-terms',
@@ -14,16 +14,6 @@ import { LoginService } from '../../../services/login';
   imports: [CommonModule, FormsModule, ReactiveFormsModule, NgOptimizedImage],
 })
 export class AcceptTerms implements OnInit {
-  private titleService = inject(TitleService);
-  private portalConfig = inject(PortalConfigService);
-  private loginService = inject(LoginService);
-  private router = inject(Router);
-  private fb = inject(FormBuilder);
-
-  acceptForm: FormGroup = this.fb.group({
-    acceptCheckbox: [false, [Validators.requiredTrue]],
-  });
-
   eulaText: string = `
 <p style="font-family: Arial, sans-serif; font-weight: bold; text-align: center;">
     <b>Myers and Stauffer xx_State_xx Web Portal<br/>Terms of Use Agreement:</b>
@@ -48,6 +38,18 @@ export class AcceptTerms implements OnInit {
   submitted: boolean = false;
   appTitle: string = '';
   email: string = '';
+  private titleService = inject(TitleService);
+  private portalConfig = inject(PortalConfigService);
+  private loginService = inject(LoginService);
+  private router = inject(Router);
+  private fb = inject(FormBuilder);
+  acceptForm: FormGroup = this.fb.group({
+    acceptCheckbox: [false, [Validators.requiredTrue]],
+  });
+
+  get f() {
+    return this.acceptForm.controls;
+  }
 
   ngOnInit(): void {
     this.appTitle = this.portalConfig.getConfig().applicationName;
@@ -67,7 +69,7 @@ export class AcceptTerms implements OnInit {
 
   loadEULA(): void {
     this.isLoading = true;
-    this.loginService.getEULAText(this.email).subscribe({
+    this.loginService.getEULAText().subscribe({
       next: (response) => {
         this.eulaText = response.eulaText;
         this.isLoading = false;
@@ -110,9 +112,5 @@ export class AcceptTerms implements OnInit {
 
   dismissError(): void {
     this.acceptError = '';
-  }
-
-  get f() {
-    return this.acceptForm.controls;
   }
 }

@@ -1,68 +1,120 @@
-import { Component, OnInit } from '@angular/core';
-import { CommonModule } from '@angular/common';
-import { HeaderBarComponent } from '../../shared/header-bar/header-bar';
-import { LogoBrandingComponent } from '../../shared/logo-branding/logo-branding';
-import { ContentPanelComponent } from '../../shared/content-panel/content-panel';
-import { FooterSectionComponent } from '../../shared/footer-section/footer-section';
-import { HelpModalComponent } from '../../shared/help-modal/help-modal';
-import { LoadingOverlayComponent } from '../../shared/loading-overlay/loading-overlay';
-import { TitleService } from '../../services/title';
-import { AppConfigService, AppConfig } from '../../services/app-config';
-import { UserService, UserInfo } from '../../services/user';
+import {Component, OnInit} from '@angular/core';
+import {CommonModule, NgOptimizedImage} from '@angular/common';
+import {TitleService} from '../../services/title';
+import {AppConfigService} from '../../services/app-config';
+import {UserInfo, UserService} from '../../services/user';
+import {PortalConfigService} from '../../services/portal-config';
+import {SessionStorageService} from '../../services/session-storage-service';
+
+import {ARUMProxy_User} from '../../models/ARUMProxy_User';
+import {Classification} from '../../models/Classification';
+import {ARUMUserProviders} from '../../models/ARUMUserProviders';
+import {ARUMRole} from '../../models/ARUMRole';
 
 @Component({
   imports: [
     CommonModule,
-    HeaderBarComponent,
-    LogoBrandingComponent,
-    ContentPanelComponent,
-    FooterSectionComponent,
-    HelpModalComponent,
-    LoadingOverlayComponent,
+    NgOptimizedImage,
   ],
   selector: 'ohfi-base-with-project-layout',
   styleUrl: './base-with-project-layout.css',
   templateUrl: './base-with-project-layout.html',
 })
 export class BaseWithProjectLayout implements OnInit {
-  appConfig: AppConfig | null = null;
   userInfo: UserInfo | null = null;
   isLoading = false;
 
   constructor(
     private titleService: TitleService,
-    private appConfigService: AppConfigService,
-    private userService: UserService
-  ) {}
-
-  ngOnInit(): void {
-    this.titleService.setTitle('Dashboard');
-    this.appConfig = this.appConfigService.getConfig();
-    this.userInfo = this.userService.getUser();
+    private appConfig: AppConfigService,
+    private userService: UserService,
+    private portalConfig: PortalConfigService,
+    private storage: SessionStorageService
+  ) {
   }
 
   get appVersion(): string {
-    return this.appConfig?.appVersion || '';
+    return this.appConfig.getAppVersion() || '';
   }
+
+  get appName(): string {
+    return this.portalConfig.getApplicationName() || '';
+  }
+
 
   get currentYear(): number {
-    return this.appConfig?.currentYear || new Date().getFullYear();
+    return this.appConfig.getCurrentYear() || new Date().getFullYear();
+  }
+  get classReplacementTerm():string {
+    return this.portalConfig.getClassificationReplacementTerm()
   }
 
-  get userEmail(): string {
-    return this.userInfo?.email || '';
+  get userName(): string {
+    let user = this.storage.getItem<ARUMProxy_User>('arumUser');
+
+    if (user) {
+      return user.email;
+    }
+    return 'No UserName for User';
+  }
+
+  get catalog(): string | null {
+    return this.storage.getItem('initialCatalogFromSession');
   }
 
   get userRole(): string {
     return this.userInfo?.role || '';
   }
 
-  get providerType(): string {
-    return this.userInfo?.providerType || '';
+  get providerType(): string | null {
+    var classification = this.getClassification();
+    return classification == null ? null : classification.displayName
+  }
+
+  getClassification(): Classification | null {
+    let classification = this.storage.getItem<Classification>(this.portalConfig.getClassificationSessionKey());
+    if (classification != null)
+      return classification;
+    let allClassifications = this.portalConfig.getAllClassifications();
+    if (allClassifications.length != 1)
+      return null;
+    return allClassifications[0];
   }
 
   get projectName(): string {
     return this.userInfo?.projectName || '';
+  }
+
+  get currentRoleName(): string {
+    return this.currentRole?.roleName ?? "No Provider Selected";
+  }
+
+  get currentRole(): ARUMRole | null {
+    let arumUser = this.storage.getItem<ARUMProxy_User>('arumUser')
+
+    let arumUserProviders;
+    if (arumUser == null) {
+      arumUserProviders = null;
+    } else {
+       arumUserProviders = arumUser?.providers?.find(
+        c => c.providerId === this.storage.getItem<number>('selectedProviderID') && c.providerUserRole !== ''
+      ) ?? null;
+    }
+
+    let selectedProvider: ARUMUserProviders | null = arumUserProviders;
+
+    if (!selectedProvider) {
+      return null;
+    }
+
+    return arumUser?.roles?.find(
+      (r: ARUMRole) => r.roleName === selectedProvider.providerUserRole
+    ) ?? null;
+  }
+
+  ngOnInit(): void {
+    this.titleService.setTitle('Dashboard');
+    this.userInfo = this.userService.getUser();
   }
 
   logout(): void {

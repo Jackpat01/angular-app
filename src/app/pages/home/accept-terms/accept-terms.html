@@ -1,9 +1,9 @@
-<form [formGroup]="acceptForm" (ngSubmit)="onSubmit()">
+<form (ngSubmit)="onSubmit()" [formGroup]="acceptForm">
   <div>
     <div class="center">
       <div class="myImage" style="display: none;">
         <div class="center">
-          <img ngSrc="images/loading.GIF" alt="Loading" width="32" height="32"/>
+          <img alt="Loading" height="32" ngSrc="images/loading.GIF" width="32"/>
         </div>
       </div>
       <div class="myControls">
@@ -18,13 +18,14 @@
                 </div>
               }
               @if (!isLoading && eulaText) {
-                <div style="margin-top: 15px; margin-bottom: 15px;" [innerHTML]="eulaText" class="eula-text"></div>
+                <div [innerHTML]="eulaText" class="eula-text" style="margin-top: 15px; margin-bottom: 15px;"></div>
               }
             </td>
           </tr>
           <tr>
             <td>
-              <div class="center"><input id="btnAcceptTerms" value="Accept Terms" type="submit" class="btn btn-success BoldMe"/></div>
+              <div class="center"><input class="btn btn-success BoldMe" id="btnAcceptTerms" type="submit"
+                                         value="Accept Terms"/></div>
             </td>
           </tr>
         </table>

@@ -1,7 +1,7 @@
-import { Component, OnInit } from '@angular/core';
-import { CommonModule } from '@angular/common';
-import { UserService } from '../../services/user';
-import { AuthService, UserClaims } from '../../services/auth';
+import {Component, OnInit} from '@angular/core';
+import {CommonModule} from '@angular/common';
+import {UserService} from '../../services/user';
+import {AuthService, UserClaims} from '../../services/auth';
 
 @Component({
   imports: [CommonModule],
@@ -18,7 +18,8 @@ export class HeaderBarComponent implements OnInit {
   constructor(
     private userService: UserService,
     private authService: AuthService
-  ) {}
+  ) {
+  }
 
   ngOnInit(): void {
     // Subscribe to user claims updates

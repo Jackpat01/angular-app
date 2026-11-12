@@ -1,7 +1,7 @@
-import { Component, OnInit } from '@angular/core';
-import { CommonModule } from '@angular/common';
-import { ReactiveFormsModule, FormBuilder, FormGroup } from '@angular/forms';
-import { TitleService } from '../../services/title';
+import {Component, OnInit} from '@angular/core';
+import {CommonModule} from '@angular/common';
+import {FormBuilder, FormGroup, ReactiveFormsModule} from '@angular/forms';
+import {TitleService} from '../../services/title';
 
 interface Report {
   id: number;
@@ -67,7 +67,8 @@ export class AdminReportsComponent implements OnInit {
   constructor(
     private titleService: TitleService,
     private fb: FormBuilder
-  ) {}
+  ) {
+  }
 
   ngOnInit(): void {
     this.titleService.setTitle('Reports Management');

@@ -3,10 +3,12 @@
 ## Installation
 
 ### Prerequisites
+
 - Node.js 18+ and npm 10+
 - Angular CLI 22+
 
 ### Setup
+
 ```bash
 # Navigate to the project directory
 cd angular-app
@@ -25,16 +27,19 @@ npm start
 The application includes three main sections accessible from the navigation:
 
 ### 1. Home Page (`/`)
+
 - Welcome section with feature overview
 - Links to explore Dashboard and Forms
 - Located in Public Layout
 
 ### 2. User Dashboard (`/user-dashboard`)
+
 - User profile information
 - Recent activity log
 - Located in Dashboard Layout
 
 ### 3. Admin Section (`/admin`)
+
 - System statistics
 - Sidebar navigation menu
 - Located in Admin Layout
@@ -42,12 +47,15 @@ The application includes three main sections accessible from the navigation:
 ## Adding New Pages
 
 ### Step 1: Create Component
+
 ```bash
 npx ng generate component pages/my-page --skip-tests
 ```
 
 ### Step 2: Update Component with Title Service
+
 Edit `src/app/pages/my-page/my-page.ts`:
+
 ```typescript
 import { Component, OnInit } from '@angular/core';
 import { TitleService } from '../../services/title';
@@ -68,7 +76,9 @@ export class MyPage implements OnInit {
 ```
 
 ### Step 3: Add Route
+
 Update `src/app/app.routes.ts`:
+
 ```typescript
 {
   path: 'my-path',
@@ -82,6 +92,7 @@ Update `src/app/app.routes.ts`:
 ## Creating Reactive Forms
 
 ### Example: Simple Contact Form
+
 ```typescript
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 
@@ -107,6 +118,7 @@ export class MyForm implements OnInit {
 ```
 
 ### Form Template with Bootstrap
+
 ```html
 <form [formGroup]="myForm" (ngSubmit)="onSubmit()">
   <div class="mb-3">
@@ -128,6 +140,7 @@ export class MyForm implements OnInit {
 ## Using Dynamic Titles from API
 
 ### Update TitleService to Fetch from API
+
 ```typescript
 fetchTitleFromApi(endpoint: string): Observable<string> {
   return this.http.get<{ title: string }>(endpoint).pipe(
@@ -138,6 +151,7 @@ fetchTitleFromApi(endpoint: string): Observable<string> {
 ```
 
 ### Use in Component
+
 ```typescript
 ngOnInit(): void {
   this.titleService.fetchTitleFromApi('/api/page-titles/dashboard')
@@ -148,6 +162,7 @@ ngOnInit(): void {
 ## Bootstrap Components Used
 
 ### Navbar
+
 ```html
 <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
   <!-- navbar content -->
@@ -155,6 +170,7 @@ ngOnInit(): void {
 ```
 
 ### Cards
+
 ```html
 <div class="card">
   <div class="card-header">Title</div>
@@ -163,6 +179,7 @@ ngOnInit(): void {
 ```
 
 ### Alerts
+
 ```html
 <div class="alert alert-success">Success message</div>
 <div class="alert alert-warning">Warning message</div>
@@ -170,6 +187,7 @@ ngOnInit(): void {
 ```
 
 ### Forms
+
 ```html
 <input class="form-control" placeholder="Enter text">
 <select class="form-select">
@@ -179,6 +197,7 @@ ngOnInit(): void {
 ```
 
 ### Buttons
+
 ```html
 <button class="btn btn-primary">Primary</button>
 <button class="btn btn-secondary">Secondary</button>
@@ -186,6 +205,7 @@ ngOnInit(): void {
 ```
 
 ### Grid System
+
 ```html
 <div class="row">
   <div class="col-md-4">25% width on medium+ screens</div>
@@ -206,11 +226,13 @@ npm run build
 ## Adding New Layouts
 
 ### Step 1: Generate Component
+
 ```bash
 npx ng generate component layouts/my-layout --skip-tests
 ```
 
 ### Step 2: Update Layout Component
+
 ```typescript
 import { Component } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
@@ -227,6 +249,7 @@ export class MyLayout {}
 ```
 
 ### Step 3: Design Layout Template
+
 ```html
 <app-header></app-header>
 <main class="main-content">
@@ -237,6 +260,7 @@ export class MyLayout {}
 ```
 
 ### Step 4: Use in Routes
+
 ```typescript
 {
   path: 'my-section',
@@ -283,16 +307,19 @@ npm run lint
 ## Troubleshooting
 
 ### Build Bundle Too Large
+
 - Check `angular.json` for unused styles
 - Use lazy loading for routes
 - Analyze bundle: `npm run build -- --stats-json`
 
 ### Forms Not Validating
+
 - Import `ReactiveFormsModule` in component
 - Use proper form control names
 - Check for typos in `formControlName` attributes
 
 ### Routing Issues
+
 - Ensure routes are configured in `app.routes.ts`
 - Check component imports in layout/page components
 - Verify correct use of `RouterOutlet`

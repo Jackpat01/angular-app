@@ -1,29 +1,29 @@
 <ohfi-loading-overlay [isLoading]="isLoading"></ohfi-loading-overlay>
 
-<input id="logoutURL" type="hidden" value="/logout" />
-<input id="hdnHeartBeat" type="hidden" value="/api/heartbeat" />
+<input id="logoutURL" type="hidden" value="/logout"/>
+<input id="hdnHeartBeat" type="hidden" value="/api/heartbeat"/>
 
 <div class="page-layout">
   <ohfi-header-bar></ohfi-header-bar>
-  <ohfi-logo-branding 
+  <ohfi-logo-branding
+    [projectName]="projectName"
+    [providerType]="providerType"
     [showUserInfo]="true"
     [userEmail]="userEmail"
-    [userRole]="userRole"
-    [providerType]="providerType"
-    [projectName]="projectName">
+    [userRole]="userRole">
   </ohfi-logo-branding>
-  
+
   <div class="d-flex">
-    <div id="cssmenu" class="d-flex justify-content-between flex-grow-1">
+    <div class="d-flex justify-content-between flex-grow-1" id="cssmenu">
       <ul style="list-style: none; padding: 0; margin: 0; display: flex;">
         <li style="padding: 10px 15px; border-right: 1px solid #ddd;">
-          <a href="javascript:void(0);" (click)="logout()" style="color: #333; text-decoration: none;">
+          <a (click)="logout()" href="javascript:void(0);" style="color: #333; text-decoration: none;">
             Log Out
           </a>
         </li>
       </ul>
     </div>
-    <div style="border-bottom: 2px solid #74c141;" class="d-flex align-items-center pl-1">
+    <div class="d-flex align-items-center pl-1" style="border-bottom: 2px solid #74c141;">
       <ohfi-help-modal></ohfi-help-modal>
     </div>
   </div>

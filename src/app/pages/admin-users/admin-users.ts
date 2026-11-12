@@ -1,9 +1,8 @@
-import { Component, OnInit } from '@angular/core';
-import { CommonModule } from '@angular/common';
-import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
-import { FormsModule } from '@angular/forms';
-import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
-import { TitleService } from '../../services/title';
+import {Component, OnInit} from '@angular/core';
+import {CommonModule} from '@angular/common';
+import {FormBuilder, FormGroup, FormsModule, ReactiveFormsModule, Validators} from '@angular/forms';
+import {NgbModal} from '@ng-bootstrap/ng-bootstrap';
+import {TitleService} from '../../services/title';
 
 interface User {
   id: number;
@@ -22,10 +21,31 @@ interface User {
 })
 export class AdminUsersComponent implements OnInit {
   users: User[] = [
-    { id: 1, email: 'john.doe@example.com', name: 'John Doe', role: 'Admin', status: 'active', joinDate: '2023-01-15' },
-    { id: 2, email: 'jane.smith@example.com', name: 'Jane Smith', role: 'User', status: 'active', joinDate: '2023-02-20' },
-    { id: 3, email: 'bob.wilson@example.com', name: 'Bob Wilson', role: 'Manager', status: 'inactive', joinDate: '2023-03-10' },
-    { id: 4, email: 'alice.brown@example.com', name: 'Alice Brown', role: 'User', status: 'active', joinDate: '2023-04-05' },
+    {id: 1, email: 'john.doe@example.com', name: 'John Doe', role: 'Admin', status: 'active', joinDate: '2023-01-15'},
+    {
+      id: 2,
+      email: 'jane.smith@example.com',
+      name: 'Jane Smith',
+      role: 'User',
+      status: 'active',
+      joinDate: '2023-02-20'
+    },
+    {
+      id: 3,
+      email: 'bob.wilson@example.com',
+      name: 'Bob Wilson',
+      role: 'Manager',
+      status: 'inactive',
+      joinDate: '2023-03-10'
+    },
+    {
+      id: 4,
+      email: 'alice.brown@example.com',
+      name: 'Alice Brown',
+      role: 'User',
+      status: 'active',
+      joinDate: '2023-04-05'
+    },
   ];
 
   searchTerm = '';
@@ -37,7 +57,8 @@ export class AdminUsersComponent implements OnInit {
     private titleService: TitleService,
     private fb: FormBuilder,
     private modalService: NgbModal
-  ) {}
+  ) {
+  }
 
   ngOnInit(): void {
     this.titleService.setTitle('User Management');

@@ -1,4 +1,4 @@
-<form [formGroup]="loginForm" (ngSubmit)="onSubmit()">
+<form (ngSubmit)="onSubmit()" [formGroup]="loginForm">
   <div>
     <div class="center">
       <br/>
@@ -16,12 +16,12 @@
               <div>
                 <label for="txtEmail">Email</label>
                 <input
-                  type="text"
-                  id="txtEmail"
-                  class="form-control"
-                  tabindex="1"
                   autocomplete="username"
+                  class="form-control"
                   formControlName="email"
+                  id="txtEmail"
+                  tabindex="1"
+                  type="text"
                 />
               </div>
               @if (loginForm.get('email')?.invalid && (loginForm.get('email')?.dirty || loginForm.get('email')?.touched)) {
@@ -39,12 +39,12 @@
             <div class="form-group" style="width: 60%; margin-left: auto; margin-right: auto;">
               <label for="txtNonHashedPassword">Password</label>
               <input
-                type="password"
-                id="txtNonHashedPassword"
-                class="form-control"
-                tabindex="2"
                 autocomplete="current-password"
+                class="form-control"
                 formControlName="password"
+                id="txtNonHashedPassword"
+                tabindex="2"
+                type="password"
               />
               @if (loginForm.get('password')?.invalid && (loginForm.get('password')?.dirty || loginForm.get('password')?.touched)) {
                 <div class="errorLabel">
@@ -57,27 +57,27 @@
             <div style="text-align: center">
               <div class="myImage" style="display: none;">
                 <div class="center">
-                  <img ngSrc="images/loading.GIF" alt="Loading" width="32" height="32"/>
+                  <img alt="Loading" height="32" ngSrc="images/loading.GIF" width="32"/>
                 </div>
               </div>
               <div class="myControls">
-                <input value="Login" type="submit" class="btn btn-success" tabindex="3"/>
+                <input class="btn btn-success" tabindex="3" type="submit" value="Login"/>
               </div>
               <br/>
               @if (tempData.hasTempData('message')) {
-                <div class="errorLabel" style="margin-bottom: 50px;"
-                     [innerHTML]="tempData.getTempData('message')"></div>
+                <div [innerHTML]="tempData.getTempData('message')" class="errorLabel"
+                     style="margin-bottom: 50px;"></div>
               }
               @if (tempData.hasTempData('errorMessage')) {
-                <div class="errorLabel" style="margin-bottom: 50px;"
-                     [innerHTML]="tempData.getTempData('errorMessage')"></div>
+                <div [innerHTML]="tempData.getTempData('errorMessage')" class="errorLabel"
+                     style="margin-bottom: 50px;"></div>
               }
             </div>
           </div>
           <div class="pull-right" style="margin-top: -50px; margin-right: 18px;">
-            <a href="" data-toggle="modal" data-target="#window_HelpView"><img ngSrc="images/Messaging.png"
-                                                                               alt="Need Help?" title="Need Help?"
-                                                                               width="32" height="32"/></a>
+            <a data-target="#window_HelpView" data-toggle="modal" href=""><img alt="Need Help?"
+                                                                               height="32" ngSrc="images/Messaging.png"
+                                                                               title="Need Help?" width="32"/></a>
           </div>
         </div>
       </div>
