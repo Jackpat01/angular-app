@@ -1,0 +1,29 @@
+{
+  "version": 2,
+  "skills": {
+    "angular-linters": {
+      "source": "famzila/agent-skills-set",
+      "sourceType": "github",
+      "skillPath": "angular-linters/SKILL.md",
+      "computedHash": "40e30fe17172b79575427e7993915cced1dd2582bf4db7f7eba4cb3f707eb3d2"
+    },
+    "angular-setup-project": {
+      "source": "famzila/agent-skills-set",
+      "sourceType": "github",
+      "skillPath": "angular-setup-project/SKILL.md",
+      "computedHash": "1d269232c9d9acdfc4549df7da46eee6681825492a6bc5d2d1f0b01de33a16c0"
+    },
+    "angular-third-party-integration": {
+      "source": "famzila/agent-skills-set",
+      "sourceType": "github",
+      "skillPath": "angular-third-party-integration/SKILL.md",
+      "computedHash": "7f9bec20ef9025ef930655b3048663b171ae0a62a8cfe3d4a4afc99eccf4d7c9"
+    },
+    "llms-txt-generator": {
+      "source": "famzila/agent-skills-set",
+      "sourceType": "github",
+      "skillPath": "llms-txt-generator/SKILL.md",
+      "computedHash": "5e765499be42bce7bda98a8ef117094e873c67aab52cdc4453399ba5093e4c1f"
+    }
+  }
+}
