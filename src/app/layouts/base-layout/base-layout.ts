@@ -13,13 +13,9 @@ import {PortalConfigService} from '../../services/portal-config';
 })
 export class BaseLayout implements OnInit {
   protected readonly portalConfig = inject(PortalConfigService);
+  private titleService = inject(TitleService);
+  private appConfig = inject(AppConfigService);
   private _loginMessages: string[] = [];
-
-  constructor(
-    private titleService: TitleService,
-    private appConfig: AppConfigService
-  ) {
-  }
 
   get loginMessage(): string[] {
     return this._loginMessages;

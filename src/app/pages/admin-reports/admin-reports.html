@@ -7,49 +7,51 @@
   </div>
 
   <!-- Generate Report Form -->
-  <div *ngIf="showForm" class="card mb-4">
-    <div class="card-header bg-light">
-      <h5 class="mb-0">Generate New Report</h5>
+  @if (showForm) {
+    <div class="card mb-4">
+      <div class="card-header bg-light">
+        <h5 class="mb-0">Generate New Report</h5>
+      </div>
+      <div class="card-body">
+        <form (ngSubmit)="generateReport()" [formGroup]="reportForm">
+          <div class="row">
+            <div class="col-md-4 mb-3">
+              <label class="form-label" for="reportType">Report Type</label>
+              <select
+                class="form-select"
+                formControlName="reportType"
+                id="reportType">
+                <option value="User Activity">User Activity</option>
+                <option value="Performance">Performance</option>
+                <option value="Error Logs">Error Logs</option>
+                <option value="Database">Database</option>
+                <option value="Security">Security</option>
+              </select>
+            </div>
+            <div class="col-md-4 mb-3">
+              <label class="form-label" for="startDate">Start Date</label>
+              <input
+                class="form-control"
+                formControlName="startDate"
+                id="startDate"
+                type="date">
+            </div>
+            <div class="col-md-4 mb-3">
+              <label class="form-label" for="endDate">End Date</label>
+              <input
+                class="form-control"
+                formControlName="endDate"
+                id="endDate"
+                type="date">
+            </div>
+          </div>
+          <button class="btn btn-success" type="submit">
+            Generate Report
+          </button>
+        </form>
+      </div>
     </div>
-    <div class="card-body">
-      <form (ngSubmit)="generateReport()" [formGroup]="reportForm">
-        <div class="row">
-          <div class="col-md-4 mb-3">
-            <label class="form-label" for="reportType">Report Type</label>
-            <select
-              class="form-select"
-              formControlName="reportType"
-              id="reportType">
-              <option value="User Activity">User Activity</option>
-              <option value="Performance">Performance</option>
-              <option value="Error Logs">Error Logs</option>
-              <option value="Database">Database</option>
-              <option value="Security">Security</option>
-            </select>
-          </div>
-          <div class="col-md-4 mb-3">
-            <label class="form-label" for="startDate">Start Date</label>
-            <input
-              class="form-control"
-              formControlName="startDate"
-              id="startDate"
-              type="date">
-          </div>
-          <div class="col-md-4 mb-3">
-            <label class="form-label" for="endDate">End Date</label>
-            <input
-              class="form-control"
-              formControlName="endDate"
-              id="endDate"
-              type="date">
-          </div>
-        </div>
-        <button class="btn btn-success" type="submit">
-          Generate Report
-        </button>
-      </form>
-    </div>
-  </div>
+  }
 
   <!-- Filter Tabs -->
   <div class="mb-3">
@@ -105,40 +107,44 @@
           </tr>
           </thead>
           <tbody>
-          <tr *ngFor="let report of filteredReports">
-            <td>{{ report.name }}</td>
-            <td>
-              <span class="badge bg-info">{{ report.type }}</span>
-            </td>
-            <td>{{ report.generatedBy }}</td>
-            <td>{{ report.generatedDate }}</td>
-            <td>
-                <span
-                  [ngClass]="'bg-' + getStatusColor(report.status)"
-                  class="badge">
-                  {{ report.status | uppercase }}
-                </span>
-            </td>
-            <td>{{ report.fileSize }}</td>
-            <td>
-              <button
-                (click)="downloadReport(report.id)"
-                [disabled]="report.status !== 'completed'"
-                class="btn btn-sm btn-info me-2">
-                Download
-              </button>
-              <button
-                (click)="deleteReport(report.id)"
-                class="btn btn-sm btn-danger">
-                Delete
-              </button>
-            </td>
-          </tr>
-          <tr *ngIf="filteredReports.length === 0">
-            <td class="text-center text-muted py-4" colspan="7">
-              No reports found
-            </td>
-          </tr>
+          @for (report of filteredReports; track report.id) {
+            <tr>
+              <td>{{ report.name }}</td>
+              <td>
+                <span class="badge bg-info">{{ report.type }}</span>
+              </td>
+              <td>{{ report.generatedBy }}</td>
+              <td>{{ report.generatedDate }}</td>
+              <td>
+                  <span
+                    [ngClass]="'bg-' + getStatusColor(report.status)"
+                    class="badge">
+                    {{ report.status | uppercase }}
+                  </span>
+              </td>
+              <td>{{ report.fileSize }}</td>
+              <td>
+                <button
+                  (click)="downloadReport(report.id)"
+                  [disabled]="report.status !== 'completed'"
+                  class="btn btn-sm btn-info me-2">
+                  Download
+                </button>
+                <button
+                  (click)="deleteReport(report.id)"
+                  class="btn btn-sm btn-danger">
+                  Delete
+                </button>
+              </td>
+            </tr>
+          }
+          @if (filteredReports.length === 0) {
+            <tr>
+              <td class="text-center text-muted py-4" colspan="7">
+                No reports found
+              </td>
+            </tr>
+          }
           </tbody>
         </table>
       </div>

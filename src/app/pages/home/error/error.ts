@@ -1,4 +1,4 @@
-import {Component, OnInit} from '@angular/core';
+import {Component, OnInit, inject} from '@angular/core';
 import {TitleService} from '../../../services/title';
 import {PortalConfigService} from '../../../services/portal-config';
 
@@ -9,11 +9,8 @@ import {PortalConfigService} from '../../../services/portal-config';
   templateUrl: './error.html',
 })
 export class ErrorPage implements OnInit {
-  constructor(
-    private titleService: TitleService,
-    private portalConfig: PortalConfigService
-  ) {
-  }
+  private titleService = inject(TitleService);
+  private portalConfig = inject(PortalConfigService);
 
   ngOnInit(): void {
     this.titleService.setTitle(this.portalConfig.getWebPortalTitle() + " - Error");

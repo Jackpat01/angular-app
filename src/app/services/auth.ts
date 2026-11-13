@@ -18,7 +18,7 @@ export interface UserClaims {
   exp?: number;
   iat?: number;
 
-  [key: string]: any;
+  [key: string]: unknown;
 }
 
 @Injectable({
@@ -31,9 +31,6 @@ export class AuthService {
   isAuthenticated$ = this.isAuthenticatedSubject.asObservable();
   private userClaimsSubject = new BehaviorSubject<UserClaims | null>(this.extractClaims());
   userClaims$ = this.userClaimsSubject.asObservable();
-
-  constructor() {
-  }
 
   /**
    * Store tokens in localStorage
@@ -96,7 +93,7 @@ export class AuthService {
    * Decode JWT token (basic implementation)
    * For production, use a library like jwt-decode
    */
-  decodeToken(token: string): any {
+  decodeToken(token: string): Record<string, unknown> | null {
     try {
       const base64Url = token.split('.')[1];
       const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
@@ -141,7 +138,7 @@ export class AuthService {
   /**
    * Get specific claim value
    */
-  getClaim(key: string): any {
+  getClaim(key: string): unknown {
     const claims = this.getClaims();
     return claims ? claims[key] : null;
   }

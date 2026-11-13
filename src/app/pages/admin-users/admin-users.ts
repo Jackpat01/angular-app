@@ -1,4 +1,4 @@
-import {Component, OnInit} from '@angular/core';
+import {Component, OnInit, inject} from '@angular/core';
 import {CommonModule} from '@angular/common';
 import {FormBuilder, FormGroup, FormsModule, ReactiveFormsModule, Validators} from '@angular/forms';
 import {NgbModal} from '@ng-bootstrap/ng-bootstrap';
@@ -20,6 +20,9 @@ interface User {
   templateUrl: './admin-users.html',
 })
 export class AdminUsersComponent implements OnInit {
+  private titleService = inject(TitleService);
+  private fb = inject(FormBuilder);
+  private modalService = inject(NgbModal);
   users: User[] = [
     {id: 1, email: 'john.doe@example.com', name: 'John Doe', role: 'Admin', status: 'active', joinDate: '2023-01-15'},
     {
@@ -52,13 +55,6 @@ export class AdminUsersComponent implements OnInit {
   filteredUsers: User[] = [];
   userForm!: FormGroup;
   showForm = false;
-
-  constructor(
-    private titleService: TitleService,
-    private fb: FormBuilder,
-    private modalService: NgbModal
-  ) {
-  }
 
   ngOnInit(): void {
     this.titleService.setTitle('User Management');

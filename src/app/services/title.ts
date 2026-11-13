@@ -1,4 +1,4 @@
-import {Injectable} from '@angular/core';
+import {Injectable, inject} from '@angular/core';
 import {BehaviorSubject, Observable} from 'rxjs';
 import {HttpClient} from '@angular/common/http';
 import {Title} from '@angular/platform-browser';
@@ -8,18 +8,13 @@ import {map} from 'rxjs/operators';
   providedIn: 'root'
 })
 export class TitleService {
+  private http = inject(HttpClient);
+  private browserTitle = inject(Title);
   private titleSubject = new BehaviorSubject<string>('Angular App');
   public title$ = this.titleSubject.asObservable();
 
-  constructor(
-    private http: HttpClient,
-    private browserTitle: Title
-  ) {
-  }
-
   setTitle(title: string): void {
     this.titleSubject.next(title);
-    // Update browser tab title
     this.browserTitle.setTitle(`${title}`);
   }
 
@@ -29,4 +24,3 @@ export class TitleService {
     );
   }
 }
-

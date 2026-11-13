@@ -19,10 +19,16 @@
                 formControlName="firstName"
                 id="firstName"
                 type="text">
-              <div *ngIf="submitted && f['firstName'].errors" class="invalid-feedback">
-                <span *ngIf="f['firstName'].errors['required']">First name is required</span>
-                <span *ngIf="f['firstName'].errors['minlength']">Minimum 2 characters</span>
-              </div>
+              @if (submitted && f['firstName'].errors) {
+                <div class="invalid-feedback">
+                  @if (f['firstName'].errors['required']) {
+                    <span>First name is required</span>
+                  }
+                  @if (f['firstName'].errors['minlength']) {
+                    <span>Minimum 2 characters</span>
+                  }
+                </div>
+              }
             </div>
             <div class="col-md-6">
               <label class="form-label" for="lastName">Last Name</label>
@@ -32,10 +38,16 @@
                 formControlName="lastName"
                 id="lastName"
                 type="text">
-              <div *ngIf="submitted && f['lastName'].errors" class="invalid-feedback">
-                <span *ngIf="f['lastName'].errors['required']">Last name is required</span>
-                <span *ngIf="f['lastName'].errors['minlength']">Minimum 2 characters</span>
-              </div>
+              @if (submitted && f['lastName'].errors) {
+                <div class="invalid-feedback">
+                  @if (f['lastName'].errors['required']) {
+                    <span>Last name is required</span>
+                  }
+                  @if (f['lastName'].errors['minlength']) {
+                    <span>Minimum 2 characters</span>
+                  }
+                </div>
+              }
             </div>
           </div>
 
@@ -47,10 +59,16 @@
               formControlName="email"
               id="email"
               type="email">
-            <div *ngIf="submitted && f['email'].errors" class="invalid-feedback">
-              <span *ngIf="f['email'].errors['required']">Email is required</span>
-              <span *ngIf="f['email'].errors['email']">Please enter a valid email</span>
-            </div>
+            @if (submitted && f['email'].errors) {
+              <div class="invalid-feedback">
+                @if (f['email'].errors['required']) {
+                  <span>Email is required</span>
+                }
+                @if (f['email'].errors['email']) {
+                  <span>Please enter a valid email</span>
+                }
+              </div>
+            }
           </div>
 
           <div class="mb-3">
@@ -61,9 +79,11 @@
               formControlName="phone"
               id="phone"
               type="tel">
-            <div *ngIf="submitted && f['phone'].errors" class="invalid-feedback">
-              Please enter a valid phone number
-            </div>
+            @if (submitted && f['phone'].errors) {
+              <div class="invalid-feedback">
+                Please enter a valid phone number
+              </div>
+            }
           </div>
 
           <div class="mb-3">
@@ -79,9 +99,11 @@
               <option value="feedback">Feedback</option>
               <option value="other">Other</option>
             </select>
-            <div *ngIf="submitted && f['subject'].errors" class="invalid-feedback">
-              Subject is required
-            </div>
+            @if (submitted && f['subject'].errors) {
+              <div class="invalid-feedback">
+                Subject is required
+              </div>
+            }
           </div>
 
           <div class="mb-3">
@@ -92,10 +114,16 @@
               formControlName="message"
               id="message"
               rows="5"></textarea>
-            <div *ngIf="submitted && f['message'].errors" class="invalid-feedback">
-              <span *ngIf="f['message'].errors['required']">Message is required</span>
-              <span *ngIf="f['message'].errors['minlength']">Minimum 10 characters</span>
-            </div>
+            @if (submitted && f['message'].errors) {
+              <div class="invalid-feedback">
+                @if (f['message'].errors['required']) {
+                  <span>Message is required</span>
+                }
+                @if (f['message'].errors['minlength']) {
+                  <span>Minimum 10 characters</span>
+                }
+              </div>
+            }
           </div>
 
           <div class="mb-3 form-check">

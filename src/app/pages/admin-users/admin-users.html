@@ -7,55 +7,61 @@
   </div>
 
   <!-- Add User Form -->
-  <div *ngIf="showForm" class="card mb-4">
-    <div class="card-header bg-light">
-      <h5 class="mb-0">Add New User</h5>
-    </div>
-    <div class="card-body">
-      <form (ngSubmit)="addUser()" [formGroup]="userForm">
-        <div class="row">
-          <div class="col-md-6 mb-3">
-            <label class="form-label" for="email">Email</label>
-            <input
-              [class.is-invalid]="userForm.get('email')?.invalid && userForm.get('email')?.touched"
-              class="form-control"
-              formControlName="email"
-              id="email"
-              type="email">
-            <div *ngIf="userForm.get('email')?.invalid && userForm.get('email')?.touched" class="invalid-feedback">
-              Valid email is required
+  @if (showForm) {
+    <div class="card mb-4">
+      <div class="card-header bg-light">
+        <h5 class="mb-0">Add New User</h5>
+      </div>
+      <div class="card-body">
+        <form (ngSubmit)="addUser()" [formGroup]="userForm">
+          <div class="row">
+            <div class="col-md-6 mb-3">
+              <label class="form-label" for="email">Email</label>
+              <input
+                [class.is-invalid]="userForm.get('email')?.invalid && userForm.get('email')?.touched"
+                class="form-control"
+                formControlName="email"
+                id="email"
+                type="email">
+              @if (userForm.get('email')?.invalid && userForm.get('email')?.touched) {
+                <div class="invalid-feedback">
+                  Valid email is required
+                </div>
+              }
+            </div>
+            <div class="col-md-6 mb-3">
+              <label class="form-label" for="name">Name</label>
+              <input
+                [class.is-invalid]="userForm.get('name')?.invalid && userForm.get('name')?.touched"
+                class="form-control"
+                formControlName="name"
+                id="name"
+                type="text">
+              @if (userForm.get('name')?.invalid && userForm.get('name')?.touched) {
+                <div class="invalid-feedback">
+                  Name is required (min 2 characters)
+                </div>
+              }
             </div>
           </div>
-          <div class="col-md-6 mb-3">
-            <label class="form-label" for="name">Name</label>
-            <input
-              [class.is-invalid]="userForm.get('name')?.invalid && userForm.get('name')?.touched"
-              class="form-control"
-              formControlName="name"
-              id="name"
-              type="text">
-            <div *ngIf="userForm.get('name')?.invalid && userForm.get('name')?.touched" class="invalid-feedback">
-              Name is required (min 2 characters)
-            </div>
+          <div class="mb-3">
+            <label class="form-label" for="role">Role</label>
+            <select
+              class="form-select"
+              formControlName="role"
+              id="role">
+              <option value="User">User</option>
+              <option value="Manager">Manager</option>
+              <option value="Admin">Admin</option>
+            </select>
           </div>
-        </div>
-        <div class="mb-3">
-          <label class="form-label" for="role">Role</label>
-          <select
-            class="form-select"
-            formControlName="role"
-            id="role">
-            <option value="User">User</option>
-            <option value="Manager">Manager</option>
-            <option value="Admin">Admin</option>
-          </select>
-        </div>
-        <button [disabled]="!userForm.valid" class="btn btn-success" type="submit">
-          Add User
-        </button>
-      </form>
+          <button [disabled]="!userForm.valid" class="btn btn-success" type="submit">
+            Add User
+          </button>
+        </form>
+      </div>
     </div>
-  </div>
+  }
 
   <!-- Search Bar -->
   <div class="mb-3">
@@ -86,39 +92,43 @@
           </tr>
           </thead>
           <tbody>
-          <tr *ngFor="let user of filteredUsers">
-            <td>{{ user.email }}</td>
-            <td>{{ user.name }}</td>
-            <td>
-              <span class="badge bg-info">{{ user.role }}</span>
-            </td>
-            <td>
-                <span
-                  [class.bg-danger]="user.status === 'inactive'"
-                  [class.bg-success]="user.status === 'active'"
-                  class="badge">
-                  {{ user.status | uppercase }}
-                </span>
-            </td>
-            <td>{{ user.joinDate }}</td>
-            <td>
-              <button
-                (click)="toggleUserStatus(user.id)"
-                class="btn btn-sm btn-warning me-2">
-                {{ user.status === 'active' ? 'Deactivate' : 'Activate' }}
-              </button>
-              <button
-                (click)="deleteUser(user.id)"
-                class="btn btn-sm btn-danger">
-                Delete
-              </button>
-            </td>
-          </tr>
-          <tr *ngIf="filteredUsers.length === 0">
-            <td class="text-center text-muted py-4" colspan="6">
-              No users found
-            </td>
-          </tr>
+          @for (user of filteredUsers; track user.id) {
+            <tr>
+              <td>{{ user.email }}</td>
+              <td>{{ user.name }}</td>
+              <td>
+                <span class="badge bg-info">{{ user.role }}</span>
+              </td>
+              <td>
+                  <span
+                    [class.bg-danger]="user.status === 'inactive'"
+                    [class.bg-success]="user.status === 'active'"
+                    class="badge">
+                    {{ user.status | uppercase }}
+                  </span>
+              </td>
+              <td>{{ user.joinDate }}</td>
+              <td>
+                <button
+                  (click)="toggleUserStatus(user.id)"
+                  class="btn btn-sm btn-warning me-2">
+                  {{ user.status === 'active' ? 'Deactivate' : 'Activate' }}
+                </button>
+                <button
+                  (click)="deleteUser(user.id)"
+                  class="btn btn-sm btn-danger">
+                  Delete
+                </button>
+              </td>
+            </tr>
+          }
+          @if (filteredUsers.length === 0) {
+            <tr>
+              <td class="text-center text-muted py-4" colspan="6">
+                No users found
+              </td>
+            </tr>
+          }
           </tbody>
         </table>
       </div>

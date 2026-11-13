@@ -1,4 +1,4 @@
-import {Component, OnInit} from '@angular/core';
+import {Component, OnInit, inject} from '@angular/core';
 import {CommonModule} from '@angular/common';
 import {UserService} from '../../services/user';
 import {AuthService, UserClaims} from '../../services/auth';
@@ -10,16 +10,12 @@ import {AuthService, UserClaims} from '../../services/auth';
   templateUrl: './header-bar.html',
 })
 export class HeaderBarComponent implements OnInit {
+  private userService = inject(UserService);
+  private authService = inject(AuthService);
   userClaims: UserClaims | null = null;
   userEmail: string | null = null;
   userRole: string | null = null;
   company: string | null = null;
-
-  constructor(
-    private userService: UserService,
-    private authService: AuthService
-  ) {
-  }
 
   ngOnInit(): void {
     // Subscribe to user claims updates

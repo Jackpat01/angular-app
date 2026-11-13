@@ -1,4 +1,4 @@
-import {Injectable} from '@angular/core';
+import {Injectable, inject} from '@angular/core';
 import {BehaviorSubject, Observable, tap} from 'rxjs';
 import {ApiService} from './api';
 import {AuthService, AuthToken, UserClaims} from './auth';
@@ -25,6 +25,8 @@ export interface LoginResponse {
   providedIn: 'root',
 })
 export class UserService {
+  private apiService = inject(ApiService);
+  private authService = inject(AuthService);
   private userSubject = new BehaviorSubject<UserInfo>({
     email: 'user@example.com',
     role: 'User',
@@ -35,10 +37,7 @@ export class UserService {
 
   user$ = this.userSubject.asObservable();
 
-  constructor(
-    private apiService: ApiService,
-    private authService: AuthService
-  ) {
+  constructor() {
     this.initializeUserFromClaims();
   }
 
@@ -62,7 +61,7 @@ export class UserService {
    * Logout user
    * Endpoint: POST /api/auth/logout
    */
-  logout(): Observable<any> {
+  logout(): Observable<Record<string, unknown>> {
     return this.apiService.post('/auth/logout', {}).pipe(
       tap(() => {
         this.logoutLocal();
@@ -95,7 +94,7 @@ export class UserService {
    * Get specific claim value by key
    * Example: getClaim('company') replaces Session["CompanyName"]
    */
-  getClaim(key: string): any {
+  getClaim(key: string): unknown {
     return this.authService.getClaim(key);
   }
 

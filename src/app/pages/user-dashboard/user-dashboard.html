@@ -1,11 +1,13 @@
 <div class="container mt-4">
   <!-- Example: Display user info from JWT claims -->
-  <div *ngIf="dashboardData" class="alert alert-info">
-    <h5>Dashboard Loaded from JWT Claims</h5>
-    <p><strong>{{ dashboardData.greeting }}</strong></p>
-    <p>Role: <code>{{ dashboardData.role }}</code></p>
-    <p>Company: <code>{{ dashboardData.company }}</code></p>
-  </div>
+  @if (dashboardData) {
+    <div class="alert alert-info">
+      <h5>Dashboard Loaded from JWT Claims</h5>
+      <p><strong>{{ dashboardData.greeting }}</strong></p>
+      <p>Role: <code>{{ dashboardData.role }}</code></p>
+      <p>Company: <code>{{ dashboardData.company }}</code></p>
+    </div>
+  }
 
   <div class="row">
     <div class="col-md-3">
@@ -14,9 +16,15 @@
           <h6 class="mb-0">User Profile</h6>
         </div>
         <div class="card-body">
-          <p *ngIf="userClaims?.email"><strong>{{ userClaims.email }}</strong></p>
-          <p *ngIf="userClaims?.role" class="text-muted">Role: {{ userClaims.role }}</p>
-          <p *ngIf="userClaims?.company" class="text-muted">Company: {{ userClaims.company }}</p>
+          @if (userClaims?.email) {
+            <p><strong>{{ userClaims.email }}</strong></p>
+          }
+          @if (userClaims?.role) {
+            <p class="text-muted">Role: {{ userClaims.role }}</p>
+          }
+          @if (userClaims?.company) {
+            <p class="text-muted">Company: {{ userClaims.company }}</p>
+          }
           <a class="btn btn-sm btn-outline-primary" href="/form">Edit Profile</a>
         </div>
       </div>
@@ -38,31 +46,41 @@
             </tr>
             </thead>
             <tbody>
-            <tr *ngIf="userClaims?.email">
-              <td><code>email</code></td>
-              <td>{{ userClaims.email }}</td>
-              <td><code>Session["Email"]</code></td>
-            </tr>
-            <tr *ngIf="userClaims?.role">
-              <td><code>role</code></td>
-              <td>{{ userClaims.role }}</td>
-              <td><code>Session["UserRole"]</code></td>
-            </tr>
-            <tr *ngIf="userClaims?.company">
-              <td><code>company</code></td>
-              <td>{{ userClaims.company }}</td>
-              <td><code>Session["CompanyName"]</code></td>
-            </tr>
-            <tr *ngIf="userClaims?.provider">
-              <td><code>provider</code></td>
-              <td>{{ userClaims.provider }}</td>
-              <td><code>Session["ProviderType"]</code></td>
-            </tr>
-            <tr *ngIf="userClaims?.sub">
-              <td><code>sub</code></td>
-              <td>{{ userClaims.sub }}</td>
-              <td><code>Session["UserId"]</code></td>
-            </tr>
+            @if (userClaims?.email) {
+              <tr>
+                <td><code>email</code></td>
+                <td>{{ userClaims.email }}</td>
+                <td><code>Session["Email"]</code></td>
+              </tr>
+            }
+            @if (userClaims?.role) {
+              <tr>
+                <td><code>role</code></td>
+                <td>{{ userClaims.role }}</td>
+                <td><code>Session["UserRole"]</code></td>
+              </tr>
+            }
+            @if (userClaims?.company) {
+              <tr>
+                <td><code>company</code></td>
+                <td>{{ userClaims.company }}</td>
+                <td><code>Session["CompanyName"]</code></td>
+              </tr>
+            }
+            @if (userClaims?.provider) {
+              <tr>
+                <td><code>provider</code></td>
+                <td>{{ userClaims.provider }}</td>
+                <td><code>Session["ProviderType"]</code></td>
+              </tr>
+            }
+            @if (userClaims?.sub) {
+              <tr>
+                <td><code>sub</code></td>
+                <td>{{ userClaims.sub }}</td>
+                <td><code>Session["UserId"]</code></td>
+              </tr>
+            }
             </tbody>
           </table>
         </div>

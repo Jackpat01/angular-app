@@ -1,7 +1,9 @@
-<div *ngIf="isLoading" class="overlay" id="loadingOverlay">
-  <div class="overlay-inset"></div>
-  <div class="overlay-banner">
-    <p></p>
-    <img alt="Loading" src="assets/loading.gif"/>
+@if (isLoading) {
+  <div class="overlay" id="loadingOverlay">
+    <div class="overlay-inset"></div>
+    <div class="overlay-banner">
+      <p></p>
+      <img alt="Loading" src="assets/loading.gif"/>
+    </div>
   </div>
-</div>
+}

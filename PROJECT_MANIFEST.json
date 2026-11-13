@@ -1,0 +1,16 @@
+{
+  "projectName": "angular-app",
+  "angularMajorVersion": 22,
+  "packageManager": "npm",
+  "style": "css",
+  "ssr": false,
+  "zoneless": true,
+  "routing": true,
+  "rxjsLinting": "auto",
+  "budgetProfile": "balanced",
+  "skillVersions": {
+    "angular-setup-project": "1.0",
+    "angular-linters": "1.0",
+    "angular-third-party-integration": "1.0"
+  }
+}

@@ -7,21 +7,23 @@
 
   <!-- Statistics Cards -->
   <div class="row mb-4">
-    <div *ngFor="let stat of stats" class="col-md-6 col-lg-3 mb-3">
-      <div class="card stat-card">
-        <div class="card-body">
-          <div class="d-flex justify-content-between align-items-center">
-            <div>
-              <p class="text-muted mb-1">{{ stat.label }}</p>
-              <h3 class="mb-0">{{ stat.value }}</h3>
-            </div>
-            <div class="stat-icon">
-              <i class="bi bi-{{ stat.icon }}"></i>
+    @for (stat of stats; track stat.label) {
+      <div class="col-md-6 col-lg-3 mb-3">
+        <div class="card stat-card">
+          <div class="card-body">
+            <div class="d-flex justify-content-between align-items-center">
+              <div>
+                <p class="text-muted mb-1">{{ stat.label }}</p>
+                <h3 class="mb-0">{{ stat.value }}</h3>
+              </div>
+              <div class="stat-icon">
+                <i class="bi bi-{{ stat.icon }}"></i>
+              </div>
             </div>
           </div>
         </div>
       </div>
-    </div>
+    }
   </div>
 
   <!-- Recent Activity -->
@@ -42,13 +44,15 @@
               </tr>
               </thead>
               <tbody>
-              <tr *ngFor="let activity of recentActivity">
-                <td>
-                  <span class="badge bg-info">{{ activity.action }}</span>
-                </td>
-                <td>{{ activity.user }}</td>
-                <td>{{ activity.timestamp }}</td>
-              </tr>
+              @for (activity of recentActivity; track activity.user) {
+                <tr>
+                  <td>
+                    <span class="badge bg-info">{{ activity.action }}</span>
+                  </td>
+                  <td>{{ activity.user }}</td>
+                  <td>{{ activity.timestamp }}</td>
+                </tr>
+              }
               </tbody>
             </table>
           </div>

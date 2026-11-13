@@ -1,17 +1,19 @@
 <div class="logo-branding" style="border-bottom: 1px dashed #ccc; position: relative;">
   <img alt="MSLC Logo" height="80" src="images/logo.png" width="500">
-  <div *ngIf="showUserInfo" class="user-info-section">
-    <div id="dvApplicationName">
-      <b>{{ projectName }}</b>
+  @if (showUserInfo) {
+    <div class="user-info-section">
+      <div id="dvApplicationName">
+        <b>{{ projectName }}</b>
+      </div>
+      <div id="dvEmail">
+        <b>Email: {{ userEmail }}</b>
+      </div>
+      <div id="dvRole">
+        <b>Role: </b><span id="dvRoleName"><b>{{ userRole }}</b></span>
+      </div>
+      <div id="dvProvType">
+        <b>Provider Type: </b><span id="dvProvType"><b>{{ providerType }}</b></span>
+      </div>
     </div>
-    <div id="dvEmail">
-      <b>Email: {{ userEmail }}</b>
-    </div>
-    <div id="dvRole">
-      <b>Role: </b><span id="dvRoleName"><b>{{ userRole }}</b></span>
-    </div>
-    <div id="dvProvType">
-      <b>Provider Type: </b><span id="dvProvType"><b>{{ providerType }}</b></span>
-    </div>
-  </div>
+  }
 </div>

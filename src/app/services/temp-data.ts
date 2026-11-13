@@ -10,15 +10,15 @@ import {BehaviorSubject, Observable} from 'rxjs';
   providedIn: 'root',
 })
 export class TempDataService {
-  private tempDataSubject = new BehaviorSubject<Map<string, any>>(new Map());
-  tempData$: Observable<Map<string, any>> = this.tempDataSubject.asObservable();
+  private tempDataSubject = new BehaviorSubject<Map<string, Record<string, unknown>>>(new Map());
+  tempData$: Observable<Map<string, Record<string, unknown>>> = this.tempDataSubject.asObservable();
 
   /**
    * Set temporary data with a key
    * @param key - Unique identifier for the data
    * @param data - Any data to store
    */
-  setTempData(key: string, data: any): void {
+  setTempData(key: string, data: Record<string, unknown>): void {
     const currentData = this.tempDataSubject.getValue();
     currentData.set(key, data);
     this.tempDataSubject.next(currentData);
@@ -30,7 +30,7 @@ export class TempDataService {
    * @param key - Key of the data to retrieve
    * @returns The stored data or null if not found
    */
-  getTempData(key: string): any {
+  getTempData(key: string): Record<string, unknown> | null {
     const data = this.tempDataSubject.getValue().get(key);
     return data !== undefined ? data : null;
   }
@@ -41,7 +41,7 @@ export class TempDataService {
    * @param key - Key of the data to retrieve
    * @returns The stored data or null if not found
    */
-  peek(key: string): any {
+  peek(key: string): Record<string, unknown> | null {
     const currentData = this.tempDataSubject.getValue();
     const data = currentData.get(key);
 

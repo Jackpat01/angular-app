@@ -14,7 +14,7 @@ import {LoginService} from '../../../services/login';
   imports: [CommonModule, FormsModule, ReactiveFormsModule, NgOptimizedImage],
 })
 export class AcceptTerms implements OnInit {
-  eulaText: string = `
+  eulaText = `
 <p style="font-family: Arial, sans-serif; font-weight: bold; text-align: center;">
     <b>Myers and Stauffer xx_State_xx Web Portal<br/>Terms of Use Agreement:</b>
 </p>
@@ -33,11 +33,11 @@ export class AcceptTerms implements OnInit {
 <p style="font-family: Arial, Helvetica, sans-serif; font-size: 1rem; line-height: 1.5; color: #333;">MSLC reserves the right to change, modify, suspend or terminate the site at anytime without prior notice.</p>
 <p style="font-family: Arial, Helvetica, sans-serif; font-size: 1rem; line-height: 1.5; color: #333;">Myers and Stauffer reserves the right to change or amend these Terms of Use or our Privacy Policy at any time without prior notice. If the terms of this agreement are amended, you will receive notice of the change.</p>
 `;
-  isLoading: boolean = false;
-  acceptError: string = '';
-  submitted: boolean = false;
-  appTitle: string = '';
-  email: string = '';
+  isLoading = false;
+  acceptError = '';
+  submitted = false;
+  appTitle = '';
+  email = '';
   private titleService = inject(TitleService);
   private portalConfig = inject(PortalConfigService);
   private loginService = inject(LoginService);
@@ -74,7 +74,7 @@ export class AcceptTerms implements OnInit {
         this.eulaText = response.eulaText;
         this.isLoading = false;
       },
-      error: (error) => {
+      error: () => {
         this.acceptError = 'Failed to load Terms of Use. Please try again.';
         this.isLoading = false;
       },
@@ -103,7 +103,7 @@ export class AcceptTerms implements OnInit {
         }
         this.isLoading = false;
       },
-      error: (error) => {
+      error: () => {
         this.acceptError = 'An error occurred while accepting terms. Please try again.';
         this.isLoading = false;
       },

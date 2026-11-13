@@ -1,4 +1,4 @@
-import {Injectable} from '@angular/core';
+import {Injectable, inject} from '@angular/core';
 import {BehaviorSubject, Observable} from 'rxjs';
 import {ApiService} from './api';
 
@@ -13,6 +13,7 @@ export interface NavItem {
   providedIn: 'root',
 })
 export class AdminService {
+  private apiService = inject(ApiService);
   private menuItemsSubject = new BehaviorSubject<NavItem[]>([
     {label: 'Dashboard', route: '/admin/dashboard'},
     {label: 'Users', route: '/admin/users'},
@@ -22,7 +23,7 @@ export class AdminService {
 
   menuItems$ = this.menuItemsSubject.asObservable();
 
-  constructor(private apiService: ApiService) {
+  constructor() {
     this.loadMenuItems();
   }
 
@@ -46,7 +47,7 @@ export class AdminService {
    * Get user statistics for admin dashboard
    * Endpoint: GET /api/admin/stats
    */
-  getStatistics(): Observable<any> {
+  getStatistics(): Observable<Record<string, unknown>> {
     return this.apiService.get('/admin/stats');
   }
 
@@ -54,23 +55,23 @@ export class AdminService {
    * Get all users
    * Endpoint: GET /api/admin/users
    */
-  getUsers(): Observable<any[]> {
-    return this.apiService.get<any[]>('/admin/users');
+  getUsers(): Observable<Record<string, unknown>[]> {
+    return this.apiService.get<Record<string, unknown>[]>('/admin/users');
   }
 
   /**
    * Get all reports
    * Endpoint: GET /api/admin/reports
    */
-  getReports(): Observable<any[]> {
-    return this.apiService.get<any[]>('/admin/reports');
+  getReports(): Observable<Record<string, unknown>[]> {
+    return this.apiService.get<Record<string, unknown>[]>('/admin/reports');
   }
 
   /**
    * Create a report
    * Endpoint: POST /api/admin/reports
    */
-  createReport(reportData: any): Observable<any> {
+  createReport(reportData: Record<string, unknown>): Observable<Record<string, unknown>> {
     return this.apiService.post('/admin/reports', reportData);
   }
 
@@ -78,7 +79,7 @@ export class AdminService {
    * Update a report
    * Endpoint: PUT /api/admin/reports/:id
    */
-  updateReport(id: string, reportData: any): Observable<any> {
+  updateReport(id: string, reportData: Record<string, unknown>): Observable<Record<string, unknown>> {
     return this.apiService.put(`/admin/reports/${id}`, reportData);
   }
 
@@ -86,7 +87,7 @@ export class AdminService {
    * Delete a report
    * Endpoint: DELETE /api/admin/reports/:id
    */
-  deleteReport(id: string): Observable<any> {
+  deleteReport(id: string): Observable<Record<string, unknown>> {
     return this.apiService.delete(`/admin/reports/${id}`);
   }
 

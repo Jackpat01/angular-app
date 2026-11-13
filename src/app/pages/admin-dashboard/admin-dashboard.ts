@@ -1,4 +1,4 @@
-import {Component, OnInit} from '@angular/core';
+import {Component, OnInit, inject} from '@angular/core';
 import {CommonModule} from '@angular/common';
 import {TitleService} from '../../services/title';
 
@@ -21,6 +21,7 @@ interface Activity {
   templateUrl: './admin-dashboard.html',
 })
 export class AdminDashboard implements OnInit {
+  private titleService = inject(TitleService);
   stats: Stat[] = [
     {label: 'Total Users', value: 1234, icon: 'users'},
     {label: 'Active Sessions', value: 45, icon: 'activity'},
@@ -34,9 +35,6 @@ export class AdminDashboard implements OnInit {
     {action: 'Settings updated', user: 'admin@example.com', timestamp: 'Yesterday 02:45 PM'},
     {action: 'User registered', user: 'new.user@example.com', timestamp: 'Yesterday 11:20 AM'},
   ];
-
-  constructor(private titleService: TitleService) {
-  }
 
   ngOnInit(): void {
     this.titleService.setTitle('Admin Dashboard');

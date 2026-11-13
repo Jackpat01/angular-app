@@ -1,4 +1,4 @@
-import {Component} from '@angular/core';
+import {Component, inject} from '@angular/core';
 import {CommonModule} from '@angular/common';
 import {TitleService} from '../../services/title';
 
@@ -38,6 +38,5 @@ import {TitleService} from '../../services/title';
   `]
 })
 export class PageTitleBannerComponent {
-  constructor(readonly titleService: TitleService) {
-  }
+  readonly titleService = inject(TitleService);
 }

@@ -1,4 +1,4 @@
-import {Injectable} from '@angular/core';
+import {Injectable, inject} from '@angular/core';
 import {BehaviorSubject, Observable} from 'rxjs';
 import {ApiService} from './api';
 import {AuthService} from './auth';
@@ -12,14 +12,10 @@ import {LoginRequest} from '../models/loginRequest';
   providedIn: 'root',
 })
 export class LoginService {
+  private apiService = inject(ApiService);
+  private authService = inject(AuthService);
   private isLoadingSubject = new BehaviorSubject<boolean>(false);
   isLoading$ = this.isLoadingSubject.asObservable();
-
-  constructor(
-    private apiService: ApiService,
-    private authService: AuthService
-  ) {
-  }
 
   /**
    * Login with email and password

@@ -1,4 +1,4 @@
-import {Injectable} from '@angular/core';
+import {Injectable, inject} from '@angular/core';
 import {BehaviorSubject} from 'rxjs';
 import {ApiService} from './api';
 
@@ -13,6 +13,7 @@ export interface AppConfig {
   providedIn: 'root',
 })
 export class AppConfigService {
+  private apiService = inject(ApiService);
   private configSubject = new BehaviorSubject<AppConfig>({
     appVersion: '0.0.1',
     currentYear: new Date().getFullYear(),
@@ -22,7 +23,7 @@ export class AppConfigService {
 
   config$ = this.configSubject.asObservable();
 
-  constructor(private apiService: ApiService) {
+  constructor() {
     this.loadConfig();
   }
 

@@ -1,4 +1,4 @@
-import {Injectable, OnDestroy} from '@angular/core';
+import {Injectable, OnDestroy, inject} from '@angular/core';
 import {interval, Subscription} from 'rxjs';
 import {ApiService} from './api';
 
@@ -6,11 +6,9 @@ import {ApiService} from './api';
   providedIn: 'root',
 })
 export class HeartbeatService implements OnDestroy {
+  private apiService = inject(ApiService);
   private heartbeatInterval: number = 5 * 60 * 1000; // 5 minutes
   private heartbeatSubscription: Subscription | null = null;
-
-  constructor(private apiService: ApiService) {
-  }
 
   /**
    * Start sending heartbeat to server at regular intervals

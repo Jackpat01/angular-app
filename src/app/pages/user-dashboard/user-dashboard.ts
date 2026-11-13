@@ -1,4 +1,4 @@
-import {Component, OnInit} from '@angular/core';
+import {Component, OnInit, inject} from '@angular/core';
 import {CommonModule} from '@angular/common';
 import {TitleService} from '../../services/title';
 import {UserService} from '../../services/user';
@@ -11,15 +11,11 @@ import {AuthService, UserClaims} from '../../services/auth';
   templateUrl: './user-dashboard.html',
 })
 export class UserDashboard implements OnInit {
+  private titleService = inject(TitleService);
+  private userService = inject(UserService);
+  private authService = inject(AuthService);
   userClaims: UserClaims | null = null;
-  dashboardData: any = null;
-
-  constructor(
-    private titleService: TitleService,
-    private userService: UserService,
-    private authService: AuthService
-  ) {
-  }
+  dashboardData: Record<string, unknown> | null = null;
 
   ngOnInit(): void {
     this.titleService.setTitle('User Dashboard');

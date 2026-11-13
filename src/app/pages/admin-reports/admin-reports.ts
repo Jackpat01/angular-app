@@ -1,4 +1,4 @@
-import {Component, OnInit} from '@angular/core';
+import {Component, OnInit, inject} from '@angular/core';
 import {CommonModule} from '@angular/common';
 import {FormBuilder, FormGroup, ReactiveFormsModule} from '@angular/forms';
 import {TitleService} from '../../services/title';
@@ -20,6 +20,8 @@ interface Report {
   templateUrl: './admin-reports.html',
 })
 export class AdminReportsComponent implements OnInit {
+  private titleService = inject(TitleService);
+  private fb = inject(FormBuilder);
   reports: Report[] = [
     {
       id: 1,
@@ -63,12 +65,6 @@ export class AdminReportsComponent implements OnInit {
   reportForm!: FormGroup;
   showForm = false;
   filterType = 'all';
-
-  constructor(
-    private titleService: TitleService,
-    private fb: FormBuilder
-  ) {
-  }
 
   ngOnInit(): void {
     this.titleService.setTitle('Reports Management');

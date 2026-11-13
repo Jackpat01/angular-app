@@ -14,19 +14,15 @@ import {TempDataService} from '../../../services/temp-data';
   templateUrl: './login.html',
 })
 export class Login implements OnInit {
+  private titleService = inject(TitleService);
+  private loginService = inject(LoginService);
+  private portalConfig = inject(PortalConfigService);
+  private router = inject(Router);
+  private tempData = inject(TempDataService);
+  private fb = inject(FormBuilder);
   loginForm!: FormGroup;
   submitted = false;
   isLoading = false;
-  private fb = inject(FormBuilder);
-
-  constructor(
-    private titleService: TitleService,
-    private loginService: LoginService,
-    private portalConfig: PortalConfigService,
-    private router: Router,
-    private tempData: TempDataService
-  ) {
-  }
 
   get f() {
     return this.loginForm.controls;

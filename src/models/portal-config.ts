@@ -5,5 +5,5 @@ export interface PortalConfig {
   loginSessionKey:string;
 
 
-  [key: string]: any;
+  [key: string]: unknown;
 }

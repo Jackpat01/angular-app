@@ -1,4 +1,4 @@
-import {Component, OnInit} from '@angular/core';
+import {Component, OnInit, inject} from '@angular/core';
 import {CommonModule} from '@angular/common';
 import {FormBuilder, FormGroup, ReactiveFormsModule, Validators} from '@angular/forms';
 import {NgbModal, NgbModule} from '@ng-bootstrap/ng-bootstrap';
@@ -11,15 +11,11 @@ import {TitleService} from '../../services/title';
   templateUrl: './sample-form.html',
 })
 export class SampleForm implements OnInit {
+  private fb = inject(FormBuilder);
+  private titleService = inject(TitleService);
+  private modalService = inject(NgbModal);
   contactForm!: FormGroup;
   submitted = false;
-
-  constructor(
-    private fb: FormBuilder,
-    private titleService: TitleService,
-    private modalService: NgbModal
-  ) {
-  }
 
   get f() {
     return this.contactForm.controls;
@@ -35,7 +31,7 @@ export class SampleForm implements OnInit {
       firstName: ['', [Validators.required, Validators.minLength(2)]],
       lastName: ['', [Validators.required, Validators.minLength(2)]],
       email: ['', [Validators.required, Validators.email]],
-      phone: ['', [Validators.pattern(/^[0-9\-\+\(\)]{10,}$/)]],
+      phone: ['', [Validators.pattern(/^[0-9\-+()]{10,}$/)]],
       subject: ['', Validators.required],
       message: ['', [Validators.required, Validators.minLength(10)]],
       subscribe: [false]

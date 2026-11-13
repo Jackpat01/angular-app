@@ -1,57 +1,54 @@
-import {Injectable} from '@angular/core';
-import {HttpClient, HttpErrorResponse} from '@angular/common/http';
-import {Observable, throwError} from 'rxjs';
-import {catchError} from 'rxjs/operators';
+import { Injectable, inject } from "@angular/core";
+import { HttpClient, HttpErrorResponse } from "@angular/common/http";
+import { Observable, throwError } from "rxjs";
+import { catchError } from "rxjs/operators";
 
 @Injectable({
-  providedIn: 'root',
+  providedIn: "root",
 })
 export class ApiService {
-  // Configure backend URL here
-  private apiBaseUrl = 'http://localhost:5239/api';
-
-  constructor(private http: HttpClient) {
-  }
+  private readonly http = inject(HttpClient);
+  private apiBaseUrl = "http://localhost:5239/api";
 
   /**
    * GET request
    */
   get<T>(endpoint: string): Observable<T> {
     return this.http.get<T>(`${this.apiBaseUrl}${endpoint}`).pipe(
-      catchError((error) => this.handleError(error))
+      catchError((error: HttpErrorResponse) => this.handleError(error))
     );
   }
 
   getRemoteData(endpoint: string): Observable<string> {
-    return this.http.get(endpoint, { responseType: 'text' }).pipe(
-      catchError((error) => this.handleError(error))
-    );
+    return this.http
+      .get(endpoint, { responseType: "text" })
+      .pipe(catchError((error: HttpErrorResponse) => this.handleError(error)));
   }
 
   /**
    * POST request
    */
-  post<T>(endpoint: string, body: any): Observable<T> {
+  post<T>(endpoint: string, body: Record<string, unknown>): Observable<T> {
     return this.http.post<T>(`${this.apiBaseUrl}${endpoint}`, body).pipe(
-      catchError((error) => this.handleError(error))
+      catchError((error: HttpErrorResponse) => this.handleError(error))
     );
   }
 
   /**
    * PUT request
    */
-  put<T>(endpoint: string, body: any): Observable<T> {
+  put<T>(endpoint: string, body: Record<string, unknown>): Observable<T> {
     return this.http.put<T>(`${this.apiBaseUrl}${endpoint}`, body).pipe(
-      catchError((error) => this.handleError(error))
+      catchError((error: HttpErrorResponse) => this.handleError(error))
     );
   }
 
   /**
    * PATCH request
    */
-  patch<T>(endpoint: string, body: any): Observable<T> {
+  patch<T>(endpoint: string, body: Record<string, unknown>): Observable<T> {
     return this.http.patch<T>(`${this.apiBaseUrl}${endpoint}`, body).pipe(
-      catchError((error) => this.handleError(error))
+      catchError((error: HttpErrorResponse) => this.handleError(error))
     );
   }
 
@@ -60,7 +57,7 @@ export class ApiService {
    */
   delete<T = void>(endpoint: string): Observable<T> {
     return this.http.delete<T>(`${this.apiBaseUrl}${endpoint}`).pipe(
-      catchError((error) => this.handleError(error))
+      catchError((error: HttpErrorResponse) => this.handleError(error))
     );
   }
 
@@ -82,16 +79,17 @@ export class ApiService {
    * Handle HTTP errors
    */
   private handleError(error: HttpErrorResponse) {
-    let errorMessage = 'An error occurred';
+    let errorMessage = "An error occurred";
 
     if (error.error instanceof ErrorEvent) {
-      // Client-side error
       errorMessage = `Error: ${error.error.message}`;
     } else {
-      // Server-side error
       errorMessage = `Error Code: ${error.status}\nMessage: ${error.message}`;
-      if (error.error && error.error.message) {
-        errorMessage = error.error.message;
+      if (error.error && typeof error.error === "object") {
+        const errorObj = error.error as Record<string, unknown>;
+        if (errorObj.message) {
+          errorMessage = String(errorObj.message);
+        }
       }
     }
 

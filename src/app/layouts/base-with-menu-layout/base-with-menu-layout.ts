@@ -1,4 +1,4 @@
-import {Component, OnInit} from '@angular/core';
+import {Component, OnInit, inject} from '@angular/core';
 import {RouterOutlet} from '@angular/router';
 import {CommonModule} from '@angular/common';
 import {HeaderBarComponent} from '../../shared/header-bar/header-bar';
@@ -28,17 +28,13 @@ import {AdminService} from '../../services/admin';
   templateUrl: './base-with-menu-layout.html',
 })
 export class BaseWithMenuLayout implements OnInit {
+  private titleService = inject(TitleService);
+  private appConfig = inject(AppConfigService);
+  private userService = inject(UserService);
+  private adminService = inject(AdminService);
   userInfo: UserInfo | null = null;
   menuItems: NavItem[] = [];
   isLoading = false;
-
-  constructor(
-    private titleService: TitleService,
-    private appConfig: AppConfigService,
-    private userService: UserService,
-    private adminService: AdminService
-  ) {
-  }
 
   get appVersion(): string {
     return this.appConfig.getAppVersion() || '';
