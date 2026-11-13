@@ -23,7 +23,7 @@
     <div id="cssmenu" class="d-flex justify-content-between flex-grow-1">
       <ul>
         <li class='has-sub'>
-          <a href="@Url.AbsoluteAction(" LogOut", "Projects")">Log Out</a>
+<!--          <a href="@Url.AbsoluteAction(" LogOut", "Projects")">Log Out</a>-->
         </li>
       </ul>
     </div>
@@ -41,27 +41,26 @@
     <div class="clearFixedFloatingDiv"></div>
   </div>
 
-  @RenderSection ("featured", required: false) @RenderBody ()
+<!--  @RenderSection ("featured", required: false) @RenderBody ()-->
 </div>
 <div class="footer_new" style="color:black">
   <div class="d-flex flex-row justify-content-between container footer_text" style="max-width:1280px; width:1280px;">
     <div style="float:left; width:60%; color:black;">
-      @{
-      var lineArray = PortalConfiguration.RetrieveLoginMessage();
-      foreach (var line in lineArray)
-      {
-      @line <br/>
-      }
-      }
+<!--      @{-->
+<!--      var lineArray = PortalConfiguration.RetrieveLoginMessage();-->
+<!--      foreach (var line in lineArray)-->
+<!--      {-->
+<!--      @line <br/>-->
+<!--      }-->
+<!--      }-->
     </div>
     <div style="float:left; width:40%;">
-      @*<img src="~/Images/logo.png" height="50" style="padding-left:200px"/>*@
       <div style="padding-left:175px;color:black;">
-        Copyright © 2013–@DateTime.Now.Year Myers and Stauffer LC. All rights reserved.<br/>
+<!--        Copyright © 2013–@DateTime.Now.Year Myers and Stauffer LC. All rights reserved.<br/>-->
 
       </div>
       <div style="padding-right: 15px; text-align:right; color:black;">
-        Version: @typeof (MvcApplication).Assembly.GetName().Version
+<!--        Version: @typeof (MvcApplication).Assembly.GetName().Version-->
       </div>
       <div>
         <a href="https://myersandstauffer.com/accessibility/" target="_blank">
