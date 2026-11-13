@@ -1,1 +1,38 @@
-<p>projects works!</p>
+<div id="Projects" class="View" style="max-width: 500px; margin: auto;">
+  @if (tempData.hasTempData('message')) {
+    <br/><br/>
+    <div class="errorLabel" [innerHTML]="tempData.getTempData('message')">
+    </div>
+    <br/><br/>
+  }
+  <fieldset>
+    <table class="table table-bordered table-hover">
+      <thead>
+      <tr>
+        <th>
+          <legend><b>Select a Project</b></legend>
+        </th>
+      </tr>
+      </thead>
+      @if (classifications != null && classifications.length != 0) {
+        <tbody>
+          @for (singleClassification of classifications(); track singleClassification.id) {
+            <tr>
+              <td>
+                <a [routerLink]="['/projects/set-project']" [queryParams]="{ cID: singleClassification.id }">
+                  {{ singleClassification.displayName.trim() }}
+                </a>
+              </td>
+            </tr>
+          }
+        </tbody>
+      } @else {
+        <tbody>
+        <tr>
+          <td colspan="42">No Projects available</td>
+        </tr>
+        </tbody>
+      }
+    </table>
+  </fieldset>
+</div>

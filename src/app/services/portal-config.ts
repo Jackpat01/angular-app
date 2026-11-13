@@ -1,4 +1,4 @@
-import {Injectable, inject} from '@angular/core';
+import {Injectable} from '@angular/core';
 import {BehaviorSubject, firstValueFrom, Observable, of} from 'rxjs';
 import {ApiService} from './api';
 import {PortalConfig} from '../../models/portal-config';
@@ -9,7 +9,6 @@ import {Classification} from '../models/Classification';
   providedIn: 'root',
 })
 export class PortalConfigService {
-  private apiService = inject(ApiService);
   private defaultConfig: PortalConfig = {
     WebPortalTitle: 'OMES Cost Report and Rate Setting',
     applicationName: 'OMES Cost Report and Rate Setting',
@@ -20,7 +19,7 @@ export class PortalConfigService {
   private configSubject = new BehaviorSubject<PortalConfig>(this.defaultConfig);
   config$ = this.configSubject.asObservable();
 
-  constructor() {
+  constructor(private apiService: ApiService) {
     this.loadConfig();
   }
 
@@ -43,11 +42,10 @@ export class PortalConfigService {
   }
 
   getClassificationReplacementTerm(): string {
-    return '';
+
   }
 
   getAllClassifications(): Classification[] {
-    return [];
   }
 
   async retrieveLoginMessage(): Promise<string[]> {
