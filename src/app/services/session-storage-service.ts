@@ -30,4 +30,10 @@ export class SessionStorageService {
       sessionStorage.setItem(key, serialized);
     }
   }
+
+  removeItem(key: string): void {
+    if (isPlatformBrowser(this.platformId)) {
+      sessionStorage.removeItem(key);
+    }
+  }
 }
