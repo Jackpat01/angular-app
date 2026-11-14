@@ -1,30 +1,183 @@
-<ohfi-loading-overlay [isLoading]="isLoading"></ohfi-loading-overlay>
-
-<input id="logoutURL" type="hidden" value="/logout"/>
-<input id="hdnHeartBeat" type="hidden" value="/api/heartbeat"/>
-
 <div class="page-layout">
-  <ohfi-header-bar></ohfi-header-bar>
-  <ohfi-logo-branding
-    [projectName]="projectName"
-    [providerType]="providerType"
-    [showUserInfo]="true"
-    [userEmail]="userEmail"
-    [userRole]="userRole">
-  </ohfi-logo-branding>
-
+  <div style="background-color: #74c141; height: 40px;"></div>
+  <div style="border-bottom: 1px dashed #ccc; position: relative;">
+    <img src="~/images/logo.png" width="500" height="80" alt="MSLC Logo">
+    <div class="pull-right" style="position:absolute; bottom: 0; right: 1rem;">
+      <div id="dvApplicationName">
+        <b>{{ appName }}</b>
+      </div>
+      <div id="dvEmail">
+        <b>Email: {{ userName }}</b>
+      </div>
+      @if (catalog != null && providerType != null) {
+        <div id="dvRole">
+          <b>Provider Role: </b><span id="dvRoleName"><b>{{ currentRoleName }}</b></span>
+        </div>
+        <div id="dvProvType">
+          <b>{{ classReplacementTerm }}: </b><span id="dvProvType"><b>{{ providerType }}</b></span>
+        </div>
+      }
+    </div>
+  </div>
   <div class="d-flex">
-    <div class="d-flex justify-content-between flex-grow-1" id="cssmenu">
-      <ul style="list-style: none; padding: 0; margin: 0; display: flex;">
-        <li style="padding: 10px 15px; border-right: 1px solid #ddd;">
-          <a (click)="logout()" href="javascript:void(0);" style="color: #333; text-decoration: none;">
-            Log Out
-          </a>
+    <div id="cssmenu" class="d-flex justify-content-between flex-grow-1" style="z-index: 101;">
+      <ul>
+        @if (classification != null) {
+          <li class="contact" style="float: left;"><a [routerLink]="['/projects/projects']">Projects</a>
+          </li>
+          @if (canAccessStatlogView) {
+            <li class='last'>
+              <a [routerLink]="['/stat-log']">Stat Log</a>
+            </li>
+          }
+          @if (canAccessLetterAutomation) {
+            <li class='has-sub'>
+              <a [routerLink]="['/letter-automation']">Generate Letters</a>
+            </li>
+          }
+          @if (canAccessBulkProcessingView ||
+          (UploadDownloadConfiguration.EnableUpload && canAccessPortalUpload) ||
+          (UploadDownloadConfiguration.EnableDownload && canAccessPortalDownload)) {
+            <li class='has-sub'>
+              <a>Files</a>
+              <ul>
+                @if (canAccessBulkProcessingView) {
+                  <li><a [routerLink]="['/bulk-processing']">Batch File Upload</a></li>
+                }
+                @if (UploadDownloadConfiguration.EnableUpload && canAccessPortalUpload) {
+                  <li><a [routerLink]="['/upload']" title="Provider-specific Upload" alt="Provider-specific Upload">Upload</a>
+                  </li>
+                }
+                @if (UploadDownloadConfiguration.EnableDownload && canAccessPortalDownload) {
+                  <li><a [routerLink]="['/download']" title="Download from MSLC" alt="Download from MSLC">Files to
+                    Download</a></li>
+                }
+
+              </ul>
+            </li>
+          }
+          @if (canAccessOCRT && ((session.isNF() && !session.checkUserRoles("CanHideCostReport")) || session.isICF())) {
+            <li class='has-sub'>
+              <a [routerLink]="['/cost-report']">Cost Report</a>
+            </li>
+          }
+          @if ((session.isNF() || session.isICF()) && canAccessRateSetting) {
+            <li class='has-sub'>
+              <a [routerLink]="['/rate']">Rate Setting</a>
+            </li>
+          }
+          @if (session.isState()) {
+            <li class="last">
+              <a [routerLink]="['/dashboard']">Dashboard</a>
+            </li>
+          }
+          @if (canAccessReports) {
+            <li class='has-sub'>
+              <a>Reports</a>
+
+              <ul>
+                @if (canAccessReportsARAP) {
+                  <li><a [routerLink]="['/reports/arap-report']">ARAP Report</a></li>
+                }
+                @if (canAccessReportsMDS) {
+                  <li><a [routerLink]="['/bulkProcessing/mds-report']">MDS Report</a></li>
+                }
+                  @if (canAccessReportsMDSResidentListing) {
+                  <li><a [routerLink]="['/bulkProcessing/mds-resident-listing']">MDS Resident Listing Report</a></li>
+                }
+                @if (canAccessReportsSectionQ) {
+                  <li><a [routerLink]="['/bulkProcessing/section-q-report']">Section Q Report</a></li>
+                }
+                @if (canAccessReportsUploadDownload) {
+                  <li><a [routerLink]="['/reports/statlog-activity-report']">StatLog Activity Report</a></li>
+                }
+                @if (canAccessReportsMassUpload) {
+                  <li><a [routerLink]="['/reports/statlog-mass-upload-report']">StatLog Mass Upload Report</a></li>
+                }
+                @if (canAccessReportsCostReportSubmissionMonitoring) {
+                  <li><a [routerLink]="['/reports/cost-report-submission-monitoring']">Cost Report Submission Monitoring
+                    Report</a></li>
+                }
+                @if (canAccessReportsCostReportDataWizard) {
+                  <li><a [routerLink]="['/reports/cost-report-data-wizard']">Cost Report Data Wizard</a></li>
+                }
+                @if (canAccessCLPAView) {
+                  <li><a [routerLink]="['/clpa/search-assessment']">View Assessments</a></li>
+                }
+              </ul>
+            </li>
+          }
+
+          @if (portalConfig.enableResource()) {
+            <li class='has-sub'>
+              <a [routerLink]="['/help']">Help Resources</a>
+            </li>
+          }
+        }
+        <li class='has-sub'>
+          <a [routerLink]="['/secure/logout']">Log Out</a>
         </li>
       </ul>
+      @if (classification != null &&
+      (canAccessStatlogConfiguration || canAccessStatlogAllProvidersEmail || canAccessOHFISettingsManagement)) {
+        <ul>
+          <li class='has-sub'>
+            <a>Admin</a>
+            <ul>
+              @if (canAccessOHFISettingsManagement) {
+                <li>
+                  <a [routerLink]="['/setting']">Portal Settings</a>
+                </li>
+              }
+              @if (canAccessStatlogAllProvidersEmail) {
+                <li>
+                  <a [routerLink]="['/communication/sendProviderEmail']">Email All Providers</a>
+                </li>
+              }
+              @if (canAccessStatlogConfiguration) {
+                <li><a [routerLink]="['/event']">Event Management</a></li>
+                <li><a [routerLink]="['/provider-type']">Provider Type Management</a></li>
+                <li><a [routerLink]="['/audit-type']">{{ portalConfig.getAuditTypeReplacementName() }}  Management</a>
+                </li>
+                <li><a [routerLink]="['/metadata']">Metadata Schema Management</a></li>
+              }
+            </ul>
+          </li>
+        </ul>
+      }
     </div>
-    <div class="d-flex align-items-center pl-1" style="border-bottom: 2px solid #74c141;">
-      <ohfi-help-modal></ohfi-help-modal>
+    <div style="border-bottom: 2px solid #74c141;" class="d-flex align-items-center pl-1">
+      @if (classification != null && portalConfig.enableBB()) {
+        @if (isNotShowAllPage) {
+          <text>
+            <a
+              id="ancShowBulletinBoard"
+              class="OpenShowBulletinBoardModal pr-1"
+              [routerLink]="['/bulletin-board']">
+              <img
+                style="border-radius: 8px;"
+                ngSrc="images/Magnifier.png"
+                alt="Show Bulletin Board"
+                title="Show Bulletin Board"
+                width="40"
+                height="40"/>
+            </a></text>
+        }
+      }
+      <a
+        role="button"
+        tabindex="0"
+        (click)="openHelpModal()"
+        (keydown.enter)="openHelpModal()"
+        class="pr-1 cursor-pointer">
+        <img
+          style="border-radius: 8px;"
+          src="images/Messaging.png"
+          alt="Need Help?"
+          title="Need Help?"
+          width="40"
+          height="40"/>
+      </a>
     </div>
   </div>
 </div>
@@ -33,20 +186,36 @@
   <div class="container">
     <div class="clearFixedFloatingDiv"></div>
   </div>
-  <div class="row">
-    <div class="col-md-3 mb-4">
-      <ohfi-admin-navigation [menuItems]="menuItems"></ohfi-admin-navigation>
+
+  <section class="featured-wrapper">
+    <router-outlet name="featured"/>
+  </section>
+  <main>
+    <router-outlet/>
+  </main>
+</div>
+<div class="footer_new" style="color:black">
+  <div class="d-flex flex-row justify-content-between container footer_text" style="max-width:1280px; width:1280px;">
+    <div style="float:left; width:60%; color:black;">
+      @for (line of loginMessage; track $index) {
+        {{ line }} <br/>
+      }
     </div>
-    <div class="col-md-9">
-      <router-outlet></router-outlet>
+    <div style="float:left; width:40%;">
+      <div style="padding-left:175px;color:black;">
+        Copyright © 2013–{{ currentYear }} Myers and Stauffer LC. All rights reserved.<br/>
+
+      </div>
+      <div style="padding-right: 15px; text-align:right; color:black;">
+        Version: {{ appVersion }}
+      </div>
+      <div>
+        <a href="https://myersandstauffer.com/accessibility/" target="_blank">
+          <div style="float: right; text-align: right; color: black;">
+            <u>Visit our accessibility information and help page.</u>
+          </div>
+        </a>
+      </div>
     </div>
   </div>
 </div>
-
-<ohfi-footer-section [appVersion]="appVersion" [currentYear]="currentYear"></ohfi-footer-section>
-
-<noscript>
-  <div>
-    <h2>This site requires JavaScript</h2>
-  </div>
-</noscript>

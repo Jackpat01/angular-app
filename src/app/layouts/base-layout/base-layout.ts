@@ -1,6 +1,5 @@
 import {Component, inject, OnInit} from '@angular/core';
 import {CommonModule} from '@angular/common';
-import {TitleService} from '../../services/title';
 import {AppConfigService} from '../../services/app-config';
 import {RouterLink, RouterOutlet} from '@angular/router';
 import {PortalConfigService} from '../../services/portal-config';
@@ -13,7 +12,6 @@ import {PortalConfigService} from '../../services/portal-config';
 })
 export class BaseLayout implements OnInit {
   protected readonly portalConfig = inject(PortalConfigService);
-  private titleService = inject(TitleService);
   private appConfig = inject(AppConfigService);
   private _loginMessages: string[] = [];
 
@@ -30,7 +28,6 @@ export class BaseLayout implements OnInit {
   }
 
   async ngOnInit(): Promise<void> {
-    this.titleService.setTitle('Welcome');
     this.portalConfig.refreshConfig();
     this._loginMessages = await this.portalConfig.retrieveLoginMessage();
 

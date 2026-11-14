@@ -10,11 +10,14 @@ import {ARUMProxy_User} from '../../models/ARUMProxy_User';
 import {Classification} from '../../models/Classification';
 import {ARUMUserProviders} from '../../models/ARUMUserProviders';
 import {ARUMRole} from '../../models/ARUMRole';
+import {RouterLink, RouterOutlet} from '@angular/router';
 
 @Component({
   imports: [
     CommonModule,
     NgOptimizedImage,
+    RouterOutlet,
+    RouterLink,
   ],
   selector: 'ohfi-base-with-project-layout',
   styleUrl: './base-with-project-layout.css',
@@ -27,7 +30,12 @@ export class BaseWithProjectLayout implements OnInit {
   private portalConfig = inject(PortalConfigService);
   private storage = inject(SessionStorageService);
   userInfo: UserInfo | null = null;
-  isLoading = false;
+
+  private _loginMessages: string[] = [];
+
+  get loginMessage(): string[] {
+    return this._loginMessages;
+  }
 
   get appVersion(): string {
     return this.appConfig.getAppVersion() || '';
@@ -49,7 +57,7 @@ export class BaseWithProjectLayout implements OnInit {
     const user = this.storage.getItem<ARUMProxy_User>('arumUser');
 
     if (user) {
-      return user.email;
+      return user.email.toLowerCase();
     }
     return 'No UserName for User';
   }
@@ -63,11 +71,11 @@ export class BaseWithProjectLayout implements OnInit {
   }
 
   get providerType(): string | null {
-    const classification = this.getClassification();
+    const classification = this.classification;
     return classification === null ? null : classification.displayName
   }
 
-  getClassification(): Classification | null {
+  get classification(): Classification | null {
     const classification = this.storage.getItem<Classification>(this.portalConfig.getClassificationSessionKey());
     if (classification !== null)
       return classification;
@@ -108,9 +116,9 @@ export class BaseWithProjectLayout implements OnInit {
     ) ?? null;
   }
 
-  ngOnInit(): void {
-    this.titleService.setTitle('Dashboard');
+  async ngOnInit(): Promise<void> {
     this.userInfo = this.userService.getUser();
+    this._loginMessages = await this.portalConfig.retrieveLoginMessage();
   }
 
   logout(): void {

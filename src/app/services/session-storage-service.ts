@@ -7,6 +7,9 @@ import { isPlatformBrowser } from '@angular/common';
 export class SessionStorageService {
   private platformId = inject(PLATFORM_ID);
 
+  canAccessFeature(featureName: string): boolean {
+  }
+
   getItem<T>(key: string): T | null {
     // Ensure code only runs in the browser
     if (!isPlatformBrowser(this.platformId)) {
