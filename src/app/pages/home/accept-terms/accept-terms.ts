@@ -5,6 +5,10 @@ import {Router} from '@angular/router';
 import {TitleService} from '../../../services/title';
 import {PortalConfigService} from '../../../services/portal-config';
 import {LoginService} from '../../../services/login';
+import {SessionStorageService} from '../../../services/session-storage-service';
+import {ARUMUserValidation} from '../../../models/ARUMUserValidation';
+import {ARUMUserWithToken} from '../../../models/ARUMUserWithToken';
+import {TempDataService} from '../../../services/temp-data';
 
 @Component({
   selector: 'ohfi-accept-terms',
@@ -36,11 +40,14 @@ export class AcceptTerms implements OnInit {
   isLoading = false;
   acceptError = '';
   submitted = false;
-  appTitle = '';
   email = '';
   private titleService = inject(TitleService);
   private portalConfig = inject(PortalConfigService);
   private loginService = inject(LoginService);
+  private session = inject(SessionStorageService);
+  private tempData = inject(TempDataService);
+
+
   private router = inject(Router);
   private fb = inject(FormBuilder);
   acceptForm: FormGroup = this.fb.group({
@@ -52,14 +59,15 @@ export class AcceptTerms implements OnInit {
   }
 
   ngOnInit(): void {
-    this.appTitle = this.portalConfig.getConfig().applicationName;
-    this.titleService.setTitle(`${this.appTitle} - Accept Terms of Use`);
+    this.titleService.setTitle(`${this.portalConfig.getConfig().applicationName} - Accept Terms of Use`);
 
-    // Get email from sessionStorage
-    this.email = sessionStorage.getItem('userEmail') || '';
+    if (this.session.getItem<boolean>('IsSSO')) {
+      this.router.navigate(['/sso/error']);
+    }
+
+    this.email = this.session.getItem<string>('email') || '';
 
     if (!this.email) {
-      // No email in session, redirect to login
       this.router.navigate(['/login']);
       return;
     }
@@ -84,33 +92,23 @@ export class AcceptTerms implements OnInit {
   onSubmit(): void {
     this.submitted = true;
 
-    if (this.acceptForm.invalid) {
-      return;
+    if (this.session.getItem<boolean>('IsSSO')) {
+      this.router.navigate(['/sso/error']);
     }
 
-    this.isLoading = true;
-    this.acceptError = '';
-
-    this.loginService.acceptTermsOfUse(this.email).subscribe({
-      next: (response) => {
-        if (response.successful) {
-          // Clear session data
-          sessionStorage.removeItem('userEmail');
-          // Redirect to projects/home
-          this.router.navigate(['/projects']);
-        } else {
-          this.acceptError = response.message || 'Failed to accept terms. Please try again.';
+    if (!this.session.getItem<ARUMUserValidation>('ARUMUserValidations')) {
+      this.loginService.acceptTermsOfUse(this.email).subscribe({
+        next: (response) => {
+          if (response.successful) {
+            this.session.setItem('ARUMUserValidations', response.arumValidations);
+            let message = response.message;
+            this.tempData.setTempData("errorMessage", {message});
+            this.router.navigate(['/projects/projects']);
+          } else {
+            this.router.navigate(['/login']);
+          }
         }
-        this.isLoading = false;
-      },
-      error: () => {
-        this.acceptError = 'An error occurred while accepting terms. Please try again.';
-        this.isLoading = false;
-      },
-    });
-  }
-
-  dismissError(): void {
-    this.acceptError = '';
+      });
+   }
   }
 }

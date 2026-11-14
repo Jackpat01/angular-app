@@ -7,6 +7,7 @@ export interface PortalConfig {
   loginSessionKey:string;
   allClassifications:Classification[];
   classificationReplacementTerm:string;
+  enableBB:boolean;
 
   [key: string]: unknown;
 }

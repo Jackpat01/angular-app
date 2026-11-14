@@ -6,6 +6,7 @@ import {TitleService} from '../../../services/title';
 import {LoginService} from '../../../services/login';
 import {PortalConfigService} from '../../../services/portal-config';
 import {TempDataService} from '../../../services/temp-data';
+import {SessionStorageService} from '../../../services/session-storage-service';
 
 @Component({
   imports: [CommonModule, ReactiveFormsModule, NgOptimizedImage],
@@ -20,6 +21,8 @@ export class Login implements OnInit {
   private router = inject(Router);
   private tempData = inject(TempDataService);
   private fb = inject(FormBuilder);
+  private session = inject(SessionStorageService);
+
   loginForm!: FormGroup;
   submitted = false;
   isLoading = false;
@@ -32,11 +35,27 @@ export class Login implements OnInit {
     this.titleService.setTitle(
       this.portalConfig.getWebPortalTitle() + ' - Home - Login'
     );
+
+    if (this.session.getItem<boolean>('IsSSO')) {
+      this.router.navigate(['/sso/error']);
+    }
+
+    let message = this.session.getItem<string>('GlobalErrorMessage');
+    if (message) {
+      this.tempData.setTempData('errorMessage', {message});
+      this.session.removeItem('GlobalErrorMessage');
+    }
+
     this.initializeForm();
   }
 
   onSubmit(): void {
     this.submitted = true;
+
+    if (this.session.getItem<boolean>('IsSSO')) {
+      this.router.navigate(['/sso/error']);
+    }
+
 
     if (this.loginForm.invalid) {
       return;
@@ -50,18 +69,21 @@ export class Login implements OnInit {
         this.isLoading = false;
 
         if (!response.successful) {
-          this.tempData.setTempData('errorMessage', response.errorMessage || 'Login failed. Please try again.');
+          let message = response.errorMessage;
+          this.tempData.setTempData('errorMessage', {message});
           return;
         }
 
+
         if (!response.ARUMUser) {
-          this.tempData.setTempData('errorMessage', 'Username/password invalid');
+          let message = 'Username/password invalid';
+          this.tempData.setTempData('errorMessage', {message});
           return;
         }
 
         // Store email in session storage for use in other components
-        sessionStorage.setItem('email', response.ARUMUser.email);
-        sessionStorage.setItem('arumUser', JSON.stringify(response.ARUMUser));
+        this.session.setItem('email', response.ARUMUser.email);
+        this.session.setItem('arumUser', JSON.stringify(response.ARUMUser));
 
         // Check if user needs to accept terms
         if (response.redirectToTerm) {
