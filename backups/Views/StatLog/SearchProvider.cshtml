@@ -1,0 +1,192 @@
+﻿@*
+    DO NOT MODIFY OUTSIDE OF MSLC.STATLOG
+    This file comes from MSLC.Statlog, any changes to it will be wiped out when the nuget package is updated.
+    Please make the appropriate enhancements to MSLC.Statlog instead of here.
+*@
+
+@Styles.Render("~/Content/StatLog.css")
+@using MSLC.Portal.Configuration
+@using MSLC.Portal.MVC.Utility
+@using MSLC.StatLog.Configuration
+@using MSLC.StatLog.DTO
+@model MSLC.StatLog.MVC.ViewModels.SearchProviderViewModel.View
+@{
+    Layout = PortalConfiguration.DetermineLayout("Menu");
+    ViewBag.Title = "Search Provider";
+    string costReportReplacementTerm = StatlogARUMConfiguration.CostReportReplacementTerm(RetrieveSession.Classification);
+
+    var columnCount = 1;
+
+    var showMCAID = !StatlogARUMConfiguration.HideMCAIDField(RetrieveSession.Classification);
+    var showEffDate = StatlogARUMConfiguration.ShowEffectiveDate(RetrieveSession.Classification);
+    var showIdentifier = !String.IsNullOrEmpty(Model.ProviderPrimaryIdentifierType);
+
+    if (showMCAID) { columnCount++; }
+    if (showEffDate) { columnCount++; }
+    if (showIdentifier) { columnCount++; }
+
+    var largeWidth = (100 / (columnCount + 1) * 2) + "%";
+    var smallWidth = (100 / (columnCount + 1)) + "%";
+
+    var columns = new Action<ColumnBuilder<List<StatLogDTO>>>(col =>
+    {
+        col.Field("Name").HeaderText("Provider Name").TextAlign(TextAlign.Center).Width(largeWidth).Add();
+        if (showMCAID) col.Field("MCAID").HeaderText("Medicaid ID").TextAlign(TextAlign.Center).Width(smallWidth).Add();
+        if (showEffDate) col.Field("EffectiveDate").HeaderText("Effective Date").TextAlign(TextAlign.Center).Format("{0:MM/dd/yyyy}").Width(smallWidth).Add();
+        if (showIdentifier) col.Field("Number").HeaderText(Model.ProviderPrimaryIdentifierType).TextAlign(TextAlign.Center).Width(smallWidth).Add();
+    });
+}
+
+@using (Html.BeginForm("SearchProvider", "StatLog", FormMethod.Post, new { id = "frmSubmit", enctype = "multipart/form-data" }))
+{
+    @Html.AntiForgeryToken()<div style="margin-left: auto; margin-right: auto; max-width: 1500px;">
+        <center>
+            <fieldset style="width: 100%;">
+
+                <legend style="text-align: left;"><b>Search Provider</b></legend>
+                <table style="width: 100%; max-width: 1000px;">
+                    <tr>
+                        @if (!StatlogARUMConfiguration.HideMCAIDField(RetrieveSession.Classification))
+                        {
+                            <td style="width: 13%; padding-right: 20px;">
+                                <label for="txtMedicaidNumber">Medicaid No:</label>
+                                @Html.TextBoxFor(x => x.MedicaidNumber, new { id = "txtMedicaidNumber", maxlength = 12, @style = "width: 100%;" })
+                            </td>
+                        }
+                        @if (!String.IsNullOrEmpty(Model.ProviderPrimaryIdentifierType) && Model.ProviderPrimaryIdentifierType != "MCAID")
+                        {
+                            <td style="width: 18%; padding-right: 20px;">
+                                <label for="txtPOPID">@Model.ProviderPrimaryIdentifierType:</label>
+                                @Html.TextBoxFor(x => x.ProviderPrimaryIdentifier, new { id = "txtPOPID", maxlength = 255, @style = "width: 100%;" })
+                            </td>
+                        }
+                    <td style="width: 33%;">
+                        @Html.HiddenFor(x => x.QueryProviderName, new { id = "hdnProviderName" })
+                        <label for="ddlProviderNames_dropdown">Provider Name:</label>
+                        @(Html.EJ()
+                            .Autocomplete("ddlProviderNames")
+                            .Datasource(Model.ProviderNames)
+                            .AutocompleteFields(e => e.Text("Name").Key("Name"))
+                            .HighlightSearch(true)
+                            .FilterType(FilterOperatorType.Contains)
+                            .Width("100%")
+                            .ClientSideEvents(e =>
+                            {
+                                e.Change("setProviderName");
+                                e.Create("preLoadProvName");
+                            })
+                            .PopupHeight("400px")
+                            .AllowSorting(false)
+                            .HighlightSearch(true)
+                            .ShowPopupButton(true)
+                            .EmptyResultText("No Provider(s) found in list.")
+                            )
+                    </td>
+                    </tr>
+                    <tr><td>&nbsp;</td></tr>
+                    <tr>
+                        <td colspan="6" align="center">
+                            <div class="myControls">
+                                <input id="btnSearch" value="Search" type="submit" class="btn btn-primary BoldMe" />&nbsp;&nbsp;
+                                <a href="@Url.AbsoluteAction("SearchProvider", "StatLog")" target="_self" class="btn btn-danger BoldMe" style="text-decoration:none;">Reset</a>
+                            </div>
+                        </td>
+                    </tr>
+                </table>
+                <hr />
+            </fieldset>
+
+            @if (TempData["Message"] != null && !string.IsNullOrEmpty(TempData["Message"].ToString()))
+            {
+                <br />
+                <br />
+                <center>
+                    <div class="errorLabel">
+                        @Html.Raw(TempData["Message"].ToString())
+                    </div>
+                </center>
+            }
+
+            <div style="margin-top: 15px;">
+                @if (Model.mySearchResults != null)
+                {
+                    <div><h4>Stat Logs found for query @Model.FullQuery</h4></div>
+                    <br />
+
+                    @(Html.EJ().Grid<List<StatLogDTO>>("tblSearchResults")
+                    .CssClass("mslcTable")
+                    .Datasource(Model.myProviderResults)
+                    .Locale("en-US")
+                    .EnableRowHover(true)
+                    .AllowSelection(false)
+                    .AllowTextWrap(true)
+                    .TextWrapSettings(wrap => { wrap.WrapMode(WrapMode.Both); })
+                    .Columns(columns)
+                    .ChildGrid(child =>
+                    {
+                        child.Datasource(Model.mySearchResults)
+                        .QueryString("ProviderID")
+                        .Locale("en-US")
+                        .EnableRowHover(true)
+                        .AllowSelection(false)
+                        .AllowTextWrap(true)
+                        .TextWrapSettings(wrap => { wrap.WrapMode(WrapMode.Both); })
+                        .AllowSorting(true)
+                        .SortSettings(sort => sort.SortedColumns(col => col.Field("EndDate").Direction(SortOrder.Descending).Add()))
+                        .Columns(col =>
+                        {
+                            col.HeaderText("Access Stat Log").Template(
+                                "<a href='" + Url.AbsoluteAction("Refresh", "StatLog") + "?sCostReportID={{:CRID}}'>" +
+                                "<i data-feather='file-text' title='Go to Stat Log' alt ='Go to Stat Log' ></i>" +
+                                "</a>").TextAlign(TextAlign.Center).Width(25).Add();
+                            col.Field("AuditType").HeaderText("Type").TextAlign(TextAlign.Center).Width(25).Add();
+                            col.Field("template.BeginDate").HeaderText(costReportReplacementTerm + " Begin Date").Type("date").Format("{0:MM/dd/yyyy}").TextAlign(TextAlign.Center).Width(25).Add();
+                            col.Field("template.EndDate").HeaderText(costReportReplacementTerm + " End Date").Type("date").Format("{0:MM/dd/yyyy}").TextAlign(TextAlign.Center).Width(25).Add();
+                            col.Field("Stamp").HeaderText("Create Date").TextAlign(TextAlign.Center).Format("{0:MM/dd/yyyy}").Width(25).Add();
+                        })
+                        .ClientSideEvents(events =>
+                        {
+                            events.TemplateRefresh("loadIcons");
+                            events.Load("DateStrings");
+                        });
+                    })
+                    .ClientSideEvents(events =>
+                    {
+                        events.TemplateRefresh("loadIcons");
+                        events.Load("DateStrings");
+                    }))
+                }
+            </div>
+        </center>
+    </div>
+    <script type="text/javascript">
+        function preLoadProvName() {
+            if ($("#hdnProviderName").val().trim().length > 0) {
+                $("#ddlProviderNames").val($("#hdnProviderName").val());
+            }
+        }
+
+        function setProviderName() {
+            $("#hdnProviderName").val($("#ddlProviderNames").val());
+        }
+
+        function DateStrings(data) {
+            // If the table data loaded/exists
+            if (data && data.model) {
+                // Edit raw json from dataSource
+                const { dataSource } = data.model;
+                if (dataSource) {
+                    Object.keys(dataSource).forEach(rowID => {
+                        const row = dataSource[rowID];
+                        // Adding template field to the dataSource to load addresses properly.
+                        row["template"] = {
+                            "BeginDate": row.BeginDate ? moment(row.BeginDateString).format("MM/DD/YYYY") : undefined,
+                            "EndDate": row.EndDate ? moment(row.EndDateString).format("MM/DD/YYYY") : undefined
+                        }
+                    });
+                }
+            }
+        }
+    </script>
+}
+

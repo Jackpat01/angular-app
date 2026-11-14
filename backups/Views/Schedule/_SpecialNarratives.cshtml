@@ -1,0 +1,175 @@
+﻿@model WebPortal_OH_FI.Models.CostReport.SpecialNarrativePerms
+
+<h1>Special Narratives</h1>
+<div id="SpecialNarrativeGrid"></div>
+
+
+<script>
+    //========== Read Only Logic ==========
+    //========== Entry Logic ==========
+    $(function () {
+        getSpecialNarrativesGridData().then((data) => {
+            if(data.Success) createSpecialNarrativesGrid(data);
+        });
+    });
+
+    //========== Ajax Requests ==========
+    function getSpecialNarrativesGridData() {
+        return new Promise((resolve, reject) => {
+            $.ajax({
+                async: true,
+                url: '@Url.AbsoluteAction("GetCostReportSpecialNarrativesModel", "Schedule")', //TODO: Create endpoint and view model it will return as Json
+                type: 'POST',
+                cache: false,
+                success: (response) => resolve(response),
+                error: (errorMessage) => StaticAlert({ content: `${errorMessage.responseText}` }).then(resolve)
+            });
+        });
+    }
+
+    //========== Table Creation ==========
+    function createSpecialNarrativesGrid(response) {
+    return new Promise((resolve, reject) => {
+        const data = response.Data;
+        var cols = [];
+        for (const col of data.Columns) {
+            let column = {
+                field: col.Field, headerText: col.HeaderText, isPrimaryKey: col.IsPrimaryKey, isIdentity: col.IsIdentity, visible: col.Visible,
+                textAlign: col.TextAlign, allowEditing: col.AllowEditing, allowFiltering: col.AllowFiltering, allowSorting: col.AllowSorting,
+                width: col.Width, template: col.Template
+            };
+
+            if (col.Field === 'NarrativeNumber') {
+                column.type = 'string';
+                column.validationRules = {
+                    required: true,
+                    maxlength: '5',
+                    minlength: '2'
+                };
+            }
+            if (col.Field === 'Description') {
+                column.type = 'string';
+                column.validationRules = {
+                    required: true,
+                    maxlength: '500',
+                    minlength: '1'
+                };
+            }
+
+            cols.push(column);
+        }
+
+        const editSettings = { allowEditing: data.CanEdit, allowAdding: data.CanEdit, allowDeleting: data.CanEdit, showDeleteConfirmDialog: true };
+        const toolbarSettings = { showToolbar: true, toolbarItems: [] };
+
+        if (data.CanEdit) {
+            toolbarSettings.toolbarItems.push(ej.Grid.ToolBarItems.Add);
+            toolbarSettings.toolbarItems.push(ej.Grid.ToolBarItems.Edit);
+            toolbarSettings.toolbarItems.push(ej.Grid.ToolBarItems.Delete);
+            toolbarSettings.toolbarItems.push(ej.Grid.ToolBarItems.Update);
+            toolbarSettings.toolbarItems.push(ej.Grid.ToolBarItems.Cancel);
+        }
+
+        $('#SpecialNarrativeGrid').ejGrid({
+            dataSource: data.Records,
+            columns: cols,
+            toolbarSettings: toolbarSettings,
+            editSettings: editSettings,
+            allowSelection: true,
+            actionBegin: actionBegin,
+            actionComplete: actionComplete
+        });
+
+        resolve();
+    });
+}
+</script>
+
+@if(Model.CanEdit)
+{
+    <script>
+        //========== Logic for Edit Permissions ==========
+        //========== Ajax Requests ==========
+        function saveSpecialNarrative(data) {
+            return new Promise((resolve, reject) => {
+                $.ajax({
+                    async: true,
+                    url: '@Url.AbsoluteAction("SaveCostReportSpecialNarrativeModel","Schedule")',
+                    data: JSON.stringify({model: data}),
+                    type: 'POST',
+                    contentType: 'application/json;charset=utf-8',
+                    success: (result) => handleSuccess(result, resolve),
+                    error: (result) => handleError(result, resolve)
+                });
+            });
+        }
+
+        function deleteSpecialNarrative(data) {
+            return new Promise((resolve, reject) => {
+                $.ajax({
+                    async: true,
+                    url: '@Url.AbsoluteAction("DeleteCostReportSpecialNarrativeModel","Schedule")',
+                    data: JSON.stringify({model: data}),
+                    type: 'POST',
+                    contentType: 'application/json;charset=utf-8',
+                    success: (result) => handleSuccess(result, resolve),
+                    error: (result) => handleError(result, resolve)
+                });
+            });
+        }
+
+        function handleSuccess(result, promiseResolve) {
+            if (!result.Success) {
+                StaticAlert({ content: `Special Narratives Error: ${result.Message}` }).then(() => {
+                    $('#SpecialNarrativeGrid').ejGrid('dataSource', result.Data);
+                    promiseResolve();
+                });
+            } else {
+                $('#SpecialNarrativeGrid').ejGrid('dataSource', result.Data);
+                promiseResolve();
+            }
+        }
+        function handleError(result, promiseResolve) {
+            StaticAlert({ content: `Special Narratives Error: ${result.Message}`}).then(() => {
+                promiseResolve();
+            });
+        }
+
+        //========== Table Functionality ==========
+        function actionBegin(args) {
+            if(args.requestType === 'save') saveSpecialNarrative(args.data);
+            else if (args.requestType === 'delete') deleteSpecialNarrative(args.data);
+        }
+
+        function actionComplete(args) {
+            if (args.requestType == 'beginedit' || args.requestType == 'add') 
+                narrNumberInputEvent();
+        }
+
+        //========== Input Functionality ==========
+        function narrNumberInputEvent() {
+            const NarrNumInput = '#SpecialNarrativeGridNarrativeNumber';
+            $(NarrNumInput).attr('maxLength', 4);
+            $(NarrNumInput).on('change', function() {
+                const val = $(this)[0].value.trim().toUpperCase();
+
+                if(!isNarrNumberValid(val))
+                    StaticAlert({ content: 'Invalid Narrative Number'}).then(() => $(this)[0].value = '' );
+                else
+                    $(this)[0].value = val;
+            });
+        }
+
+        function isNarrNumberValid(narrNumber) {
+            return narrNumber[0] === 'X' && !isNaN(narrNumber.slice(1));
+        }
+    </script>
+}
+else
+{
+    <script>
+        //========== Alt Logic for No Edit Perms ==========
+        function actionBegin(args) {}
+        function actionComplete(args) {}
+    </script>
+}

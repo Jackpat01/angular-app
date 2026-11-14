@@ -1,0 +1,105 @@
+﻿<div id="window_detailTableHistory" class="modal fade" data-backdrop="static">
+    ﻿
+    <div class="modal-dialog modal-lg" role="document" style="max-width:1700px">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Detail Table History</h3>
+                <button type="button" class="close" data-dismiss="modal" onclick="CloseDetailTableHistory()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <table style="width: 100%;">
+                    <colgroup>
+                        <col />
+                    </colgroup>
+                    <tbody>
+                        <tr>
+                            <td>
+                                <center>
+                                    <div id="tblDetailTableHistory"></div>
+                                </center>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    $(function () {
+        const hdnId = '#hdnDetailRecordId';
+        const historyGrid = '#tblDetailTableHistory';
+
+        //========== Logic that Fires when Page Loads ==========
+        LoadNotificationDialog('Loading').then(() => {
+            GetDetailHistory().then((data) => {
+                if (data.Data !== undefined)
+                    RenderTable(data.Data);
+            })
+        }).then(() => ClearNotificationDialog());
+
+        //========== Ajax Requests ==========
+        function GetDetailHistory() {
+            return new Promise((resolve, reject) => {
+                const recordId = $(hdnId).val();
+                $.ajax({
+                    async: true,
+                    url: "@Url.AbsoluteAction("GetDetailNarrativeHistory", "Rate")",
+                    data: JSON.stringify({ 'recordId': recordId }),
+                    type: "POST",
+                    cache: false,
+                    contentType: "application/json;charset=utf-8",
+                    success: (data) => resolve(data),
+                    error: (errorMessage) => {
+                        StaticAlert({ content: `Detail Table Error: ${errorMessage.responseText}` })
+                            .then(() => resolve());
+                    }
+                });
+            });
+        }
+
+        //========== Table Functionality =========
+        function RenderTable(data) {
+            var cols = [];
+            cols.push({ field: 'RecordId', headerText: 'RecordId', isPrimaryKey: true, isIdentity: true, visible: false });
+            cols.push({ field: 'Action', headerText: 'Action', width: 120 });
+            cols.push({ field: 'NarrativeNumber', headerText: 'Detail Number', width: 120 });
+            cols.push({ field: 'NarrativeType', headerText: 'Detail Type', width: 120 });
+            cols.push({ field: 'NarrativeCode', headerText: 'Detail Code', width: 120 });
+            cols.push({ field: 'RYBeginYear', headerText: 'RY Begin Year', width: 120 });
+            cols.push({ field: 'RYEndYear', headerText: 'RY End Year', width: 120 });
+            cols.push({ field: 'Description', headerText: 'Description', width: 365 });
+            cols.push({ field: 'ReasonForChange', headerText: 'Reason for Change', width: 120 });
+
+            const toolbarSettings = { showToolbar: false };
+            const pageSettings = { pageSize: 5, pageSizeList: [5, 10, 15, 20] };
+            const textWrapSettings = { wrapMode: ej.Grid.WrapMode.Both };
+            const editSettings = { allowEditing: false, allowAdding: false, allowDeleting: false, showDeleteConfirmDialog: false };
+
+            $(historyGrid).ejGrid({
+                dataSource: data,
+                columns: cols,
+                toolbarSettings: toolbarSettings,
+                pageSettings: pageSettings,
+                allowPaging: true,
+                enableRowHover: false,
+                allowSelection: false,
+                allowSorting: true,
+                allowTextWrap: true,
+                textWrapSettings: textWrapSettings,
+                editSettings: editSettings,
+                cssClass: 'mslcTable',
+                locale: 'en-US'
+            });
+        }
+    });
+
+    //========== On Click Functions =========
+    function CloseDetailTableHistory() {
+        const historyWindow = '#window_detailTableHistory';
+        LoadNotificationDialog('Closing Detail History...')
+            .then(() => $(historyWindow).hide())
+            .then(() => ClearNotificationDialog());
+    }
+</script>

@@ -1,0 +1,173 @@
+﻿@*
+    DO NOT MODIFY OUTSIDE OF MSLC.STATLOG
+    This file comes from MSLC.Statlog, any changes to it will be wiped out when the nuget package is updated.
+    Please make the appropriate enhancements to MSLC.Statlog instead of here.
+*@
+
+@using MSLC.Portal.MVC.Utility
+@using MSLC.StatLog.MVC.MVC
+@using MSLC.StatLog.Configuration
+@using MSLC.StatLog.Domain
+@using MSLC.StatLog.BL.Email
+@model MSLC.StatLog.MVC.ViewModels.EventViewModel.DueDate
+@{
+    Layout = null;
+}
+
+<script src="~/Scripts/jquery.validate.js" type="text/javascript"></script>
+<script src="~/Scripts/jquery.validate.unobtrusive.js" type="text/javascript"></script>
+<link href="~/Content/south-street/jquery-ui-1.9.2.custom.min.css" rel="stylesheet" />
+
+
+<script src="~/Scripts/jHtmlArea-0.8.js" type="text/javascript"></script> @*Used for editing bulletin boards*@
+<script src="~/Scripts/jHtmlArea.ColorPickerMenu-0.8.js" type="text/javascript"></script> @*Used for editing bulletin boards*@
+
+<link href="~/Content/jHtmlArea/jHtmlArea.ColorPickerMenu.css" rel="stylesheet" type="text/css" />
+<link href="~/Content/jHtmlArea/jHtmlArea.css" rel="stylesheet" type="text/css" />
+<link href="~/Content/jHtmlArea/jHtmlArea.Editor.css" rel="stylesheet" type="text/css" />
+@Html.Script("~/Scripts/Pages/Event/Edit.js", "jquery")
+@using (Html.BeginForm("SaveDueDateOptions", "Event", FormMethod.Post, new { id = "frmSubmit", enctype = "multipart/form-data", @class = "modal-form", defaultbutton = "btnSave" }))
+{
+    @Html.AntiForgeryToken()
+    @Html.HiddenFor(m => m.sEventID)
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3 id="myModalLabel" style="text-align: left;">
+                Edit Due Date Options
+            </h3>
+            <button href="#" class="close" data-dismiss="modal">&times;</button>
+        </div>
+        <div class="modal-body">
+            <div class="d-flex flex-column">
+                <div class="border p-2 m-2">
+                    <div class="row mb-3">
+                        <div class="col-2">
+                            @Html.CheckBoxFor(m => m.NeedsResponse, new { @id = "statLogEvent_NeedsReply", aria_label = "Needs Response" })
+                            @Html.LabelFor(m => m.NeedsResponse, "Needs Response")
+                            @Html.ValidationMessageFor(m => m.NeedsResponse)
+                        </div>
+                        <div class="col-9">
+                            Select this to indicate the event requires a response by an expected date. The next section below controls how the date is initially calculated when added to the status log.
+                            @* TODO
+                If this is checked, “Expected Date Logic” field will become available.
+                    When this Event is added to the Stat Log, the calculated date based on
+                    the logic selected will be displayed in the “Expected”  column.
+
+                If the Event is an uploadable Event, “Needs a Response” option should be checked.
+                This option applies to both internal and external Users.
+                            *@
+                        </div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-2">
+                            @Html.DropDownListFor(m => m.DueDateTrigger, Model.DueDateTriggerList, new { id = "ddlDueDateTrigger" })
+                            @Html.ValidationMessageFor(m => m.DueDateTrigger)
+                        </div>
+                        <div class="col-9">
+                            <label for="ddlDueDateTrigger">Select which process will add a due date to the event.</label>
+                        </div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-2">
+                            @Html.DropDownListFor(m => m.DueDateBase, Model.DueDateBaseList, new { id = "ddlDueDateBase" })
+                            @Html.ValidationMessageFor(m => m.DueDateBase)
+                        </div>
+                        <div class="col-9">
+                            <label for="ddlDueDateBase">Select which date the event due date will be based off on Event creation.</label>
+                        </div>
+                    </div>
+                    @*<div>
+            Select one of four possible options to choose from for calculating the expected date for the response.
+        </div>
+        <div class="d-flex flex-column">
+            @Html.EnumDropDownListFor(m => m.ExpectedDateLogic)
+            @Html.ValidationMessageFor(m => m.ExpectedDateLogic)
+        </div>*@
+                    <div id="divDaysToWait" class="row m-2">
+                        <div class="col-2">
+                            @Html.TextBoxFor(m => m.DaysToWait, new { @id = "txtDaysToWait", @type = "number", Style = "width: 50px;", maxlength = 3 })
+                            @Html.LabelFor(m => m.DaysToWait, "Number of Days")
+                            @Html.ValidationMessageFor(m => m.DaysToWait)
+                        </div>
+                        <div class="col-9">
+                            <label for="txtDaysToWait">Number of days to supply to the calculation logic selected above.</label>
+                        </div>
+                    </div>
+                    <div id="divCascadeDueDate" class="row mb-3">
+                        <div class="col-2">
+                            @Html.CheckBoxFor(m => m.CascadeManualDueDate, new { @id = "statLogEvent_CascadeManualDueDate" })
+                            @Html.LabelFor(m => m.CascadeManualDueDate, "Manual Due Date Changes Cascade Through Event Workflow")
+                            @Html.ValidationMessageFor(m => m.CascadeManualDueDate)
+                        </div>
+                        <div class="col-9">
+                            <label for="statLogEvent_CascadeManualDueDate">Select this to indicate Event date changes should update the due date based on the above logic.</label>
+                        </div>
+                    </div>
+                    <div id="divRefreshDueDate" class="row mb-3">
+                        <div class="col-2">
+                            @Html.CheckBoxFor(m => m.EventDateEditRefreshDueDate, new { @id = "statLogEvent_EventDateEditRefreshDueDate" })
+                            @Html.LabelFor(m => m.EventDateEditRefreshDueDate, "Event Date Change Updates Due Date")
+                            @Html.ValidationMessageFor(m => m.EventDateEditRefreshDueDate)
+                        </div>
+                        <div class="col-9">
+                            <label for="statLogEvent_EventDateEditRefreshDueDate">Select this to indicate Event date changes should update the due date based on the above logic.</label>
+                        </div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-2">
+                            @Html.CheckBoxFor(m => m.AddFileDueDate, new { @id = "statLogEvent_AddFileDueDate" })
+                            @Html.LabelFor(m => m.AddFileDueDate, "Set Due Date for File Review")
+                            @Html.ValidationMessageFor(m => m.AddFileDueDate)
+                        </div>
+                        <div class="col-9">
+                            <label for="statLogEvent_AddFileDueDate">Select this to indicate that files uploaded to this event should have an expected date. The file's expected date will follow the above event logic.</label>
+                            @* TODO
+                If this is checked, “Expected Date Logic” field will become available.
+                    When this Event is added to the Stat Log, the calculated date based on
+                    the logic selected will be displayed in the “Expected”  column.
+
+                If the Event is an uploadable Event, “Needs a Response” option should be checked.
+                This option applies to both internal and external Users.
+                            *@
+                        </div>
+                    </div>
+                </div>
+                <div class="row mx-2 mt-2">
+                    <div class="col-2">
+                        @Html.CheckBoxFor(m => m.BulkUpdatable, new { @id = "statLogEvent_BulkUpdatable" })
+                        @Html.LabelFor(m => m.BulkUpdatable, "Allow Event to be modified by Due Date Update")
+                        @Html.ValidationMessageFor(m => m.BulkUpdatable)
+                    </div>
+                    <div class="col-9">
+                        <label for="statLogEvent_BulkUpdatable">Select this to allow due dates for this event to be modified as part of a bulk Due Date Update process.</label>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="modal-footer mslcModalFooter" id="dvFooter" style="text-align: left !important;">
+            <div class="myImage" style="display: none; text-align: center;">
+                <img src="~/Images/loading.gif" alt="Loading" width="32" height="32" />
+            </div>
+            <div class="myControls">
+                <button id="btnClose" class="btn btn-basic BoldMe" data-dismiss="modal" aria-hidden="true">Close</button>&nbsp;&nbsp;
+                <button id="btnSave" type="submit" class="btn btn-success BoldMe" name="Command" value="Save">Save</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        if ($("#statLogEvent_NeedsReply").prop("checked") == false) {
+            $("#statLogEvent_AddFileDueDate").prop("checked", false);
+            $("#statLogEvent_AddFileDueDate").prop("disabled", true);
+        }
+        else {
+            $("#statLogEvent_AddFileDueDate").prop("disabled", false);
+        }
+
+        var initialDueDateDropdownValue = $("#ddlDueDateBase").val();
+        if (initialDueDateDropdownValue !== "Event" && initialDueDateDropdownValue !== "StatLog") {
+            $("#divDaysToWait").hide();
+        }
+    </script>
+}

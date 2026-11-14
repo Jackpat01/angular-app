@@ -1,0 +1,1506 @@
+﻿@model WebPortal_OH_FI.Models.AnnualRateSettingViewModel
+<style type="text/css">
+    .nav-tabs .nav-item.show .nav-link, .nav-tabs .nav-link.active {
+        background: moccasin;
+        border-bottom: 2px solid green;
+    }
+
+    th, td {
+        padding: 10px;
+    }
+
+    #tableProviderDetails td:nth-of-type(2n+1) {
+        font-weight: bold;
+        text-align: right;
+    }
+
+    #tableProviderDetails input[type="text"] {
+        width: 100px;
+    }
+
+    .e-grid .e-pager .e-pagercontainer {
+        float: left;
+    }
+
+    .e-grid .e-pager .e-pager-itemsinterval {
+        float: left;
+    }
+    .e-pager-itemsinterval {
+        direction: rtl;
+        float: left;
+    }
+</style>
+<div id="rateSetting">
+    <div style='width: 100%; font-weight: bold;'>
+        <div><h1>RED Specific Information</h1></div>
+    </div>
+    <table>
+        <tr>
+            <td>RED Date:</td>
+            <td>@Html.DropDownListFor(x => x.RedDateSelect, (IEnumerable<SelectListItem>)Model.RedDateList, "RED Date List", new { ID = "drpRedDateList", @style = "width: 125px;", aria_label="RED Date" })</td>
+            <td><input id="btnSearchRed" value="Get Selected RED" type="submit" class="btn btn-success" onclick="GetREDRateInfo()" /></td>
+            <td><input id="addRedDate" value="Add RED Date" type="date" class="datefield" style="width: 165px;" aria-label="Add RED Date" /></td>
+            <td><input id="btnAddRed" value="ADD RED DATE" onclick="AddRed()" type="submit" class="btn btn-success" /></td>
+        </tr>
+    </table>
+    <div id="rateInfo">
+        <div id="dynamicTextBox">
+            <table style="width:100%">
+                <tr>
+                    <td id="TextBoxContainer" style="width:85%">
+                        <!--Textboxes will be added here -->
+                    </td>
+                    <td valign="top" style="width:15%">
+                        <input type="checkbox" id="chkFinalized" aria-label="Finalized" /><b>&nbsp;Finalized</b><br />
+                        <input type="checkbox" id="chkIsBaseYear" aria-label="Is BaseYear" disabled /><b>&nbsp;Is BaseYear</b><br />
+                    </td>
+                </tr>
+            </table>
+        </div>
+    </div>
+    <div id="divProviderInfo">
+        <table>
+            <tr>
+                <td>
+                    <b>Provider Information</b>
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    Provider List
+                </td>
+            </tr>
+            <tr>
+                <td align="center">
+                    <script id="template" type="text/x-template">
+                        {{if (IsFinalized && Issuance != null && Messages.indexOf("Rate was sent to FI on") > -1)}}
+                        <input type="checkbox" checked disabled/>
+                        {{else (IsFinalized)}}
+                        <input type="checkbox" onchange="chkFinalize('{{:RatePackageId}}', this)" checked />
+                        {{else (Rate == null)}}
+                        <input type="checkbox" disabled />
+                        {{else }}
+                        <input type="checkbox" onchange="chkFinalize('{{:RatePackageId}}', this)" />
+                        {{/if}}
+                    </script>
+                    <div id="tblProviderList"></div>
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    <input id="btnRefreshList" value="Refresh List" type="submit" class="btn btn-success" onclick="GetProvidersByRefreshList()" />
+                    <input id="btnCopyAll" value="Appeal Rates (Copy All)" type="submit" class="btn btn-success" onclick="CopyFinalizedRates()" />
+                    <input id="btnReCalculate" value="Re/Calculate Selected" type="submit" class="btn btn-success" onclick="RecalculateRate()" />
+                    <input id="btnCalcAllProviders" value="Calc All Providers" type="submit" class="btn btn-success" onclick="CalculateAll()" />
+                    <input id="btnFinalizeAll" value="Finalize All" type="submit" class="btn btn-success" onclick="FinalizeAll()" />
+                    <input id="btnUnFinalizeAll" value="UnFinalize All" type="submit" class="btn btn-success" onclick="UnFinalizeAll()" />
+                    <input id="btnDeleteRate" value="Delete Highlighted Rate" type="submit" class="btn btn-success" onclick="DeleteRate()" />
+                    <input id="btnPrint" value="Provider List Export to Excel" type="submit" class="btn btn-success" onclick="PrintRates()" />
+                </td>
+            </tr>
+        </table>
+    </div>
+    <div>
+        <div id="divProviderDetailsHeader" style='width: 100%; font-weight: bold;'>
+            <b>Details - Only one provider may be selected from the above Provider List to view this section</b>
+        </div>
+        <div id="divProviderDetails">
+            <table id="tableProviderDetails" style="width:90%">
+                <tr>
+                    <td id="AnnualRSDetailsLabelContainer" style="width:85%">
+                        <!--Labels will be added here -->
+                    </td>
+                <tr>
+            </table>
+        </div>
+    </div>
+</div>
+<script type="text/javascript">
+    // For RED Date list
+    $(document).ready(function () {
+        var redDateSelected = $('#drpRedDateList option:selected').text();
+        $("#btnSearchRed").prop("disabled", redDateSelected == "RED Date List");
+        $("#rateInfo").hide();
+        $("#divProviderInfo").hide();
+        $("#chkFinalized").prop("disabled", true);
+        $("#divProviderDetails :input").attr("disabled", true);
+        $("#divProviderDetails").hide();
+        $("#divProviderDetailsHeader").hide();
+
+        $("#drpRedDateList").change(function () {
+            var val = $('#drpRedDateList option:selected').text();
+            if (val != "RED Date List") {
+                $("#btnSearchRed").prop("disabled", false);
+            } else {
+                $("#btnSearchRed").prop("disabled", true); // Disables
+            }
+            $("#rateInfo").hide();
+            $("#divProviderInfo").hide();
+            $("#divProviderDetailsHeader").hide();
+            $("#divProviderDetails").hide();
+        });
+
+        // For
+        $("#btnAddRed").prop("disabled", true); // Disables
+        $("#addRedDate").change(function () {
+            var val = $('#addRedDate').val();
+            if (val != "") {
+                let v = Date.parse(val);
+                if (v > Date.parse('1900-01-01')) $("#btnAddRed").prop("disabled", false);
+                else $("#btnAddRed").prop("disabled", true); // Disables
+            } else {
+                $("#btnAddRed").prop("disabled", true); // Disables
+            }
+        });
+    });
+
+    function AddRed() {
+        var rateEffectiveDateListing = {
+            RateEffectiveDate: $('#addRedDate').val()
+        }
+        return LoadNotificationDialog("Adding RED...").then(() => {
+            return new Promise((resolve, reject) => {
+                $.ajax({
+                    async: true,
+                    url: "@Url.AbsoluteAction("AddRed", "Rate")",
+                    data: JSON.stringify(rateEffectiveDateListing),
+                    type: "POST",
+                    contentType: "application/json;charset=utf-8",
+                    success: function (response) {
+                        if (response.Success) {
+
+                            var redDateList = response.rpt.RedDateList;
+                            var opt = '<option value="0" >RED Date List</option>';
+                            for (var i = 0; i < redDateList.length; i++) {
+                                opt += '<option value="' + redDateList[i].Value + '" >' + redDateList[i].Text + '</option>'
+                            }
+                            $("#drpRedDateList").html(opt);
+
+                            $("#drpRedDateList option").filter(function () {
+                                return this.text == rateEffectiveDateListing.RateEffectiveDate;
+                            }).attr('selected', true).trigger('change');
+                            $('#addRedDate').val('').trigger('change');
+
+                            resolve();
+                        }
+                        else {
+                            StaticAlert({ content: response.Message }).then(() => {
+                                $("#drpRedDateList option").filter(function () {
+                                    return this.text == rateEffectiveDateListing.RateEffectiveDate;
+                                }).attr('selected', true).trigger('change');
+                                $('#addRedDate').val('').trigger('change')
+
+                                resolve();
+                            });
+                        }
+                    },
+                    error: function (errormessage) {
+                        StaticAlert({ content: errormessage.responseText || errormessage }).then(() => {
+                            resolve();
+                        });
+                    }
+                });
+            });
+        }).then(() => {
+            return ClearNotificationDialog();
+        });
+    }
+
+    function GetREDRateInfo() {
+        var redDateSelected = $("#drpRedDateList option:selected").text();
+        $("#TextBoxContainer").empty();
+
+        $("#btnReCalculate").prop("disabled", false);
+        $("#btnCalcAllProviders").prop("disabled", false);
+        $("#btnFinalizeAll").prop("disabled", false);
+        $("#btnUnFinalizeAll").prop("disabled", false);
+        $("#btnDeleteRate").prop("disabled", true);
+        return LoadNotificationDialog("Get Info...").then(() => {
+            return new Promise((resolve, reject) => {
+                $.ajax({
+                    async: true,
+                    url: "@Url.AbsoluteAction("GetREDRateInfo", "Rate")",
+                    data: JSON.stringify({ "redDate": redDateSelected }),
+                    type: "POST",
+                    contentType: "application/json;charset=utf-8",
+                    success: function (result) {
+                        if (result.Success) {
+                            $("#rateInfo").show();
+                            // Load Dynamic Textboxes
+                            var rateParameters = result.AnnualRateSettingViewModel.DatabaseLookupValues;
+                            let cnt = 1;
+                            let fValue;
+                            let sValue;
+                            for (let i = 0; i <= rateParameters.length; i++) {
+                                if (cnt === 1) {
+                                    fValue = rateParameters[i];
+                                }
+                                else {
+                                    sValue = rateParameters[i];
+                                }
+                                if ((cnt === 2) || (i === rateParameters.length)) {
+                                    if (cnt != 2) {
+                                        sValue = '';
+                                    }
+                                    $("#TextBoxContainer").append(GetDynamicTextBox(fValue, sValue));
+                                    cnt = 0;
+                                }
+                                cnt++;
+                            }
+                            $('#TextBoxContainer input[type="text"').prop("disabled", true).attr("aria-label", "RED Info Disabled");
+                            var gridColumns = result.AnnualRateSettingViewModel.GridColumns;
+                            var providerInformationlList = result.AnnualRateSettingViewModel.RatePackageViewModelList;
+
+                            // Build Grid - Data binding
+                            LoadProviderList(gridColumns, providerInformationlList);
+
+                            $("#divProviderInfo").show();
+
+                            StateChangeUIElements(result);
+                            resolve();
+                        }
+                        else {
+                            StaticAlert({ content: result.Message || "Unknown error" }).then(() => {
+                                resolve();
+                            });
+                        }
+                    },
+                    error: function (errormessage) {
+                        StaticAlert({ content: errormessage.responseText || errormessage }).then(() => {
+                            resolve();
+                        });
+                    }
+
+                });
+            });
+
+        }).then(() => {
+            return ClearNotificationDialog();
+        });
+    }
+
+    $('#chkIsBaseYear').click(function () {
+        var redDateSelected = $("#drpRedDateList option:selected").text();
+        var checkedValue = $("#chkIsBaseYear").is(":checked");
+        return LoadNotificationDialog("IsBaseYear...").then(() => {
+            return new Promise((resolve, reject) => {
+                var gridObj = $("#tblProviderList").ejGrid("instance");
+                $.ajax({
+                    url: "@Url.AbsoluteAction("UpdateIsBaseYear", "Rate")",
+                    data: JSON.stringify({ "redDate": redDateSelected, isBaseYear: checkedValue }),
+                    type: "POST",
+                    contentType: "application/json;charset=utf-8",
+                    dataType: "json",
+                    success: function (result) {
+                        if (result.Success) {
+                            //GetREDRateInfoRefreshGrid();
+                            //$("#divProviderDetailsHeader").hide();
+                            //$("#divProviderDetails").hide();
+                            resolve();
+                        }
+                        else {
+                            StaticAlert({ content: result.Message || "Unknown error" }).then(() => {
+                                resolve();
+                            });
+                        }
+                    },
+                    error: function (errormessage) {
+                        StaticAlert({ content: errormessage.responseText || errormessage }).then(() => {
+                            resolve();
+                        });
+                    }
+                });
+            });
+        }).then(() => {
+            return ClearNotificationDialog();
+        });
+    });
+
+    function GetProvidersByRefreshList() {
+        StaticConfirm({
+            title: "Refresh/Get Providers for RED",
+            content: "Getting providers may take some time; continue?",
+            buttons: ["Ok", "Cancel"]
+        }).then((key) => {
+            if (key != 0) {
+                return;
+            }
+            var redDateSelected = $("#drpRedDateList option:selected").text();
+            $("#btnReCalculate").prop("disabled", false);
+            $("#btnCalcAllProviders").prop("disabled", false);
+            $("#btnFinalizeAll").prop("disabled", false);
+            $("#btnUnFinalizeAll").prop("disabled", false);
+            $("#btnDeleteRate").prop("disabled", true);
+            return LoadNotificationDialog("Get Info...").then(() => {
+                return new Promise((resolve, reject) => {
+                    $.ajax({
+                        async: true,
+                        url: "@Url.AbsoluteAction("GetProvidersByRefreshList", "Rate")",
+                        data: JSON.stringify({ "redDate": redDateSelected }),
+                        type: "POST",
+                        contentType: "application/json;charset=utf-8",
+                        success: function (result) {
+                            if (result.Success) {
+                                $("#rateInfo").show();
+
+                                var gridColumns = result.AnnualRateSettingViewModel.GridColumns;
+                                var providerInformationlList = result.AnnualRateSettingViewModel.RatePackageViewModelList;
+                                // Build Grid - Data binding
+                                LoadProviderList(gridColumns, providerInformationlList);
+
+                                $("#divProviderInfo").show();
+
+                                StateChangeUIElements(result);
+                                resolve();
+                            }
+                            else {
+                                StaticAlert({ content: result.Message || "Unknown error" }).then(() => {
+                                    resolve();
+                                });
+                            }
+                        },
+                        error: function (errormessage) {
+                            StaticAlert({ content: errormessage.responseText || errormessage }).then(() => {
+                                resolve();
+                            });
+                        }
+                    });
+                });
+            }).then(() => {
+                return ClearNotificationDialog();
+            });
+        });
+    }
+
+    // Grid refresh - Do not Re-bind DatabaseLookupValue
+    function GetREDRateInfoRefreshGrid() {
+        var redDateSelected = $("#drpRedDateList option:selected").text();
+        $("#btnReCalculate").prop("disabled", false);
+        $("#btnCalcAllProviders").prop("disabled", false);
+        $("#btnFinalizeAll").prop("disabled", false);
+        $("#btnUnFinalizeAll").prop("disabled", false);
+        $("#btnDeleteRate").prop("disabled", true);
+        return LoadNotificationDialog("Get Info...").then(() => {
+            return new Promise((resolve, reject) => {
+                $.ajax({
+                    async: true,
+                    url: "@Url.AbsoluteAction("GetProvidersByRED", "Rate")",
+                    data: JSON.stringify({ "redDate": redDateSelected }),
+                    type: "POST",
+                    contentType: "application/json;charset=utf-8",
+                    success: function (result) {
+                        if (result.Success) {
+                            $("#rateInfo").show();
+                            var gridColumns = result.AnnualRateSettingViewModel.GridColumns;
+                            var providerInformationlList = result.AnnualRateSettingViewModel.RatePackageViewModelList;
+
+                            // Build Grid - Data binding
+                            LoadProviderList(gridColumns, providerInformationlList);
+
+                            $("#divProviderInfo").show();
+
+                            StateChangeUIElements(result);
+                            resolve();
+                        }
+                        else {
+                            StaticAlert({ content: result.Message || "Unknown error" }).then(() => {
+                                resolve();
+                            });
+                        }
+                    },
+                    error: function (errormessage) {
+                        StaticAlert({ content: errormessage.responseText || errormessage }).then(() => {
+                            resolve();
+                        });
+                    }
+
+                });
+            });
+
+        }).then(() => {
+            return ClearNotificationDialog();
+        });
+    }
+
+    function LoadProviderList(gridColumns, providerInformationlList) {
+        if (providerInformationlList.length > 0) {
+            //for (var i = 0; i < providerInformationlList.length; i++) {
+            //    if (providerInformationlList[i].FinalRateAmount !== null && providerInformationlList[i].FinalRateAmount !== '' && providerInformationlList[i].FinalRateAmount !== 'null') {
+            //        providerInformationlList[i].FinalRateAmount = parseFloat(providerInformationlList[i].FinalRateAmount).toFixed(2);
+            //    }
+            //}
+            $("#btnPrint").prop("disabled", false);
+        }
+        else {
+            $("#btnPrint").prop("disabled", true);
+        }
+
+        var isFinalized = $.grep(providerInformationlList, function (item) {
+            return item.IsFinalized === true;
+        }).length > 0;
+
+        if (isFinalized) {
+            $("#chkFinalized").prop("checked", true);
+        }
+        else {
+            $("#chkFinalized").prop("checked", false);
+        }
+
+        var cols = [];
+        var GridColumns = gridColumns;
+        // Create Custom Template for Finalized Column
+        cols.push({ type: 'checkbox', width: '12' });
+        cols.push({ field: 'IsFinalized', headerText: 'IsFinalized', width: '1', visible: false });
+        cols.push({ headerText: 'Finalized', template: '#template', width: '25', textAlign: 'center' });
+        for (var col = 0; col < GridColumns.length; col++) {
+            // Build "Columns" and "Header Text"
+            if (GridColumns[col].HeaderText == "Issuance") {
+                cols.push({ field: GridColumns[col].Field, headerText: GridColumns[col].HeaderText, width: GridColumns[col].Width, cssClass: 'Wrap', textAlign: 'left', width: '23', visible: true });
+            }
+            else {
+                cols.push({ field: GridColumns[col].Field, headerText: GridColumns[col].HeaderText, width: GridColumns[col].Width, cssClass: 'Wrap', textAlign: 'left', visible: true });
+            }
+
+        }
+        $("#tblProviderList").ejGrid({
+            dataSource: providerInformationlList,
+            selectionSettings: { persistSelection: true },
+            columns: cols,
+            toolbarSettings: {
+                showToolbar: true,
+                toolbarItems: [ej.Grid.ToolBarItems.Search]
+            },
+            //rowDataBound: rowDataBound,
+            //dataBound: function (args) {
+            //    this.selectCheckboxes(1);
+            //},
+            pageSettings: { pageSize: 5, pageSizeList: [5, 10, 15, 20] },
+            allowPaging: true,
+            enableRowHover: true,
+            allowSelection: true,
+            allowSorting: true,
+            allowTextWrap: true,
+            editSettings: {},
+            rowSelected: onRowSelected,
+            rowDeselected: rowDeselected,
+            //recordClick: recordClick
+        });
+    }
+
+    /** On click event for the Appeal Rates (Copy All) button */
+    function CopyFinalizedRates() {
+        return StaticConfirm({
+            title: "Appeal Rates",
+            content: "This will copy all finalized (issued) rates. Do you want to continue?",
+            buttons: ["Ok", "Cancel"]
+        }).then((response) => {
+            if (response != 0) return;
+
+            //If there are unfinalized rates, confirm you want to copy all before starting the request
+            let gridObj = $("#tblProviderList").ejGrid("instance");
+            let unfinalized = gridObj.model.dataSource.filter((value) => !value.IsFinalized);
+            if (unfinalized.length > 0) {
+                StaticConfirm({
+                    title: "Appeal Rates",
+                    content: "One or more rates are not finalized; they will not be copied. Do you want to continue?",
+                    buttons: ["Ok", "Cancel"]
+                }).then((response) => {
+                    if (response != 0) return;
+                    CopyFinalizedRatesRequest();
+                });
+            }
+            else CopyFinalizedRatesRequest(); //If there are no unfinalized rates, go ahead and start request
+        })
+    }
+
+    /** function for handling server request for Appeal Rates (Copy All) button */
+    function CopyFinalizedRatesRequest() {
+        return LoadNotificationDialog("Appealing Rates...").then(() => {
+            return new Promise((resolve, reject) => {
+                $.ajax({
+                    url: "@Url.AbsoluteAction("CopyFinalizedRates", "Rate")",
+                    data: JSON.stringify({ redDate: $("#drpRedDateList option:selected").text() }),
+                    type: 'POST',
+                    contentType: "application/json;charset=utf-8",
+                    dataType: 'json',
+                    success: (response) => {
+                        if (response.Success) {
+                            GetREDRateInfoRefreshGrid();
+                            selectedRowArray = [];
+                            $("#divProviderDetailsHeader").hide();
+                            $("#divProviderDetails").hide();
+                            resolve();
+                        } else {
+                            StaticAlert({ content: response.Message || "Unknown error" }).then(() => {
+                                resolve();
+                            });
+                        }
+                    },
+                    error: function (errormessage) {
+                        StaticAlert({ content: errormessage.responseText || errormessage }).then(() => {
+                            resolve();
+                        });
+                    }
+                })
+            });
+        }).then(() => {
+            return ClearNotificationDialog();
+        });
+    }
+
+    // ***** Begin - Button Events below the Grid *****
+    // TODO Calculation integration
+    function RecalculateRate() {
+        // Create grid object.
+        var gridObj = selectedRowArray;
+        if (gridObj.length >= 1)
+        {
+            return StaticConfirm({
+				title: "Calculate Selected Rates",
+				content: "Run calculations for selected rate(s). If several are selected, this may take some time.",
+                buttons: ["Ok", "Cancel"]
+            }).then((response) => {
+                if (response != 0) return;
+
+                return LoadNotificationDialog("Calculate Selected...").then(() => {
+                    return new Promise((resolve, reject) => {
+
+                        // Gets the names of primary key columns
+                        $.ajax({
+                            url: "@Url.AbsoluteAction("CalculateRates", "Rate")",
+                            data: JSON.stringify({ providerData: gridObj }),
+                            type: "POST",
+                            contentType: "application/json;charset=utf-8",
+                            dataType: "json",
+                            success: function (result) {
+                                if (result.Success) {
+                                    GetREDRateInfoRefreshGrid();
+                                    selectedRowArray = [];
+                                    $("#divProviderDetailsHeader").hide();
+                                    $("#divProviderDetails").hide();
+                                    resolve();
+                                }
+                                else {
+                                    StaticAlert({ content: result.Message || "Unknown error" }).then(() => {
+                                        resolve();
+                                    });
+                                }
+                            },
+                            error: function (errormessage) {
+                                StaticAlert({ content: errormessage.responseText || errormessage }).then(() => {
+                                    resolve();
+                                });
+                            }
+                        });
+                    });
+                }).then(() => {
+                    return ClearNotificationDialog();
+                });
+            });
+        }
+    }
+
+     // TODO Calculation integration
+    function CalculateAll() {
+        return StaticConfirm({
+			title: "Calculate For All Rates",
+			content: "Run calculations for ALL rates. This may take some time.",
+            buttons: ["Ok", "Cancel"]
+        }).then((response) => {
+            if (response != 0) return;
+
+            return LoadNotificationDialog("Calculate All...").then(() => {
+                return new Promise((resolve, reject) => {
+                    var gridObj = $("#tblProviderList").data("ejGrid");
+                    $.ajax({
+                        url: "@Url.AbsoluteAction("CalculateAll", "Rate")",
+                        data: JSON.stringify({
+                            red: $("#drpRedDateList option:selected").text(),
+                            providerData: gridObj.model.dataSource
+                        }),
+                        type: "POST",
+                        contentType: "application/json;charset=utf-8",
+                        dataType: "json",
+                        success: function (result) {
+                            if (result.Success) {
+                                GetREDRateInfoRefreshGrid();
+                                $("#divProviderDetailsHeader").hide();
+                                $("#divProviderDetails").hide();
+                                resolve();
+                            }
+                            else {
+                                StaticAlert({ content: result.Message || "Unknown error" }).then(() => {
+                                    resolve();
+                                })
+                            }
+                        },
+                        error: function (errormessage) {
+                            StaticAlert({ content: errormessage.responseText || errormessage }).then(() => {
+                                resolve();
+                            });
+                        }
+                    });
+                });
+            }).then(() => {
+                return ClearNotificationDialog();
+            });
+        });
+    }
+
+    function FinalizeAll() {
+        var returnValue = false
+        return StaticConfirm({
+            title: "Finalizing/Locking All Rates",
+            content: "Finalize/Lock all providers.",
+            buttons: ["Ok", "Cancel"]
+        }).then((response) => {
+            if (response != 0) return;
+
+            return LoadNotificationDialog("Finalizing All...").then(() => {
+                return new Promise((resolve, reject) => {
+                    var gridObj = $("#tblProviderList").ejGrid("instance");
+                    $.ajax({
+                        url: "@Url.AbsoluteAction("FinalizeAll", "Rate")",
+                        data: JSON.stringify({ providerData: gridObj.model.dataSource }),
+                        type: "POST",
+                        contentType: "application/json;charset=utf-8",
+                        dataType: "json",
+                        success: function (result) {
+                            if (result.Success) {
+                                GetREDRateInfoRefreshGrid();
+                                $("#divProviderDetailsHeader").hide();
+                                $("#divProviderDetails").hide();
+                                $("#chkFinalized").prop("checked", true);
+                                returnValue = true;
+                                resolve();
+                            }
+                            else {
+                                StaticAlert({ content: result.Message || "Unknown error" }).then(() => {
+                                    resolve();
+                                });
+                            }
+                        },
+                        error: function (errormessage) {
+                            StaticAlert({ content: errormessage.responseText || errormessage }).then(() => {
+                                resolve();
+                            });
+                        }
+                    });
+                });
+            }).then(() => {
+                return ClearNotificationDialog();
+            }).then(() => {
+                return returnValue;
+            });
+        });
+    }
+
+    function Finalize(ratePackageId) {
+        var returnValue = false;
+        return StaticConfirm({
+            title: "Finalizing/Locking Rates",
+            content: "Finalize/Lock selected provider rates?",
+            buttons: ["Ok", "Cancel"],
+        }).then((response) => {
+            if (response != 0) {
+                return;
+            }
+            return LoadNotificationDialog("Finalizing...").then(() => {
+                return new Promise((resolve, reject) => {
+                    var gridObj = $("#tblProviderList").ejGrid("instance");
+                    $.ajax({
+                        url: "@Url.AbsoluteAction("Finalize", "Rate")",
+                        data: JSON.stringify({ ratePackageId: ratePackageId }),
+                        type: "POST",
+                        contentType: "application/json;charset=utf-8",
+                        dataType: "json",
+                        success: function (result) {
+                            if (result.Success) {
+                                GetREDRateInfoRefreshGrid();
+                                $("#divProviderDetailsHeader").hide();
+                                $("#divProviderDetails").hide();
+                                returnValue = true;
+                                resolve();
+                            }
+                            else {
+                                StaticAlert({ content: result.Message || "Unknown error" }).then(() => {
+                                    resolve();
+                                });
+                            }
+
+                        },
+                        error: function (errormessage) {
+                            StaticAlert({ content: errormessage.responseText || errormessage }).then(() => {
+                                resolve();
+                            });
+                        }
+
+                    });
+                });
+            }).then((response) => {
+                return ClearNotificationDialog();
+            }).then(() => {
+                return returnValue;
+            });
+        });
+    }
+
+    function UnFinalize(ratePackageId) {
+        var returnValue = false;
+        return StaticConfirm({
+            title: "Unfinalize Rates",
+            content: "Unfinalize/Unlock selected Provider rates?",
+            buttons: ["Ok", "Cancel"]
+        }).then((response) => {
+            if (response != 0) {
+                return;
+            }
+            return LoadNotificationDialog("Un Finalizing...").then(() => {
+                return new Promise((resolve, reject) => {
+                    var gridObj = $("#tblProviderList").ejGrid("instance");
+                    $.ajax({
+                        url: "@Url.AbsoluteAction("UnFinalize", "Rate")",
+                        data: JSON.stringify({ ratePackageId: ratePackageId }),
+                        type: "POST",
+                        contentType: "application/json;charset=utf-8",
+                        dataType: "json",
+                        success: function (result) {
+                            if (result.Success) {
+                                GetREDRateInfoRefreshGrid();
+                                $("#divProviderDetailsHeader").hide();
+                                $("#divProviderDetails").hide();
+                                returnValue = true;
+                                resolve();
+                            }
+                            else {
+                                StaticAlert({ content: result.Message || "Unknown error" }).then(() => {
+                                    resolve();
+                                });
+                            }
+
+                        },
+                        error: function (errormessage) {
+                            StaticAlert({ content: errormessage.responseText || errormessage }).then(() => {
+                                resolve();
+                            });
+                        }
+
+                    });
+                });
+            }).then(() => {
+                return ClearNotificationDialog();
+            }).then(() => {
+                return returnValue;
+            });
+        });
+    }
+
+    function UnFinalizeAll() {
+        var response = false;
+        return StaticConfirm({
+            title: "UnFinalzing All Rates",
+            content: "Unfinalizing all rates may take some time; continue?",
+            buttons: ["Ok", "Cancel"]
+        }).then((key) => {
+            if (key != 0) return;
+
+            return LoadNotificationDialog("Unfinalizing All...").then(() => {
+                return new Promise((resolve, reject) => {
+                    var gridObj = $("#tblProviderList").ejGrid("instance");
+                    $.ajax({
+                        url: "@Url.AbsoluteAction("UnFinalizeAll", "Rate")",
+                        data: JSON.stringify({ providerData: gridObj.model.dataSource }),
+                        type: "POST",
+                        contentType: "application/json;charset=utf-8",
+                        dataType: "json",
+                        success: function (result) {
+                            if (result.Success) {
+                                GetREDRateInfoRefreshGrid();
+                                $("#divProviderDetailsHeader").hide();
+                                $("#divProviderDetails").hide();
+                                $("#chkFinalized").prop("checked", false);
+                                response = true;
+                                resolve();
+                            }
+                            else {
+                                StaticAlert({ content: result.Message || "Unknown error" }).then(() => {
+                                    resolve();
+                                });
+                            }
+                        },
+                        error: function (errormessage) {
+                            StaticAlert({ content: errormessage.responseText || errormessage }).then(() => {
+                                resolve();
+                            });
+                        }
+                    });
+                });
+            }).then(() => {
+                return ClearNotificationDialog();
+            }).then(() => {
+                return response;
+            });
+        });
+    }
+
+    function DeleteRate() {
+        return StaticConfirm({
+            title: "Delete Rate",
+            content: "Are you sure you want to delete the Provider Rate?",
+            buttons: ["Ok", "Cancel"]
+        }).then((key) => {
+            if (key != 0) return;
+
+            return LoadNotificationDialog("Deleting Rate...").then(() => {
+                return new Promise((resolve, reject) => {
+                    var gridObj = $("#tblProviderList").ejGrid("getSelectedRecords");
+                    $.ajax({
+                        url: "@Url.AbsoluteAction("DeleteRate", "Rate")",
+                        data: JSON.stringify({ providerData: gridObj }),
+                        type: "POST",
+                        contentType: "application/json;charset=utf-8",
+                        dataType: "json",
+                        success: function (result) {
+                            if (result.Success) {
+                                GetREDRateInfoRefreshGrid();
+                                resolve();
+                            }
+                            else {
+                                StaticAlert({ content: result.Message || "Unknown error" }).then(() => {
+                                    resolve();
+                                });
+                            }
+                        },
+                        error: function (errormessage) {
+                            StaticAlert({ content: errormessage.responseText || errormessage }).then(() => {
+                                resolve();
+                            });
+                        }
+                    });
+                }).then(() => {
+                    return ClearNotificationDialog();
+                });
+            });
+        });
+    }
+
+    function PrintRates() {
+        var redDateSelected = $('#drpRedDateList option:selected').text();
+        //var gridObj = $("#tblProviderList").ejGrid("instance");
+        //JSON.stringify(alert(gridObj));
+        return LoadNotificationDialog("Printing Rates...").then(() => {
+            return new Promise((resolve, reject) => {
+                $.ajax({
+                    url: "@Url.AbsoluteAction("PrintRates", "Rate")",
+                    data: JSON.stringify({ redDate: redDateSelected }),
+                    type: "POST",
+                    contentType: "application/json;charset=utf-8",
+                    dataType: "json",
+                    success: function (result) {
+                        if (result.Success) {
+                            //get the file name for download
+                            if (result.fileName != "") {
+                                //use window.location.href for redirect to download action for download the file
+                                window.location.href = "@Url.AbsoluteAction("Download", "Rate")/?fileName=" + result.fileName;
+                            }
+                            resolve();
+                        }
+                        else {
+                            StaticAlert({ content: result.Message || "Unknown error" }).then(() => {
+                                resolve();
+                            });
+                        }
+                    },
+                    error: function (errormessage) {
+                        StaticAlert({ content: errormessage.responseText || errormessage }).then(() => {
+                            resolve();
+                        });
+                    }
+                });
+            });
+        }).then(() => {
+            return ClearNotificationDialog();
+        });
+    }
+    // ***** End - Button Events below the Grid *****
+
+    //******Begin - Grid Checkbox Events **********
+    let selectedRowArray = [];
+    function onRowSelected(args) {
+        var providerSelected = args.selectedData;
+        var index = selectedRowArray.findIndex(item => item.RatePackageId == args.selectedData.RatePackageId
+            && item.ProviderId == args.selectedData.ProviderId);
+        if (args.data.length > 1) {
+           for (var i = 0; i < args.data.length; i++) {
+                selectedRowArray.push(args.data[i]); //pushing all the selected Records
+            }
+        }
+        else if (index == -1) {
+            selectedRowArray.push(args.selectedData);
+        }
+        GetProviderRateInfoDetails();
+        var gridObj = $("#tblProviderList").data("ejGrid");
+        var array = gridObj.model.dataSource;
+        if (array.every(x => x.IsFinalized == true)) {
+            $("#btnReCalculate").prop("disabled", true);
+            $("#btnCalcAllProviders").prop("disabled", true);
+            $("#btnFinalizeAll").prop("disabled", true);
+            $("#btnDeleteRate").prop("disabled", true);
+        }
+        else if (providerSelected.IsFinalized == true) {
+            // If the user selects a rate that is finalized – No buttons should be enabled
+            $("#btnRefreshList").prop("disabled", true);
+            $("#btnReCalculate").prop("disabled", true);
+            $("#btnCalcAllProviders").prop("disabled", true);
+            $("#btnFinalizeAll").prop("disabled", true);
+            $("#btnUnFinalizeAll").prop("disabled", true);
+            $("#btnDeleteRate").prop("disabled", true);
+        }
+        else if (providerSelected.IsFinalized == false) {
+            if (array.some(x => x.IsFinalized == true) && array.some(checkNoRateAmount)) {
+                $("#btnRefreshList").prop("disabled", false);
+                $("#btnCalcAllProviders").prop("disabled", true);
+                $("#btnReCalculate").prop("disabled", false);
+                $("#btnFinalizeAll").prop("disabled", false);
+                $("#btnUnFinalizeAll").prop("disabled", false);
+                $("#btnDeleteRate").prop("disabled", false);
+            }
+        }
+        else {
+            $("#btnReCalculate").prop("disabled", false);
+            $("#btnCalcAllProviders").prop("disabled", false);
+            $("#btnFinalizeAll").prop("disabled", false);
+            $("#btnDeleteRate").prop("disabled", false);
+        }
+    }
+
+    function rowDeselected(args) {
+        var deselectedItem = args.selectedData;
+        var index = selectedRowArray.findIndex(item => item.RatePackageId == deselectedItem.RatePackageId
+            && item.ProviderId == deselectedItem.ProviderId);
+        if (args.data.length > 1) {
+            for (var i = 0; i < args.data.length; i++) {
+                selectedRowArray.splice(args.data[i], 1); //remove all the selected Records
+            }
+        }
+        else {
+            selectedRowArray.splice(index, 1);
+        }
+        GetProviderRateInfoDetails();
+        var gridObj = $("#tblProviderList").data("ejGrid");
+        var array = gridObj.model.dataSource;
+        if (array.some(checkNoRateAmount)) {
+            $("#btnReCalculate").prop("disabled", false);
+        }
+    }
+
+    function checkNoRateAmount(element) {
+        if (element.FinalRateAmount == null || element.FinalRateAmount == '' || element.FinalRateAmount == 'null'
+            || element.FinalRateAmount == undefined) {
+            return true;
+        }
+    }
+
+    ////Finalize column checkbox Click event.
+    //function recordClick(args) {
+    //    // Condition to prevent the code execution under the click event of Checkbox in Column One.
+    //    // Column one check box event fires both recordClick and onRowSelected events.
+    //    if (args.columnName == 'Finalized' && args.data.Issuance != '') {
+    //        UnFinalize(args.data.RatePackageId);
+    //    }
+    //    else if (args.columnName == 'Finalized' && args.data.Issuance === '') {
+    //        Finalize(args.data.RatePackageId);
+    //    }
+    //}
+
+    function chkFinalize(RatePackageId, checkbox) {
+        var gridObj = $("#tblProviderList").data("ejGrid");
+        var args = $.grep(gridObj.model.dataSource, function (row) { return row.RatePackageId === RatePackageId })
+        var data = args[0];
+        var result = false;
+        if (data.Issuance != '') {
+            // This will return a promise object, not a value.
+            result = UnFinalize(RatePackageId);
+        }
+        else if (data.Issuance === '') {
+            // This will return a promise object, not a value.
+            result = Finalize(RatePackageId);
+        }
+
+        // Once the promise is completed, get the value from the return.
+        result.then((value) => {
+            //data.IsFinalized
+            if (value) {
+
+                $(checkbox).prop("checked", true);
+            }
+            else {
+                if (data.IsFinalized) {
+                    $(checkbox).prop("checked", true);
+                }
+                else {
+                    $(checkbox).prop("checked", false);
+                }
+            }
+        });
+    }
+
+    function GetProviderRateInfoDetails() {
+        var gridObj = $("#tblProviderList").ejGrid("getSelectedRecords");
+        var redDateSelected = $("#drpRedDateList option:selected").text();
+        $("#btnDeleteRate").prop("disabled", true);
+        $("#divProviderDetails").hide();
+        if (gridObj.length == 1) {
+            var providerId = gridObj[0].ProviderId;
+            var isFinalized = gridObj[0].IsFinalized;
+            var ratePackageId = gridObj[0].RatePackageId;
+            if (!isFinalized) {
+                $("#btnDeleteRate").prop("disabled", false);
+            }
+            return LoadNotificationDialog("Get Provider Rate Info Details...").then(() => {
+                return new Promise((resolve, reject) => {
+                    $.ajax({
+                        url: "@Url.AbsoluteAction("GetProviderRateInfoDetails", "Rate")",
+                        data: JSON.stringify({ ratePackageId: ratePackageId, providerId: providerId, "redDate": redDateSelected }),
+                        type: "POST",
+                        contentType: "application/json;charset=utf-8",
+                        dataType: "json",
+                        success: function (result) {
+                            if (result.Success) {
+                                $("#AnnualRSDetailsLabelContainer").empty();
+                                var providerRateInfoDetails = result.ProviderRateInfoDetailsVM;
+                                // Load Dynamic Labels
+                                LoadDynamicLabels(providerRateInfoDetails, ratePackageId, isFinalized);
+
+                                $("#divProviderDetails").show();
+                                resolve();
+                            }
+                            else {
+                                StaticAlert({ content: result.Message || "Unknown error" }).then(() => {
+                                    resolve();
+                                });
+                            }
+                        },
+                        error: function (errormessage) {
+                            StaticAlert({ content: errormessage.responseText || errormessage }).then(() => {
+                                resolve();
+                            });
+                        }
+                    });
+                });
+            }).then(() => {
+                return ClearNotificationDialog();
+            });
+        }
+        else {
+            // this needs to return a promise.
+            return Promise.resolve();
+        }
+    }
+
+    function LoadDynamicLabels(providerRateInfoDetails, ratePackageId, isFinalized) {
+        let cnt = 1;
+        let oddCnt = 1;
+        let tValue;
+        let fValue;
+        let sValue;
+        let flag = false;
+        for (let i = 0; i < providerRateInfoDetails.length; i++) {
+
+            // check if the number is even or odd
+            let number = providerRateInfoDetails[i]["Sequence"];
+
+            //check if the number is even
+            if (number % 2 == 0) {
+                sValue = providerRateInfoDetails[i];
+                oddCnt++;
+            }
+            // if the number is odd
+            else {
+                if (cnt === 2 && !flag) {
+                    tValue = providerRateInfoDetails[i];
+
+                }
+                else {
+
+                    if (oddCnt === 2) {
+                        $("#AnnualRSDetailsLabelContainer").append(GetDynamicLabel(fValue, sValue, tValue, ratePackageId, isFinalized));
+                        fValue = '';
+                        tValue = '';
+                        sValue = '';
+                        cnt = 0;
+                        fValue = providerRateInfoDetails[i];
+                        oddCnt = 1;
+                    }
+                    else {
+                        oddCnt = 1;
+                        fValue = providerRateInfoDetails[i];
+                    }
+                    oddCnt++;
+                }
+            }
+
+            if (((cnt === 3) && (!flag))) {
+                if (cnt != 3) {
+                    sValue = '';
+                }
+                $("#AnnualRSDetailsLabelContainer").append(GetDynamicLabel(fValue, sValue, tValue, ratePackageId, isFinalized));
+                flag = true;
+                fValue = '';
+                sValue = '';
+                tValue = '';
+                cnt = 0;
+                oddCnt = 1;
+            }
+            else if ((cnt === 2) && (flag)) {
+                if (cnt != 2) {
+                    if ((fValue === '') && (sValue !== '')) {
+                        fValue = '';
+                    }
+                    else {
+                        sValue = '';
+                    }
+                }
+                tValue = '';
+
+                $("#AnnualRSDetailsLabelContainer").append(GetDynamicLabel(fValue, sValue, tValue, ratePackageId, isFinalized));
+                fValue = '';
+                sValue = '';
+                cnt = 0;
+                oddCnt = 1;
+            }
+            else if ((cnt !== 2) && (flag)) {
+                if ((fValue === '') && (sValue !== '')) {
+                    fValue = '';
+                    tValue = '';
+
+                    $("#AnnualRSDetailsLabelContainer").append(GetDynamicLabel(fValue, sValue, tValue, ratePackageId, isFinalized));
+                    sValue = '';
+                    cnt = 0;
+                    oddCnt = 1;
+
+                }
+                else if ((fValue !== '') && (i === providerRateInfoDetails.length - 1)) {
+                    sValue = '';
+                    tValue = '';
+
+                    $("#AnnualRSDetailsLabelContainer").append(GetDynamicLabel(fValue, sValue, tValue, ratePackageId, isFinalized));
+                    fValue = '';
+                    cnt = 0;
+                }
+            }
+            cnt++;
+        }
+    }
+
+    //******End - Grid Checkbox Events **********
+
+    function StateChangeUIElements(result) {
+        // Disable Buttons when Grid Data is empty
+        var array = result.AnnualRateSettingViewModel.RatePackageViewModelList;
+        if (array != null &&
+            array.length == 0) {
+            $("#btnReCalculate").prop("disabled", true);
+            $("#btnCalcAllProviders").prop("disabled", true);
+            $("#btnFinalizeAll").prop("disabled", true);
+            $("#btnUnFinalizeAll").prop("disabled", true);
+            $("#divProviderDetailsHeader").hide();
+        }
+        else if (array.every(x => x.IsFinalized == true)) {
+            $("#btnReCalculate").prop("disabled", true);
+            $("#btnCalcAllProviders").prop("disabled", true);
+            $("#btnFinalizeAll").prop("disabled", true);
+            $("#btnDeleteRate").prop("disabled", true);
+        }
+        else if (array.some(x => x.IsFinalized == true)) {
+            $("#btnCalcAllProviders").prop("disabled", true);
+            $("#btnDeleteRate").prop("disabled", true);
+            $("#btnReCalculate").prop("disabled", false);
+            $("#btnFinalizeAll").prop("disabled", false);
+            $("#btnUnFinalizeAll").prop("disabled", false);
+        }
+        else {
+            $("#btnReCalculate").prop("disabled", false);
+            $("#btnCalcAllProviders").prop("disabled", false);
+            $("#btnFinalizeAll").prop("disabled", false);
+            $("#btnUnFinalizeAll").prop("disabled", false);
+            $("#divProviderDetailsHeader").show();
+        }
+        //IsBaseYear Checkbox condition
+        if (array.every(x => x.IsBaseYear == true)) {
+            $("#chkIsBaseYear").prop("checked", true);
+        }
+        else {
+            $("#chkIsBaseYear").prop("checked", false);
+        }
+    }
+
+
+    function GetDynamicTextBox(fValue, sValue) {
+        var div = $("<div />");
+        var table = $("<table />");
+        table.attr("style", "width: 100%");
+        table.attr("id", "newtable");
+        var tr = $("<tr />");
+
+        if (fValue) {
+            var td = $("<td />");
+            td.attr("style", "width: 30%");
+            td.attr("align", "right");
+            td.attr("padding", "10px");
+
+            var label = $("<label />");
+            label.attr("style", "font-weight: bold;");
+            label.text(fValue["DisplayName"]);
+            td.append(label);
+
+            var td1 = $("<td />");
+            td1.attr("style", "width: 20%");
+            td1.attr("align", "left");
+            td1.attr("padding", "10px");
+
+            var textBox = $("<input />").attr("type", "text").attr("name", fValue["Key"]).attr("id", fValue["DatabaseLookupVariableId"]).attr("style", "width: 150px;");
+            textBox.val(fValue["Value"]);
+            td1.append(textBox);
+
+            tr.append(td);
+            tr.append(td1);
+        }
+        else {
+            var td = $("<td />");
+            var td1 = $("<td />");
+            tr.append(td);
+            tr.append(td1);
+        }
+
+        if (sValue) {
+            var td2 = $("<td />");
+            td2.attr("style", "width: 30%");
+            td2.attr("align", "right");
+            td2.attr("padding", "10px");
+
+            var label1 = $("<label />");
+            label1.attr("style", "font-weight: bold;");
+            label1.text(sValue["DisplayName"]);
+            td2.append(label1);
+
+            var td3 = $("<td />");
+            td3.attr("style", "width: 20%");
+            td3.attr("align", "left");
+            td3.attr("padding", "10px");
+
+            var textBox1 = $("<input />").attr("type", "text").attr("name", sValue["Key"]).attr("id", sValue["DatabaseLookupVariableId"]).attr("style", "width: 150px;");
+            textBox1.val(sValue["Value"]);
+            td3.append(textBox1);
+
+            tr.append(td2);
+            tr.append(td3);
+        }
+        else {
+            var td2 = $("<td />");
+            var td3 = $("<td />");
+            tr.append(td2);
+            tr.append(td3);
+        }
+        table.append(tr);
+        div.append(table);
+
+        return div;
+    }
+
+    function GetDynamicLabel(fValue, sValue, tValue, ratePackageId, isFinalized) {
+        var div = $("<div />");
+        var table = $("<table />");
+        table.attr("style", "width: 100%");
+        table.attr("id", "newtable");
+        var tr = $("<tr />");
+
+        if (fValue) {
+            var td = $("<td />");
+            td.attr("style", "width: 30%");
+            td.attr("align", "right");
+            td.attr("padding", "10px");
+
+            var label = $("<label />");
+            label.attr("style", "font-weight: bold;");
+            label.text(fValue["DisplayName"] + ":");
+            td.append(label);
+
+            var td1 = $("<td />");
+            td1.attr("style", "width: 20%");
+            td1.attr("padding", "10px");
+            td1.attr("align", "left");
+
+            if (tValue) {
+                var textBox = $("<input />").attr("type", "text").attr("name", fValue["Key"]).attr("id", sValue["Key"]).attr("style", "width: 82px;").attr("disabled", "true");
+                var textBox1 = $("<input />").attr("type", "text").attr("name", tValue["Key"]).attr("id", sValue["Key"]).attr("style", "width: 82px;").attr("disabled", "true");
+                textBox.val(fValue["Value"]);
+                td1.append(textBox);
+                td1.append(" to ");
+                textBox1.val(tValue["Value"]);
+                td1.append(textBox1);
+            }
+            else {
+                var textBox = $("<input />").attr("type", "text").attr("name", fValue["Key"]).attr("id", sValue["Key"]).attr("style", "width: 150px;").attr("disabled", "true");
+                textBox.val(fValue["Value"]);
+                td1.append(textBox);
+            }
+
+            tr.append(td);
+            tr.append(td1);
+
+        }
+        else {
+            var td = $("<td />");
+            td.attr("style", "width: 30%");
+            td.attr("align", "right");
+            td.attr("padding", "10px");
+
+            var td1 = $("<td />");
+            td1.attr("style", "width: 20%");
+            td1.attr("padding", "10px");
+            td1.attr("align", "left");
+            tr.append(td);
+            tr.append(td1);
+        }
+
+        if (sValue) {
+            var td2 = $("<td />");
+            td2.attr("style", "width: 30%");
+            td2.attr("align", "right");
+            td2.attr("padding", "10px");
+
+            var label1 = $("<label />");
+            label1.attr("style", "font-weight: bold;");
+            label1.text(sValue["DisplayName"] + ": $");
+            td2.append(label1);
+
+            var td3 = $("<td />");
+            td3.attr("style", "width: 20%");
+            td3.attr("align", "left");
+            td3.attr("padding", "10px");
+            if (sValue["Value"] === null || sValue["Value"] === '' || sValue["Value"] === 'null' || sValue["Value"] === undefined) {
+                sValue["Value"] = 0.00;
+            }
+            if (!isFinalized && sValue['Key'] == 'RS_RateAdjustment') {
+                var textBox1 = $("<input />").attr("type", "text").attr("name", sValue["Key"]).attr("id", ratePackageId).attr("style", "width: 150px;").attr("placeholder", "0.00").css("border-color", "yellow");
+                textBox1.val(parseFloat(sValue["Value"]).toFixed(2));
+                td3.append(textBox1);
+            }
+            else {
+                var textBox1 = $("<input />").attr("type", "text").attr("name", sValue["Key"]).attr("id", sValue["Key"]).attr("style", "width: 150px;").attr("disabled", "true");
+                textBox1.val(parseFloat(sValue["Value"]).toFixed(2));
+                td3.append(textBox1);
+            }
+            tr.append(td2);
+            tr.append(td3);
+        }
+        else {
+            var td2 = $("<td />");
+            td2.attr("style", "width: 30%");
+            td2.attr("align", "right");
+            td2.attr("padding", "10px");
+
+            var td3 = $("<td />");
+            td3.attr("style", "width: 20%");
+            td3.attr("align", "left");
+            td3.attr("padding", "10px");
+            tr.append(td2);
+            tr.append(td3);
+        }
+        table.append(tr);
+        div.append(table);
+
+        return div;
+    }
+
+    $('#TextBoxContainer').off('change').on('change', function (e) {
+        let databaseLookupVariableId = e.target.id;
+        let val = document.getElementById(e.target.id).value; // single
+            $.ajax({
+                url: "@Url.AbsoluteAction("UpdateRedRateParameterTextBox", "Rate")",
+                data: JSON.stringify({ "databaseLookupVariableId": databaseLookupVariableId, "value": val }),
+                type: "POST",
+                contentType: "application/json;charset=utf-8",
+                success: function (response) {
+                    if (response.message) {
+                    }
+                },
+                error: function (errormessage) {
+                    StaticAlert({ content: errormessage });
+                }
+            });
+    });
+
+    $('#AnnualRSDetailsLabelContainer').off('change').on('change', function (e) {
+        let ratePackageId = e.target.id;
+        let val = e.target.value;
+        var gridObj = $("#tblProviderList").ejGrid("instance");
+        let selectedRowIndexValue = gridObj.selectedRowsIndexes[0];
+        $.ajax({
+            url: "@Url.AbsoluteAction("UpdateRateAdjustment", "Rate")",
+            data: JSON.stringify({ "ratePackageId": ratePackageId, "value": val }),
+            type: "POST",
+            contentType: "application/json;charset=utf-8",
+            success: function (response) {
+                if (!response.Success) return;
+
+                var redDateSelected = $("#drpRedDateList option:selected").text();
+                $("#btnReCalculate").prop("disabled", false);
+                $("#btnCalcAllProviders").prop("disabled", false);
+                $("#btnFinalizeAll").prop("disabled", false);
+                $("#btnUnFinalizeAll").prop("disabled", false);
+                $("#btnDeleteRate").prop("disabled", false);
+
+                LoadNotificationDialog("Get Info...").then(() => {
+                    return new Promise((resolve, reject) => {
+                        $.ajax({
+                            async: true,
+                            url: "@Url.AbsoluteAction("GetProvidersByRED", "Rate")",
+                            data: JSON.stringify({ "redDate": redDateSelected }),
+                            type: "POST",
+                            contentType: "application/json;charset=utf-8",
+                            success: function (result) {
+                                if (result.Success) {
+                                    $("#rateInfo").show();
+                                    var gridColumns = result.AnnualRateSettingViewModel.GridColumns;
+                                    var providerInformationlList = result.AnnualRateSettingViewModel.RatePackageViewModelList;
+
+                                    // Build Grid - Data binding
+                                    LoadProviderList(gridColumns, providerInformationlList);
+
+                                    $("#tblProviderList").ejGrid({
+                                        selectedRowIndex: selectedRowIndexValue
+                                    });
+
+                                    $("#divProviderInfo").show();
+
+                                    StateChangeUIElements(result);
+                                    resolve();
+                                }
+                                else {
+                                    StaticAlert({ content: result.Message || "Unknown error" }).then(() => {
+                                        resolve();
+                                    });
+                                }
+                            },
+                            error: function (errormessage) {
+                                StaticAlert({ content: errormessage.responseText || errormessage }).then(() => {
+                                    resolve();
+                                });
+                            }
+                        });
+                    });
+
+                }).then(() => {
+                    return ClearNotificationDialog();
+                });
+
+                //GetREDRateInfoRefreshGrid();
+            },
+            error: function (errormessage) {
+                StaticAlert({ content: errormessage });
+            }
+        });
+    });
+</script>

@@ -1,0 +1,100 @@
+﻿@*
+    DO NOT MODIFY OUTSIDE OF MSLC.STATLOG
+    This file comes from MSLC.Statlog, any changes to it will be wiped out when the nuget package is updated.
+    Please make the appropriate enhancements to MSLC.Statlog instead of here.
+*@
+
+@using MSLC.Portal.Configuration
+@using MSLC.StatLog.Configuration
+@using MSLC.StatLog.Domain
+@Styles.Render("~/Content/StatLog.css")
+@model MSLC.StatLog.MVC.ViewModels.EventManagementViewModel
+@{
+    Layout = PortalConfiguration.DetermineLayout("Menu");
+    ViewBag.Title = "Event Management";
+}
+
+<h2>Event Management</h2>
+
+<div id="dialogDiv" class="modal fade" tabindex="-1" aria-labelledby="windowTitleLabel" aria-hidden="true" role="dialog">
+    <div id="modal-dialog" class="modal-dialog" role="document">
+        <div id="dialogContent" style="font-size: 14px; width:100%"></div>
+        <div id="dialogMessage" style="font-size: 14px; width:100%"></div>
+    </div>
+</div>
+@if (TempData["Message"] != null)
+{
+    <br />
+    <br />
+    <div class="errorLabel mb-2" style="text-align: center;">
+        @Html.Raw(TempData["Message"].ToString())
+    </div>
+}
+<div class="mb-1">
+    @using (Html.BeginForm("WebControlSettingsFromReport", "Event", FormMethod.Post, new { enctype = "multipart/form-data" }))
+    {
+        @Html.AntiForgeryToken()
+        <div class="input-group d-inline row m-auto">
+            <div class="d-inline float-left mr-2">
+                <a href="@Url.AbsoluteAction("SaveWebControlsReport", "Event")" class="btn btn-kyBlue BoldMe">Download Report</a>
+            </div>
+            <div class="float-left d-inline mr-3">
+                @*<input class="btn btn-kyBlue" type="submit" value="Upload Report" />*@
+                <a onclick="return modalButton(this, 'medium')" href="@Url.AbsoluteAction("UploadReport", "Event")" class="btn btn btn-kyBlue BoldMe">Upload Report</a>
+            </div>
+            <div class="text-left d-inline float-left">
+                @*<input class="pt-2" type="file" name="fileUpload" id="fileSelect" />*@
+            </div>
+        </div>
+    }
+    <div class="button-box d-inline float-right">
+        <a target='_self' href="@Url.AbsoluteAction("ManageFileNames", "Event")" class="btn btn-kyBlue BoldMe mr-2">Manage File Name Templates</a>
+        <a onclick="return modalButton(this, 'tallerWider')" href="@Url.AbsoluteAction("DefaultEvents", "Event")" class="btn btn-kyBlue BoldMe mr-2">Manage Default Events</a>
+        <a onclick="return modalButton(this, '9080')" href="@Url.AbsoluteAction("Edit", "Event")?sEventID=0" class="btn btn-kyBlue BoldMe">Add Event</a>
+    </div>
+</div>
+@(Html.EJ().Grid<MSLC.StatLog.MVC.ViewModels.BasicEventInfo>
+    ("tblStatLogEvents")
+    .CssClass("mslcTable")
+    .Datasource(Model.EventList)
+    .AllowPaging()
+    .EnableRowHover(true)
+    .AllowSelection(false)
+    .AllowSorting(true)
+    .AllowFiltering(true)
+    .AllowTextWrap(true)
+    .TextWrapSettings(wrap => { wrap.WrapMode(WrapMode.Both); })
+    .FilterSettings(filter => { filter.FilterType(FilterType.Menu); filter.ShowPredicate(false); })
+
+    .ToolbarSettings(toolbar =>
+    {
+    toolbar.ShowToolbar().ToolbarItems(items =>
+    {
+    items.AddTool(ToolBarItems.Search);
+    });
+    })
+    .Columns(col =>
+    {
+    col.Template("#editStatLogEvents").HeaderText("Edit").CssClass("icon").TextAlign(TextAlign.Center).Width(10).Add();
+    col.Template("#manageStatLogEvents").HeaderText("Manage").CssClass("icon").TextAlign(TextAlign.Center).Width(10).Add();
+    col.Field(e => e.Name).HeaderText("Name").TextAlign(TextAlign.Center).Width(30).Add();
+    col.Field(e => e.Description).HeaderText("Description").TextAlign(TextAlign.Center).Width(30).Add();
+    if (StatLogConfiguration.IsPHIControlsEnabled)
+    {
+    col.Field(e => e.IsPHI).HeaderText("Is PHI?").TextAlign(TextAlign.Center).Width(10).Add();
+    }
+    })
+    .ClientSideEvents(events =>
+    {
+    events.TemplateRefresh("loadIcons");
+    }))
+<script id="editStatLogEvents" type="text/x-template">
+    <a onclick="return modalButton(this, '9080')" href="@Url.AbsoluteAction("Edit", "Event")?sEventID={{:sEventID}}">
+        <i data-feather="edit" aria-label="Edit"></i>
+    </a>
+</script>
+<script id="manageStatLogEvents" type="text/x-template">
+    <a target='_self' href="@Url.AbsoluteAction("Manage", "Event")?sEventID={{:sEventID}}">
+        <i data-feather="settings" aria-label="Settings"></i>
+    </a>
+</script>

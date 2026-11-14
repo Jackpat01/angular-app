@@ -1,0 +1,272 @@
+﻿<style type="text/css">
+    .e-grid .e-pager .e-pagercontainer {
+        float: left;
+    }
+
+    .e-grid .e-pager .e-pager-itemsinterval {
+        float: left;
+    }
+</style>
+<div id="window_CertifiedBedTransfers" class="modal fade" data-backdrop="static" role="dialog">
+    <div class="modal-dialog modal-xl" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Certified Bed Transfers</h3>
+                <button type="button" class="close" data-dismiss="modal" onclick="closeCertifiedBedTransfers()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <table style="width: 100%;">
+                    <colgroup>
+                        <col />
+                    </colgroup>
+                    <tbody>
+                        <tr>
+                            <td>
+                                <div id="tblCertifiedBedsTransfers"></div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    $(document).ready(function () {
+        ej.parseDateInUTC = true;
+        var clientSideTimeZoneDiff = new Date().getTimezoneOffset() / 60;
+
+        LoadNotificationDialog("Loading").then(() => {
+            return new Promise((resolve, reject) => {
+                $.ajax({
+                    async: true,
+                    url: "@Url.AbsoluteAction("GetAllCertifiedBedTransfers", "Rate")",
+                    type: "POST",
+                    cache: false,
+                    contentType: "application/json;charset=utf-8",
+                    success: function (result) {
+                        if (result.Success) {
+                            var cols = [];
+                            cols.push({ field: 'CertifiedBedTransfersId', headerText: 'PrimaryKeyID', isPrimaryKey: true, isIdentity: true, visible: false });
+                            // The onChange for ProviderFromNumber uses the field present here.
+                            cols.push({ field: 'ProviderId', visible: false });
+
+							cols.push({
+                                field: "ProviderFromNumber",
+                                headerText: "Provider From Number",
+								editTemplate: {
+									create: function () { return $("<input>"); },
+									read: function (args) {
+										args.ejAutocomplete('suggestionList').css('display', 'none');
+										return args.ejAutocomplete("getValue");
+									},
+                                    write: function (args) {
+										args.element.ejAutocomplete({
+											width: "100%",
+											dataSource: result.Providers,
+											//enableDistinct: true,
+											value: args.rowdata !== undefined ? args.rowdata["ProviderFromNumber"] : "",
+											allowSorting: true,
+											sortOrder: ej.SortOrder.Ascending,
+											emptyResultText: 'No Provider(s) found in list.',
+											popupHeight: '400px',
+											fields: {
+												text: "Name",
+												key: "Number"
+											},
+											watermarkText: 'Provider search',
+											minCharacter: 3,
+											multiColumnSettings: {
+												enable: true,
+												showHeader: true,
+												stringFormat: "{0}",
+												searchColumnIndices: [0, 1],
+												columns: [{ field: "Number", headerText: "Number" }, { field: "Name", headerText: "Name" }]
+											},
+                                            highlightSearch: true,
+                                            change: function (arg) {
+                                                const provRecord = arg.model.dataSource.find(p => p.Number == arg.value);
+                                                const editForm = document.getElementById("tblCertifiedBedsTransfers").querySelector("form").elements;
+
+                                                const provNameElement = editForm["ProviderFromName"];
+                                                provNameElement.value = provRecord?.Name ?? "";
+												const provIdElement = editForm["ProviderId"];
+												provIdElement.value = provRecord?.ProviderId ?? "";
+											} 
+										});
+									}
+								}, width: '30'
+                            });
+                            cols.push({
+                                field: 'EffectiveDate',
+                                headerText: 'Effective Date',
+                                width: '20',
+                                editType: ej.Grid.EditingType.DatePicker,
+                                type: "date",
+                                format: "{0:MM/dd/yyyy}"   // handle the formatting of the field.
+                            });
+                            cols.push({
+                                field: 'BedsOnHold', headerText: 'Beds On Hold', width: '15',
+                                type: 'dropdown',
+                                visible: true,
+                                allowEditing: true,
+                                editType: 'dropdownedit',
+                                editParams: {
+                                    dataSource: [
+                                        { text: 'Yes', value: 'Yes' },
+                                        { text: 'No', value: 'No' }
+                                    ],
+                                    fields: { text: 'text', value: 'value' },
+                                    value: 'Yes',  // default when adding new row
+                                },
+                                defaultValue: 'Yes'
+                            });
+                            cols.push({ field: 'CertifiedBedsTransferred', headerText: 'Certified Beds Transferred', editType: 'numericedit', width: '30', validationRules: { maxlength: '10' } });
+
+                            // The onChange for ProviderFromNumber uses the field present here.
+                            cols.push({ field: 'ProviderFromName', headerText: 'Provider From Name', width: '25', allowEditing: false });
+                            
+                            cols.push({ field: 'Comments', headerText: 'Comments', width: '40', validationRules: { maxlength: '50' } });
+
+                            $("#tblCertifiedBedsTransfers").ejGrid({
+                                dataSource: result.CertifiedBedTransfersListViewModel,
+                                columns: cols,
+                                toolbarSettings: {
+                                    showToolbar: true,
+                                    toolbarItems: [ej.Grid.ToolBarItems.Add, ej.Grid.ToolBarItems.Edit, ej.Grid.ToolBarItems.Delete, ej.Grid.ToolBarItems.Update, ej.Grid.ToolBarItems.Cancel]
+                                },
+                                pageSettings: { pageSize: 5, pageSizeList: [5, 10, 15, 20] },
+                                allowPaging: true,
+                                enableRowHover: true,
+                                allowSelection: true,
+                                allowSorting: true,
+                                allowTextWrap: true,
+                                editSettings: { allowEditing: true, allowAdding: true, allowDeleting: true, showDeleteConfirmDialog: true },
+                                actionComplete: function (args) {
+                                    if (args.requestType === "add")
+                                        args.rowData.BedsOnHold = "Yes";  // default to "Yes"
+                                },
+                                actionBegin: function (args) {
+                                    if (args.requestType == "save") {
+                                        //Add or Update
+                                        //********************** Local Store ************
+                                        // Use Localstorage to save the grid's "CurrentPageIndex" to reset it after Postback.
+                                        // Syncfusion Forum link for future reference:
+                                        // --https://www.syncfusion.com/forums/144600/retain-last-selected-row-and-page-in-grid-after-postback--
+                                        window.localStorage.removeItem("currentPageIndexCBT");
+                                        window.localStorage.setItem("currentPageIndexCBT", args.model.pageSettings.currentPage);
+                                        //********************** Local Store *************
+                                        if (moment(args.data.EffectiveDate, 'MM/DD/YYYY', true).isValid()) {
+                                            new Promise((res, rej) => {
+                                                $.ajax({
+                                                    async: true,
+                                                    url: "@Url.AbsoluteAction("SaveCertifiedBedTransfers", "Rate")",
+                                                    data: JSON.stringify({ value: args.data }),
+                                                    type: "POST",
+                                                    contentType: "application/json;charset=utf-8",
+                                                    dataType: "json",
+                                                    success: function (response) {
+                                                        if (!response.Success) {
+                                                            window.localStorage.removeItem("currentPageIndexCBT");
+                                                            StaticAlert({ content: "Error Saving Group Data" }).then(() => {
+                                                                res();
+                                                            });
+                                                        }
+                                                        else {
+                                                            //Re-bind Grid Data
+                                                            var currentPageIndex = parseInt(window.localStorage.getItem("currentPageIndexCBT"), 10);
+                                                            $("#tblCertifiedBedsTransfers").ejGrid({
+                                                                dataSource: response.CertifiedBedTransfersListViewModel
+                                                            });
+                                                            $("#tblCertifiedBedsTransfers").ejGrid({
+                                                                pageSettings: { currentPage: currentPageIndex },
+                                                            });
+
+                                                            res();
+                                                        }
+                                                    },
+                                                    error: function (errormessage) {
+                                                        StaticAlert({ content: errormessage.responseText }).then(() => {
+                                                            res();
+                                                        });
+                                                    }
+                                                });
+                                            });
+                                        }
+                                        else {
+                                            StaticAlert({ content: 'Please format Effective Date as "MM/DD/YYYY"' }).then(() => {
+                                                resolve();
+                                            });
+                                        }
+                                    }
+                                    else if (args.requestType == "delete") {
+                                        var id = args.data.CertifiedBedTransfersId;
+                                        new Promise((res, rej) => {
+                                            $.ajax({
+                                                async: true,
+                                                url: "@Url.AbsoluteAction("DeleteCertifiedBedTransfers", "Rate")",
+                                                data: JSON.stringify({ "id": id }),
+                                                type: "POST",
+                                                contentType: "application/json;charset=utf-8",
+                                                dataType: "json",
+                                                success: function (response) {
+                                                    if (!response.Success) {
+                                                        StaticAlert({ content: "Error Deleting Data" }).then(() => {
+                                                            res();
+                                                        });
+                                                    }
+                                                    else {
+                                                        //Re-bind Grid Data
+                                                        $("#tblGrid").ejGrid("dataSource", response.CertifiedBedTransfersListViewModel);
+
+                                                        res();
+                                                    }
+                                                },
+                                                error: function (errormessage) {
+                                                    StaticAlert({ content: errormessage.responseText }).then(() => {
+                                                        res();
+                                                    });
+                                                }
+                                            });
+                                        });
+                                    }
+                                    else {
+                                        var limit = args.model.dataSource.length;
+                                        for (let i = 0; i < limit; i++) {
+                                            let v = args.model.dataSource[i];
+                                            if (v.EffectiveDate != null && v.EffectiveDate.length > 10) {
+                                                v.EffectiveDate = new Date(Number(v.EffectiveDate.match(/\d+/)[0]));
+                                            }
+                                            if (v.EffectiveDate != null) {
+                                                v.EffectiveDate = new Date(v.EffectiveDate).addHours(ej.serverTimezoneOffset + clientSideTimeZoneDiff);
+                                            }
+                                        }
+                                    }
+                                }
+                            });
+
+                            resolve();
+                        }
+                    },
+                    error: function (errormessage) {
+                        StaticAlert({ content: errormessage.responseText }).then(() => {
+                            resolve();
+                        });
+                    }
+
+                });
+            });
+        }).then(() => {
+            return ClearNotificationDialog();
+        });
+    });
+
+    function closeCertifiedBedTransfers() {
+        LoadNotificationDialog("Closing Certified Bed Transfer Data...").then(() => {
+            $("#window_CertifiedBedTransfers").hide();
+        }).then(() => {
+            return ClearNotificationDialog();
+        });
+    }
+</script>

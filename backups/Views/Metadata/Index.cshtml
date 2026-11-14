@@ -1,0 +1,78 @@
+﻿@*
+    DO NOT MODIFY OUTSIDE OF MSLC.STATLOG
+    This file comes from MSLC.Statlog, any changes to it will be wiped out when the nuget package is updated.
+    Please make the appropriate enhancements to MSLC.Statlog instead of here.
+*@
+
+@using MSLC.Portal.Configuration
+@using MSLC.Portal.MVC.Utility
+@model MSLC.StatLog.MVC.ViewModels.MetadataViewModel.Index
+@{
+    Layout = PortalConfiguration.DetermineLayout("Menu");
+    ViewBag.Title = "Metadata Management";
+}
+@Html.Script("~/Scripts/Pages/Metadata/Index.js", "jquery")
+@* @Styles.Render("~/Content/Metadata.css") *@
+
+<h2>Metadata Management</h2>
+
+<div id="dialogDiv" class="modal fade" tabindex="-1" aria-labelledby="windowTitleLabel" aria-hidden="true" role="dialog">
+    <div id="modal-dialog" class="modal-dialog" role="document">
+        <div id="dialogContent" style="font-size: 14px; width:100%"></div>
+        <div id="dialogMessage" style="font-size: 14px; width:100%"></div>
+    </div>
+</div>
+
+@if (TempData["Message"] != null)
+{
+    <br />
+    <br />
+    <div class="errorLabel mb-2" style="text-align: center;">
+        @Html.Raw(TempData["Message"].ToString())
+    </div>
+}
+
+<div class="mb-1 d-flex flex-row-reverse">
+    <div class="button-box">
+        <a onclick="return modalButton(this, 'mediumSmall')" href="@Url.AbsoluteAction("Edit", "Metadata")?schemaID=0" class="btn btn-kyBlue BoldMe">Add New Metadata</a>
+    </div>
+</div>
+@* @(Html.EJ().DropDownList("customersList") *@
+@*     .Datasource((IEnumerable<SelectListItem>) Model.SchemaNames) *@
+@*     .DropDownListFields(df => df.ID("Value").Text("Text").Value("Value")) *@
+@*     ) *@
+
+@(Html.EJ().Grid<SelectListItem>("tblSchemaList")
+    .CssClass("mslcTable")
+    .Datasource(Model.SchemaNames)
+    .AllowPaging()
+    .EnableRowHover(true)
+    .AllowSelection(false)
+    .AllowSorting(true)
+    .AllowFiltering(true)
+    .AllowTextWrap(true)
+    .TextWrapSettings(wrap => { wrap.WrapMode(WrapMode.Both); })
+    .FilterSettings(filter => { filter.FilterType(FilterType.Menu); filter.ShowPredicate(false); })
+
+    .ToolbarSettings(toolbar =>
+    {
+        toolbar.ShowToolbar().ToolbarItems(items =>
+        {
+            items.AddTool(ToolBarItems.Search);
+        });
+    })
+    .Columns(col =>
+    {
+        col.Template("#manageSchema").HeaderText("Edit").CssClass("icon").TextAlign(TextAlign.Center).Width(10).Add();
+        col.Field(e => e.Text).HeaderText("Name").TextAlign(TextAlign.Center).Width(30).Add();
+    })
+    .ClientSideEvents(events =>
+    {
+        events.TemplateRefresh("loadIcons");
+    }))
+
+<script id="manageSchema" type="text/x-template">
+    <a href="@Url.AbsoluteAction("Manage", "Metadata")?name={{:Value}}">
+        <i data-feather="settings" aria-label="Manage"></i>
+    </a>
+</script>

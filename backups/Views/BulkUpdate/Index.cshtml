@@ -1,0 +1,214 @@
+﻿@*
+    DO NOT MODIFY OUTSIDE OF MSLC.STATLOG
+    This file comes from MSLC.Statlog, any changes to it will be wiped out when the nuget package is updated.
+    Please make the appropriate enhancements to MSLC.Statlog instead of here.
+*@
+
+@Styles.Render("~/Content/StatLog.css")
+@using MSLC.Portal.Configuration
+@using MSLC.Portal.MVC.Utility
+@model MSLC.StatLog.MVC.ViewModels.BulkUpdateViewModel.View
+@Html.Script("~/Scripts/Pages/BulkUpdate/Index.js", "jquery")
+
+@{
+    Layout = Layout = PortalConfiguration.DetermineLayout("Menu");
+    ViewBag.Title = "Due Date Update";
+}
+
+<style>
+    .e-rowcell.noWrap {
+        white-space: pre-wrap !important;
+    }
+</style>
+
+<div id="dvAdjustDueDate" data-url="@Url.AbsoluteAction("AdjustDueDate","BulkUpdate")"></div>
+<div id="MassDueDateReportURL" data-url="@Url.AbsoluteAction("GenerateMassDueDateReport", "BulkUpdate")"></div>
+<div id="DownloadReportURL" data-url="@Url.AbsoluteAction("DownloadReport", "BulkUpdate")"></div>
+
+@if (TempData["Message"] != null && !string.IsNullOrEmpty(TempData["Message"].ToString()))
+{
+    <br />
+    <br />
+    <center>
+        <div class="errorLabel">
+            @Html.Raw(TempData["Message"].ToString())
+        </div>
+    </center>
+}
+
+
+@if (TempData["Message"] != null && !string.IsNullOrEmpty(TempData["Message"].ToString()))
+{
+    TempData["Message"] = null;
+}
+
+@using (Html.BeginForm("BulkUpdate", "BulkUpdate", FormMethod.Post, new { id = "frmSubmit", enctype = "multipart/form-data" }))
+{
+    @Html.AntiForgeryToken()
+    @Html.HiddenFor(x => x.ProviderIDs, new { id = "hdnProviderIDs" })
+    @*@Html.HiddenFor(x => x.SelectedEventID, new { id = "hdnEventID" })*@
+    <div class="modal hide" style="width: 550px; margin-left: 0px; margin-right: 0px; position: fixed; top: 20%; left: 35%;" id="confirmForm" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <!-- Modal Header -->
+                <div class="modal-header" style="background-color: #51a351;">
+                    <h3 style="color: black !important; font-weight: bold;">Confirm</h3>
+                    <a href="#" class="close" data-dismiss="modal">&times;</a>
+                </div>
+                <!-- Modal body -->
+                <center>
+                    <div class="modal-body">
+                        Prior to Mass Due Date changes being applied in the StatLog History, you are required to download the following report review and then you will be able to confirm the Mass Due Date Changes.
+                    </div>
+                    <div>
+                        <button type="button" id="btnReport" onclick="GetReport()" class="btn btn-success m-2" value="Download Report">Download Report</button>
+                    </div>
+                    <div id="dvConfirmReportDownload">
+                        @Html.CheckBoxFor(m => m.ReportDownloaded, new { @id = "chkConfirmText", onchange = "enableFormSubmission()" }) I confirm that I have reviewed the report and that the proposed changes contained within are accurate.
+                    </div>
+                </center>
+                <!-- Modal footer -->
+                <div id="addModalFooter" class="modal-footer">
+                    <div id="dvControls">
+                        <button class="btn btn-success BoldMe" id="btnUpdate" name="Command" type="submit" style="margin: 10px;">Confirm Changes</button>
+                        <a href="#" class="btn btn-basic BoldMe" data-dismiss="modal">Cancel</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="modal hide" style="width: 550px; margin-left: 0px; margin-right: 0px; position: fixed; top: 20%; left: 35%;" id="dateAdjustForm" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <!-- Modal Header -->
+                <div class="modal-header" style="background-color: #51a351;">
+                    <h3 style="color: black !important; font-weight: bold;">New Date Date Adjusted</h3>
+                    <a href="#" class="close" data-dismiss="modal">&times;</a>
+                </div>
+                <!-- Modal body -->
+                <center>
+                    <div class="modal-body">
+                        Input Due Date falls on a weekend/holiday. Due date has been adjusted to next available day.
+                    </div>
+                </center>
+                <!-- Modal footer -->
+                <div id="addModalFooter" class="modal-footer">
+                    <div id="dvControls">
+                        <a href="#" class="btn btn-basic BoldMe" data-dismiss="modal">Close</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div>
+        <center>
+            <div style="margin: 15px; margin-top: 15px; max-width: 1500px;">
+                <fieldset style="width: 100%; max-width: 1000px;">
+                    <legend style="text-align: left;"><b style="float: left;">Update Due Dates</b><span style="float: right;"></span></legend>
+                    <hr />
+                    <table style="width: 100%;">
+                        <tr>
+                            <th align="left">
+                                <label for="SelectedStatLogTypeID_dropdown">StatLog Type</label>
+                            </th>
+                            <th align="left">
+                                <label for="txtEndDate">StatLog Period End Date</label>
+                            </th>
+                        </tr>
+                        <tr>
+                            <td width="50%">
+                                @(Html.EJ().DropDownList("SelectedStatLogTypeID")
+                                        .Datasource(Model.StatLogTypeList.Select(e => new { Name = e.Name, AuditType = e.AuditType }).ToList())
+                                        .DropDownListFields(df => df.ID("ID").Text("Name").Value("AuditType"))
+                                        .SelectedIndex(-1)
+                                        .Width("300px")
+                                        .WatermarkText("Select StatLog Type")
+                                        .ClientSideEvents(e => e.Change("change"))
+                                    )
+                            </td>
+
+                            <td width="50%">
+                                @Html.TextBoxFor(x => x.EndDate, "{0:MM/dd/yyyy}", new { ID = "txtEndDate", @class = "datefield", type = "text", @style = "width: 100px", aria_label="End Date" })
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <div id="BeginDateValidation" class="field-validation-error"></div>
+                            </td>
+                            <td>
+                                <div id="EndDateValidation" class="field-validation-error"></div>
+                            </td>
+                        </tr>
+                    </table>
+                    <div id="tblProviderSpecific">
+                        <table style="width: 100%;">
+                            <tr>
+                                <th align="left">
+                                    <label for="ProviderGrid_searchbar">Providers</label>
+                                </th>
+                            </tr>
+                            <tr>
+                                <td style="margin-top: 8px; margin-bottom: 8px;">
+                                    <button id="anchSelectAll" class="btn btn-small btn-kyBlue BoldMe" onclick="SelectAll();" type="button">Select All</button> &nbsp;&nbsp;
+                                    <button id="anchSelectNone" class="btn btn-small btn-UofL BoldMe" onclick="SelectNone();" type="button">Select None</button>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td style="padding-bottom: 10px">
+                                    @(Html.EJ().Grid<object>("ProviderGrid")
+                                    .Datasource(Model.ProviderList)
+                                    .AllowPaging()
+                                    .EnableRowHover(true)
+                                    .AllowSelection(false)
+                                    .AllowSorting(true)
+                                    .AllowFiltering(true)
+                                    .AllowTextWrap(true)
+                                    .TextWrapSettings(wrap => { wrap.WrapMode(WrapMode.Both); })
+                                    .FilterSettings(filter => { filter.FilterType(FilterType.Menu); filter.ShowPredicate(false); })
+
+                                    .ToolbarSettings(toolbar =>
+                                    {
+                                        toolbar.ShowToolbar().ToolbarItems(items =>
+                                        {
+                                            items.AddTool(ToolBarItems.Search);
+                                        });
+                                    })
+                                    .Columns(col =>
+                                    {
+                                        col.HeaderText("Select").Template("<input type = 'checkbox' id = 'chkProv_{{:ARUMProviderID}}' class = 'providerCheck' value = '{{:ARUMProviderID}}' name = 'ProvIDs' onclick = 'SetProvIDs(\"{{:ARUMProviderID}}\")' aria-label='Select Provider' />").TextAlign(TextAlign.Center).Width(18).AllowSorting(false).Add();
+                                        col.Field("Number").HeaderText(Model.PrimaryIdentifier).TextAlign(TextAlign.Center).Width(22).Add();
+                                        col.Field("Name").HeaderText("Name").TextAlign(TextAlign.Center).Width(40).Add();
+                                    })
+                                    .ClientSideEvents(events =>
+                                    {
+                                        events.ActionComplete("onProvActionComplete");
+                                    })
+				                    )
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <b>New Due Date: </b>
+                                    @Html.TextBoxFor(x => x.NewDueDate, "{0:MM/dd/yyyy}", new { ID = "txtNewDueDate", @class = "datefield", type = "text", @style = "width: 100px", aria_label = "New Due Date" })
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <div id="DueDateValidation" class="field-validation-error"></div>
+                                </td>
+                            </tr>
+                        </table>
+                    </div>
+
+                    <div id="dvConfirmUpdate">
+                        <button type="button" class="btn btn-success BoldMe" id="btnUpdate" style="margin: 10px;" onclick="openConfirmModal()">Update</button>
+                    </div>
+                </fieldset>
+                <br />
+                <div id="dvLoading" style="display: none; text-align: center;">
+                    <img src="~/Images/loading.gif" alt="Loading" width="32" height="32" />
+                </div>
+            </div>
+        </center>
+    </div>
+}

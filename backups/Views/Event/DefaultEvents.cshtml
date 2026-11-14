@@ -1,0 +1,144 @@
+﻿@*
+    DO NOT MODIFY OUTSIDE OF MSLC.STATLOG
+    This file comes from MSLC.Statlog, any changes to it will be wiped out when the nuget package is updated.
+    Please make the appropriate enhancements to MSLC.Statlog instead of here.
+*@
+
+@Styles.Render("~/Content/StatLog.css")
+@using MSLC.Portal
+@using MSLC.Portal.Configuration
+@using MSLC.Portal.MVC.Utility
+@model MSLC.StatLog.MVC.ViewModels.DefaultEventsViewModel
+@{
+    Layout = null;
+}
+@Html.Script("~/Scripts/Pages/Event/DefaultEvents.js", "jquery")
+@using (Html.BeginForm("SaveDefaultEvents", "Event", FormMethod.Post, new { id = "frmSubmit", enctype = "multipart/form-data", @class = "modal-form", defaultbutton = "btnSave"}))
+{
+    @*@Html.HiddenFor(m => m.statLogEvent.GroupCode)*@
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3 id="myModalLabel" style="text-align: left;">
+                Edit Default Events
+            </h3>
+            <button href="#" class="close" data-dismiss="modal">&times;</button>
+        </div>
+        <div id="dvGetDefaultEventsURL" data-url="@Url.AbsoluteAction("GetDefaultEvents", "Event")"></div>
+        <div id="dvSaveDefaultEventsURL" data-url="@Url.AbsoluteAction("SaveDefaultEvents", "Event")"></div>
+        <div class="modal-body">
+            <div class="w-100 d-flex justify-content-between mb-2">
+                <div>
+                    <label for="ProviderType_hidden">Provider Type</label>
+                    @(Html.EJ().DropDownList("ProviderType")
+                        .Datasource(Model.providerTypes)
+                        .DropDownListFields(builder => builder.ID("Value").Value("Value").Text("Text"))
+                        .SelectedIndex(Model.providerTypes.Length == 1 ? 0 : -1)
+                        .Width("300px")
+                        .WatermarkText("Select Provider Type")
+                        .ClientSideEvents(e =>
+                        {
+                            e.PopupHide("changeProviderType");
+                        }))
+                </div>
+                <img id="dvLoading" class="hide align-self-end" src="~/Images/loading.gif" alt="Loading" width="48" height="48" />
+                <div>
+                    <label for="AuditType_hidden">@PortalConfiguration.AuditTypeReplacementName</label>
+                    @(Html.EJ().DropDownList("AuditType")
+                        .Datasource(Model.auditTypes)
+                        .DropDownListFields(builder => builder.ID("Value").Value("Value").Text("Text"))
+                        .SelectedIndex(Model.providerTypes.Length == 1 && Model.auditTypes.Length == 1 ? 0 : -1)
+                        .Enabled(false)
+                        .Width("300px")
+                        .WatermarkText("Select " + PortalConfiguration.AuditTypeReplacementName)
+                        .ClientSideEvents(e =>
+                        {
+                            e.PopupHide("changeAuditType");
+                        }))
+                </div>
+            </div>
+            <hr class="p-0" />
+            <div class="w-100 pt-2 d-flex justify-content-between">
+                <div class="col-5">
+                    @(Html.EJ().ListBox("AllEvents")
+                        .Datasource(Model.allEvents)
+                        .ListBoxFields(builder => builder.ID("Value").Value("Value").Text("Text"))
+                        .AllowDrag(true)
+                        .AllowDrop(true)
+                        .AllowMultiSelection(true)
+                        .EnableWordWrap(false)
+                        .Width("100%")
+                        .CssClass("mw-100")
+                        .Enabled(false)
+                        .ClientSideEvents(e =>
+                        {
+                            e.Create("onCreate");
+                            e.ItemDragStart("itemDragStart");
+                            e.ItemDragStop("itemDragStop");
+                        }))
+                </div>
+
+                <div class="middle-buttons align-self-center">
+                    @(Html.EJ().Button("Add")
+                        .Text(">>")
+                        .ShowRoundedCorner(true)
+                        .Type(ButtonType.Button)
+                        .Enabled(false)
+                        .ClientSideEvents(e => e.Click("addEvent")))
+                    <br />
+                    <br />
+                    @(Html.EJ().Button("Remove")
+                        .Text("<<")
+                        .ShowRoundedCorner(true)
+                        .Type(ButtonType.Button)
+                        .Enabled(false)
+                        .ClientSideEvents(e => e.Click("removeEvent")))
+                </div>
+
+                <div class="col-5">
+                    @(Html.EJ().ListBox("DefaultEvents")
+                        .ListBoxFields(builder => builder.ID("Value").Value("Value").Text("Text"))
+                        .AllowDrag(true)
+                        .AllowDrop(true)
+                        .AllowMultiSelection(true)
+                        .EnableWordWrap(false)
+                        .Width("100%")
+                        .CssClass("mw-100")
+                        .Enabled(false)
+                        .ClientSideEvents(e =>
+                        {
+                            e.Create("onCreate");
+                            e.ItemDragStart("itemDragStart");
+                            e.ItemDragStop("itemDragStop");
+                        }))
+                </div>
+            </div>
+        </div>
+
+        <div class="modal-footer mslcModalFooter" id="dvFooter" style="text-align: left !important;">
+            <div class="myImage" style="display: none; text-align: center;">
+                <img src="~/Images/loading.gif" alt="Loading" width="32" height="32" />
+            </div>
+            <div class="myControls">
+                <button id="btnClose" class="btn btn-basic BoldMe" data-dismiss="modal" aria-hidden="true">Close</button>&nbsp;&nbsp;
+                <button id="btnSave" type="submit" class="btn btn-success BoldMe disabled" name="Command" value="Save">Save</button>
+                @*@if (Model.statLogEvent.IsActive && Model.statLogEvent.EventID != 0)
+                    {
+                        <button type="submit" class="btn btn-danger BoldMe" name="Command" value="Deactivate">Deactivate</button>
+                    }
+                    else if (!Model.statLogEvent.IsActive && Model.statLogEvent.EventID != 0)
+                    {
+                        <button type="submit" class="btn btn-success BoldMe" name="Command" value="Activate">Activate</button>
+                    }*@
+            </div>
+        </div>
+    </div>
+}
+
+<div id="SyncFusionScript">
+    <script src="@Url.AbsoluteContent("~/Scripts/ej/common/ej.unobtrusive.min.js")"></script>
+</div>
+
+<script>
+    changeProviderType();
+    changeAuditType();
+</script>

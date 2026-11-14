@@ -1,0 +1,276 @@
+﻿﻿@model  WebPortal_OH_FI.Models.ViewModels.RateParametersTableViewModel
+<style type="text/css">
+    .nav-tabs .nav-item.show .nav-link, .nav-tabs .nav-link.active {
+        background: moccasin;
+        border-bottom: 2px solid green;
+    }
+
+    th, td {
+        padding: 10px;
+    }
+    .e-pager-itemsinterval {
+        direction: rtl;
+        float: left;
+    }
+</style>
+<div style='width: 100%; font-weight: bold;'>
+    <div><h1>Rate Parameters Table</h1></div>
+</div>
+
+<div>
+    <table>
+        <tr>
+            <td>RED:</td>
+            <td>@Html.DropDownListFor(model => model.REDDate, Model.RedDateList, "RED Date List", new { ID = "RateParameterRED", @style = "width: 130px", aria_label="RED" })</td>
+            <td><input id="addRed" value="Add New RED" type="date" class="datefield" style="width: 165px;" aria-label="Add RED" /></td>
+            <td><input id="btnAddRed" value="ADD RED" onclick="AddRed()" type="submit" class="btn btn-success" /></td>
+        </tr>
+    </table>
+</div>
+
+<center>
+    <div id="rateTable">
+        @(Html.EJ().Grid<object>("tblREDInfo")
+            .CssClass("mslcTable")
+            .Datasource(ds => ds.Json(Model.RedInfoItems))
+            .AllowPaging()
+            .Locale("en-US")
+            .EnableRowHover(true)
+            .AllowSelection(true)
+            .AllowSorting(true)
+            .AllowFiltering(true)
+            .AllowTextWrap(true)
+            .TextWrapSettings(wrap => { wrap.WrapMode(WrapMode.Both); })
+            .FilterSettings(filter => { filter.FilterType(FilterType.Menu); filter.ShowPredicate(false); })
+            .PageSettings(p =>
+            {
+                p.PageSize(5);
+                p.PageSizeList(new List<int> () { 5, 10, 15, 20 });
+            })
+            .TextWrapSettings(wrap => { wrap.WrapMode(WrapMode.Both); })
+            .FilterSettings(filter =>
+            {
+                filter.FilterType(FilterType.Menu);
+                filter.ShowPredicate(false);
+            })
+            .EditSettings(edit =>
+            {
+                edit.AllowEditing();
+                edit.ShowDeleteConfirmDialog();
+                if (Model.IsUserAdmin)
+                {
+                    edit.AllowAdding();
+                    edit.AllowDeleting();
+                }
+            })
+            .ToolbarSettings(toolbar =>
+            {
+                toolbar.ShowToolbar().ToolbarItems(items =>
+                {
+                    items.AddTool(ToolBarItems.Edit);
+                    items.AddTool(ToolBarItems.Update);
+                    items.AddTool(ToolBarItems.Cancel);
+                    if (Model.IsUserAdmin)
+                    {
+                        items.AddTool(ToolBarItems.Add);
+                        items.AddTool(ToolBarItems.Delete);
+                    }
+                });
+            })
+            .Columns(col =>
+            {
+                col.Field("DatabaseLookupVariableId").HeaderText("DatabaseLookupVariableId").IsPrimaryKey(true).Visible(false).TextAlign(TextAlign.Left).Width(25).Add();
+                col.Field("StartDate").HeaderText("StartDate").IsPrimaryKey(false).Visible(false).TextAlign(TextAlign.Left).Width(25).Add();
+                col.Field("ValueType").HeaderText("ValueType").IsPrimaryKey(false).Visible(false).TextAlign(TextAlign.Left).Width(25).Add();
+                col.Field("DisplayName").HeaderText("Display Name").ValidationRules(v => v.AddRule("required", true)).TextAlign(TextAlign.Left).Width(25).AllowEditing(Model.IsUserAdmin).Add();
+                col.Field("Key").HeaderText("Variable Name").ValidationRules(v => v.AddRule("required", true)).TextAlign(TextAlign.Left).Width(25).AllowEditing(Model.IsUserAdmin).Add();
+                col.Field("Value").HeaderText("Value").ValidationRules(v => v.AddRule("required", true)).TextAlign(TextAlign.Left).Width(25).Add();
+            }).ClientSideEvents(events =>
+            {
+                events.ActionBegin("actionBeginRED");
+            }))
+    </div>
+</center>
+
+<div id="SyncFusionScript">
+    <script src="@Url.AbsoluteContentUri("~/Scripts/ej/common/ej.unobtrusive.min.js")"></script>
+</div>
+
+<script>
+    // For RED Date list
+    $(document).ready(function () {
+        $("#btnSearchRed").prop("disabled", true); // Disables
+        $("#tblREDInfo").hide();
+        $("#RateParameterRED").change(function ()
+        {
+            var RateEffectiveDate = $('#RateParameterRED option:selected').text();
+            if (RateEffectiveDate != "RED Date List") {
+                // This doesn't need to be in a Promise as there is no action after.
+                $.ajax({
+                    url: "@Url.AbsoluteAction("GetRateParamtersByRED", "Rate")",
+                    data: JSON.stringify({ "date": RateEffectiveDate }),
+                    type: "POST",
+                    cache: false,
+                    contentType: "application/json;charset=utf-8",
+                    success: function (result) {
+                        $("#btnAddRed").prop("disabled", true);
+                        $('#addRed').val('');
+                        $("#tblREDInfo").ejGrid("dataSource", result);
+
+						window.localStorage.removeItem("currentPageIndex");
+                        $("#tblREDInfo").ejGrid({
+							pageSettings: { currentPage: 1 },
+						});
+                        $("#tblREDInfo").show();
+                    },
+                    error: function (errormessage) {
+                        StaticAlert({ content: errormessage.responseText });
+                    }
+                });
+            } else {
+                $("#tblREDInfo").hide();
+            }
+        });
+
+        // For Add Red Date
+        $("#btnAddRed").prop("disabled", true); // Disables
+        $("#addRed").change(function () {
+            var val = $('#addRed').val();
+            if (val != "") {
+                let v = Date.parse(val);
+                if (v > Date.parse('1900-01-01')) $("#btnAddRed").prop("disabled", false);
+                else $("#btnAddRed").prop("disabled", true); // Disables
+            } else {
+                $("#btnAddRed").prop("disabled", true); // Disables
+            }
+        });
+    });
+
+    function AddRed() {
+        var rateEffectiveDateListing = {
+            RateEffectiveDate: $('#addRed').val()
+        }
+        $.ajax({
+            url: "@Url.AbsoluteAction("AddRed", "Rate")",
+            data: JSON.stringify(rateEffectiveDateListing),
+            type: "POST",
+            contentType: "application/json;charset=utf-8",
+            success: function (result) {
+                if (!result.Success) {
+                    StaticAlert({ content: result.Message }).then(() => {
+                        $("#RateParameterRED option").filter(function () {
+                            return this.text == rateEffectiveDateListing.RateEffectiveDate;
+                        }).attr('selected', true);
+                        $("#RateParameterRED").trigger('change');
+                        $('#addRed').val('+ Add RED').trigger('change');
+                    });
+                }
+                else {
+                         var ddl = $('#RateParameterRED');
+                         ddl.empty();
+                         $(document.createElement('option'))
+                             .attr('value', '')
+                             .text('Select RED')
+                             .appendTo(ddl);
+                         $(result.rpt.RedDateList).each(function () {
+                             $(document.createElement('option'))
+                                 .attr('value', this.Value)
+                                 .text(this.Text)
+                                 .appendTo(ddl);
+                         });
+
+                    $("#RateParameterRED option").filter(function () {
+                        return this.text == rateEffectiveDateListing.RateEffectiveDate;
+                    }).attr('selected', true).trigger('change');
+                }
+            },
+                error: function (errormessage) {
+                    StaticAlert({ content: errormessage });
+                }
+            });
+    }
+
+    function actionBeginRED(args) {
+        let previousValue = { ...args.previousData };
+        if (args.requestType == "save") {
+            //Update
+            //********************** Local Store ************
+            // Use Localstorage to save the grid's "CurrentPageIndex" to reset it after Postback.
+            // Syncfusion Forum link for future reference:
+            // --https://www.syncfusion.com/forums/144600/retain-last-selected-row-and-page-in-grid-after-postback--
+            window.localStorage.removeItem("currentPageIndex");
+            window.localStorage.setItem("currentPageIndex", args.model.pageSettings.currentPage);
+            //********************** Local Store ************
+            let table = this;
+            StaticConfirm({
+                title: "Update Rate Parameter Values",
+                content: "Modifying these values can alter the Rate Calculation, is this correct?",
+                buttons: ["Ok", "Cancel"]
+            }).then(function (key) {
+                let value = { ...args.data };
+                if (key != 0) {
+                    table.model.dataSource[args.selectedRow] = previousValue;
+                    value = { ...previousValue };
+                }
+                const selectedEffectiveDate = $("#RateParameterRED").val();
+
+                $.ajax({
+                    async: true,
+                    url: "@Url.AbsoluteAction("UpdateRateParameters", "Rate")",
+                    data: JSON.stringify({ value: value, "redDate": $('#RateParameterRED option:selected').text() }),
+                    dataType: 'json',
+                    type: "POST",
+                    contentType: "application/json;charset=utf-8",
+                    success: function (result) {
+                        if (result == null || !result.Success) {
+                            window.localStorage.removeItem("currentPageIndex");
+                            window.localStorage.setItem("currentPageIndex", 1);
+                            StaticAlert({ content: result.Message });
+                        }
+                        else {
+                            var currentPageIndex = parseInt(window.localStorage.getItem("currentPageIndex"), 10);
+                            $("#tblREDInfo").ejGrid("dataSource", result.ViewModel);
+                            $("#tblREDInfo").ejGrid({
+                                pageSettings: { currentPage: currentPageIndex },
+                            });
+
+                            $("#tblREDInfo").show();
+            //                 $("#RateParameterRED option").filter(function () {
+						            //return this.value == selectedEffectiveDate;
+            //                 }).attr('selected', true).trigger('change');
+                        }
+                    },
+                    error: function (errormessage) {
+				           window.localStorage.removeItem("currentPageIndex");
+                        StaticAlert({ content: errormessage.responseText });
+                    }
+                 });
+            })
+
+        }
+        else if (args.requestType == "delete") {
+            //Delete
+            $.ajax({
+                url: "@Url.AbsoluteAction("RemoveRateParameters", "Rate")",
+                data: JSON.stringify({ value: args.data, "date": $('#RateParameterRED option:selected').text() }),
+                type: "POST",
+                contentType: "application/json;charset=utf-8",
+                dataType: "json",
+                success: function (result) {
+                    if (!result.Success) {
+                        StaticAlert({ content: "Error Deleting Group Data" });
+                    }
+                    else {
+                        $("#tblREDInfo").ejGrid("dataSource", result.ViewModel);
+                        $("#tblREDInfo").show();
+                    }
+                },
+                error: function (errormessage) {
+                    args.canel = true;
+                    window.localStorage.removeItem("currentPageIndex");
+                    StaticAlert({ content: errormessage.responseText });
+                }
+            });
+        }
+    }
+</script>

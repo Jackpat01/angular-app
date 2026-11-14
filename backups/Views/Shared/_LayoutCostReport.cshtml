@@ -1,0 +1,368 @@
+﻿@using MSLC.Portal.Configuration
+@using MSLC.Portal.MVC.Utility
+@using WebPortal_OH_FI.Common
+@using WebPortal_OH_FI.Web
+@using Scripts = System.Web.Optimization.Scripts
+@{
+    string Email = PortalConfiguration.HelpDeskEmail;
+    var classification = RetrieveSession.Classification;
+    string providerType = classification == null ? null : classification.DisplayName;
+    var catalog = Session["InitialCatalogFromSession"];
+    bool canAccessOCRT = RetrieveSession.CanAccessFeature("CostReport:View");
+}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>@ViewBag.Title</title>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width" />
+    <!--[if lt IE 9]>
+            <meta http-equiv="X-UA-Compatible" content="IE=8" />
+            <script src="~/Scripts/json2.js"></script>
+        <![endif]-->
+    <!--[if (gte IE 9) | (!IE) | IE 9]><!-->
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <!--<![endif]-->
+    <link rel='icon' href='~/favicon.ico' type='image/x-icon'>
+    <link rel='shortcut icon' href='~/favicon.ico' type='image/x-icon' />
+    <script src="~/Scripts/jquery.min.js" type="text/javascript"></script>
+    <script src="~/Scripts/jquery.validate.min.js" type="text/javascript"></script>
+    <script src="~/Scripts/jquery.validate.unobtrusive.min.js" type="text/javascript"></script>
+    <script src="~/Scripts/bootstrap.min.js" type="text/javascript"></script>
+    <script src="~/Scripts/site.js" type="text/javascript"></script>
+    <script src="~/Scripts/modernizr-2.8.3.js" type="text/javascript"></script>
+    <script src="~/Scripts/bootstrap-datepicker.js" type="text/javascript"></script>
+    <script src="~/Scripts/date.js" type="text/javascript"></script>
+    @*<script src="~/Scripts/jquery.fileDownload.js" type="text/javascript"></script>*@
+    <script src="~/Scripts/jquery.cookie.js" type="text/javascript"></script>
+    <script src="~/Scripts/Pages/Index.js" type="text/javascript"></script>
+    <script src="~/Scripts/Pages/LogOut.js" type="text/javascript"></script>
+    <script src="~/Scripts/moment.min.js" type="text/javascript"></script>
+    @*<script src="~/Content/feather-icons/dist/feather.min.js"></script>*@  @*This is used to load icons https://feathericons.com/*@
+    <script src="~/Scripts/jqGrid/grid.locale-en.js"></script>
+    <script src="~/Scripts/jqGrid/jquery.jqGrid.min.js"></script>
+    <script src="~/Scripts/jqGrid/grid.custom.js"></script>
+    <script src="~/Content/feather-icons/dist/feather.min.js"></script>  @*This is used to load icons https://feathericons.com/*@
+    <link href="~/Content/bootstrap.min.css" rel="stylesheet" />
+    <link href="~/Content/datepicker.css" rel="stylesheet" type="text/css" />
+    @*<link href="~/Content/Theme/jquery-ui.min.css" rel="stylesheet" />*@
+    <link href="~/Content/ui.jqgrid.css" rel="stylesheet" type="text/css" />
+    @Scripts.Render("~/Scripts/jsrender.min.js")
+    @Scripts.Render("~/Scripts/ej/web/ej.web.all.min.js")
+    @RenderSection("scripts", required: false)
+    <link href="~/Content/buttons.css" rel="stylesheet" type="text/css" />
+    <link href="~/Content/south-street/jquery-ui-1.9.2.custom.css" rel="stylesheet" type="text/css" />
+    @Styles.Render("~/Content/ej/web/bootstrap-theme/ej.web.all.min.css")
+    <link href="~/Content/default.css" rel="stylesheet" type="text/css" />
+    <link href="~/Content/buttons.css" rel="stylesheet" type="text/css" />
+    <link href="~/Content/site.css" rel="stylesheet" type="text/css" />
+    <link href="~/Content/StatLog.css" rel="stylesheet" type="text/css" />
+    <script>
+        $(document).ready(function () {
+            $("input").attr("autocomplete", "off");
+        });
+    </script>
+</head>
+<body style="color: #696969">
+    <div class="overlay">
+        <!-- This is the "spinner" area to show that we are doing something in the background. -->
+        <div class="overlay-inset"></div>
+        <div class="overlay-banner">
+            <p></p>
+            <img src="~/Images/loading.gif" alt="Loading" />
+        </div>
+    </div>
+
+    <input id="logoutURL" type="hidden" value="@Url.AbsoluteAction("LogOut", "Secure")" />
+    <input id="hdnHeartBeat" type="hidden" value="@Url.AbsoluteAction("HeartBeat", "Home")" />
+    <input id="hdnWarningSeconds" type="hidden" value="@PortalConfiguration.RetrieveSessionWarningInSeconds()" />
+    <input id="hdnTimeOutSeconds" type="hidden" value="@PortalConfiguration.RetrieveSessionTimeOutInSeconds()" />
+    <a id="aLogOutWarning" data-toggle="modal" href="#window_LogOutWarning" aria-label="Log Out Warning"></a>
+
+    <div id="window_LogOutWarning" class="modal fade" role="dialog">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+
+                <div class="modal-header">
+                    <h3>Session Warning.</h3>
+                    <button type="button" class="close" data-dismiss="modal">&times;</button>
+                </div>
+                <div class="modal-body">
+                    <div>
+                        Your session is about to expire. Time:  <span id="SecondsTilTimeOut"></span>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" id="aContinueSession" class="btn btn-success" data-dismiss="modal">Continue Session</button>
+                    <a href="@Url.AbsoluteAction("LogOut", "Secure")" class="btn btn-success">Log Out</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="window_HelpNumber" class="modal fade" role="dialog">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3>Need Assistance?</h3>
+                    <button type="button" class="close" data-dismiss="modal">&times;</button>
+                </div>
+                <div class="modal-body">
+                    <div>
+                        Please contact Customer Support at @Html.Raw(PortalConfiguration.HelpDeskEmail)
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-success" data-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="dialogDiv" class="MSLCModal modal hide fade" tabindex="-1" aria-labelledby="windowTitleLabel" aria-hidden="true" role="dialog">
+        <div id="modal-dialog" class="modal-dialog" role="document">
+            <div id="dialogContent" style="font-size: 14px; width:100%"></div>
+            <div id="dialogMessage" style="font-size: 14px; width:100%"></div>
+        </div>
+    </div>
+
+    <div class="page-layout-cost-report">
+        <div style="background-color: #74c141; height: 40px;"></div>
+        <div style="border-bottom: 1px dashed #ccc; position: relative;">
+            <img src="~/images/logo.png" width="500" height="80" alt="MSLC Logo">
+            <div class="pull-right" style="position:absolute; bottom: 0; right: 1rem;">
+                <div id="dvApplicationName">
+                    <b>@PortalConfiguration.Application</b>
+                </div>
+                <div id="dvEmail">
+                    <b>Email: @RetrieveSession.Username.ToUpper()</b>
+                </div>
+                @if (catalog != null && providerType != null)
+                {
+                    <div id="dvRole">
+                        <b>Provider Role: </b><span id="dvRoleName"><b>@RetrieveSession.CurrentRoleName</b></span>
+                    </div>
+                    <div id="dvProvType">
+                        <b>@PortalConfiguration.ClassificationReplacementTerm: </b><span id="dvProvType"><b>@providerType</b></span>
+                    </div>
+                }
+            </div>
+        </div>
+        <div class="d-flex">
+            <div id="cssmenu" class="d-flex justify-content-between flex-grow-1" style="z-index: 101;">
+                <ul>
+                    @if (RetrieveSession.Classification != null)
+                    {
+                        <li class="contact" style="float: left;"><a href="@Url.AbsoluteAction("Projects", "Projects")">Projects</a></li>
+
+                        if (RetrieveSession.CanAccessFeature("Statlog:View"))
+                        {
+                            <li class='last'>
+                                <a href="@Url.AbsoluteAction("Index", "StatLog")">Stat Log</a>
+                            </li>
+                        }
+                        if (RetrieveSession.CanAccessFeature("LetterAutomation:Access"))
+                        {
+                            <li class='has-sub'>
+                                <a href="@Url.AbsoluteAction("Index", "LetterAutomation")">Generate Letters</a>
+                            </li>
+                        }
+                        if (RetrieveSession.CanAccessFeature("BulkProcessing:View") ||
+                            (UploadDownloadConfiguration.EnableUpload && RetrieveSession.CanAccessFeature("Portal:Upload")) ||
+                            (UploadDownloadConfiguration.EnableDownload && RetrieveSession.CanAccessFeature("Portal:Download")))
+                        {
+                            <li class='has-sub'>
+                                <a>Files</a>
+                                <ul>
+                                    @if (RetrieveSession.CanAccessFeature("BulkProcessing:View"))
+                                    {
+                                        <li><a href="@Url.AbsoluteAction("Index", "BulkProcessing")">Batch File Upload</a></li>
+                                    }
+                                    @if (UploadDownloadConfiguration.EnableUpload && RetrieveSession.CanAccessFeature("Portal:Upload"))
+                                    {
+                                        <li><a href="@Url.AbsoluteAction("Index", "Upload")" title="Provider-specific Upload" alt="Provider-specific Upload">Upload</a></li>
+                                    }
+                                    @if (UploadDownloadConfiguration.EnableDownload && RetrieveSession.CanAccessFeature("Portal:Download"))
+                                    {
+                                        <li><a href="@Url.AbsoluteAction("Index", "Download")" title="Download from MSLC" alt="Download from MSLC">Files to Download</a></li>
+                                    }
+
+                                </ul>
+                            </li>
+                        }
+                        if (canAccessOCRT && ((OHFISession.IsNF && !OHFISession.CheckUserRoles("CanHideCostReport")) || OHFISession.IsICF))
+                        {
+                            <li class='has-sub'>
+                                <a href="@Url.AbsoluteAction("Index", "CostReport")">Cost Report</a>
+                            </li>
+                        }
+                        if ((OHFISession.IsNF || OHFISession.IsICF) && RetrieveSession.CanAccessFeature("RateSetting:View"))
+                        {
+                            <li class='has-sub'>
+                                <a href="@Url.AbsoluteAction("Index", "Rate")">Rate Setting</a>
+                            </li>
+                        }
+                        if (RetrieveSession.IsState)
+                        {
+                            <li class="last">
+                                <a href="@Url.AbsoluteAction("Index", "Dashboard")">Dashboard</a>
+                            </li>
+                        }
+                        if (RetrieveSession.CanAccessFeature("Reports:ARAP")
+                            || RetrieveSession.CanAccessFeature("Reports:UploadDownload")
+                            || RetrieveSession.CanAccessFeature("Reports:MassUpload")
+                            || RetrieveSession.CanAccessFeature("Reports:CostReportSubmissionMonitoring")
+                            || RetrieveSession.CanAccessFeature("Reports:CostReportDataWizard")
+                            || RetrieveSession.CanAccessFeature("Reports:MDS")
+                            || RetrieveSession.CanAccessFeature("Reports:SectionQ"))
+                        {
+                            <li class='has-sub'>
+                                <a>Reports</a>
+
+                                <ul>
+                                    @if (RetrieveSession.CanAccessFeature("Reports:ARAP"))
+                                    {
+                                        <li><a href="@Url.AbsoluteAction("ARAPReport", "Reports")">ARAP Report</a></li>
+                                    }
+                                    @if (RetrieveSession.CanAccessFeature("Reports:MDS"))
+                                    {
+                                        <li><a href="@Url.AbsoluteAction("MDSReportJobs", "BulkProcessing")">MDS Report</a></li>
+                                    }
+                                    @if (RetrieveSession.CanAccessFeature("Reports:SectionQ"))
+                                    {
+                                        <li><a href="@Url.AbsoluteAction("SectionQReportJobs", "BulkProcessing")">Section Q Report</a></li>
+                                    }
+                                    @if (RetrieveSession.CanAccessFeature("Reports:UploadDownload"))
+                                    {
+                                        <li><a href="@Url.AbsoluteAction("StatLogUploadDownloadReport", "Reports")">StatLog Activity Report</a></li>
+                                    }
+                                    @if (RetrieveSession.CanAccessFeature("Reports:MassUpload"))
+                                    {
+                                        <li><a href="@Url.AbsoluteAction("StatLogMassUploadReport", "Reports")">StatLog Mass Upload Report</a></li>
+                                    }
+                                    @if (RetrieveSession.CanAccessFeature("Reports:CostReportSubmissionMonitoring"))
+                                    {
+                                        <li><a href="@Url.AbsoluteAction("CRSubmissionMonitoringReport", "Reports")">Cost Report Submission Monitoring Report</a></li>
+                                    }
+                                    @if (RetrieveSession.CanAccessFeature("Reports:CostReportDataWizard"))
+                                    {
+                                        <li><a href="@Url.AbsoluteAction("CostReportDataWizard", "Reports")">Cost Report Data Wizard</a></li>
+                                    }
+                                    @if (RetrieveSession.CanAccessFeature("CLPA:View"))
+                                    {
+                                        <li><a href="@Url.AbsoluteAction("SearchAssessment", "CLPA")">View Assessments</a></li>
+                                    }
+                                </ul>
+                            </li>
+                        }
+
+                        if (PortalConfiguration.EnableResource)
+                        {
+                            <li class='has-sub'>
+                                <a href="@Url.AbsoluteAction("Index", "Help")">Help Resources</a>
+                            </li>
+                        }
+                    }
+                    <li class='has-sub'>
+                        <a href="@Url.AbsoluteAction("LogOut", "Secure")">Log Out</a>
+                    </li>
+                </ul>
+                @if (RetrieveSession.Classification != null &&
+                     (RetrieveSession.CanAccessFeature("Statlog:Configuration") || RetrieveSession.CanAccessFeature("Statlog:Configuration") || RetrieveSession.CanAccessFeature("OHFI:SettingsManagement")))
+                {   
+                    <ul>
+                        <!--Site .js will hide this if not admin -->
+                        <li class='has-sub'>
+                            <a>Admin</a>
+                            <ul>
+                                @if (RetrieveSession.CanAccessFeature("OHFI:SettingsManagement"))
+                                {
+                                    <li><a href="@Url.AbsoluteAction("Index", "Settings")">Portal Settings</a></li>
+                                }
+                                @if (RetrieveSession.CanAccessFeature("Statlog:AllProvidersEmail"))
+                                {
+                                    <li><a href="@Url.AbsoluteAction("SendProviderEmail", "Communication")">Email All Providers</a></li>
+                                }
+                                @if (RetrieveSession.CanAccessFeature("Statlog:Configuration"))
+                                {
+                                    <li><a href="@Url.AbsoluteAction("Index", "Event")">Event Management</a></li>
+                                    <li><a href="@Url.AbsoluteAction("Index", "ProvType")">Provider Type Management</a></li>
+                                    <li><a href="@Url.AbsoluteAction("Index", "AuditType")">@PortalConfiguration.AuditTypeReplacementName Management</a></li>
+                                    <li><a href="@Url.AbsoluteAction("Index", "Metadata")">Metadata Schema Management</a></li>
+                                }
+                            </ul>
+                        </li>
+                    </ul>
+                }
+            </div>
+            <div style="border-bottom: 2px solid #74c141;" class="d-flex align-items-center pl-1">
+                @if (RetrieveSession.Classification != null && PortalConfiguration.EnableBB)
+                {
+                    if (Request.RawUrl != Url.AbsoluteAction("ShowAll", "BulletinBoard"))
+                    {
+                        <text>
+                            <a id="ancShowBulletinBoard" class="OpenShowBulletinBoardModal pr-1" href="@Url.AbsoluteAction("Index", "BulletinBoard")"><img style="border-radius: 8px;" src="~/Images/Magnifier.png" alt="Show Bulletin Board" title="Show Bulletin Board" width="40" height="40" /></a>
+                        </text>
+                    }
+                }
+                <a data-toggle="modal" href="#window_HelpNumber" data-backdrop="static" class="pr-1"><img style="border-radius: 8px;" src="~/Images/Messaging.png" alt="Need Help?" title="Need Help?" width="40" height="40" /></a>
+            </div>
+        </div>
+    </div>
+
+    <div id="contentPanel" style="margin-left: auto; margin-right: auto;">
+        <div class="container">
+            <div class="clearFixedFloatingDiv"></div>
+        </div>
+
+        @RenderSection("featured", required: false)
+        @RenderBody()
+    </div>
+    <div class="footer_new-cost-report" style="color:black">
+        <div class="d-flex flex-row justify-content-between container footer_text" style="max-width:90%; width:90%;">
+            <div style="float:left; width:60%; color:black;">
+                @{
+                    var lineArray = PortalConfiguration.RetrieveLoginMessage();
+                    foreach (var line in lineArray)
+                    {
+                        @line <br />
+                    }
+                }
+            </div>
+            <div style="float:left; width:40%;">
+                @*<img src="~/Images/logo.png" height="50" style="padding-left:200px" />*@
+                <div style="text-align:right;color:black;">
+                    Copyright © 2013–@DateTime.Now.Year Myers and Stauffer LC. All rights reserved.<br />
+
+                </div>
+                <div style="text-align:right; color:black;">
+                    Version: @typeof(MvcApplication).Assembly.GetName().Version
+                </div>
+                <div>
+                    <a href="https://myersandstauffer.com/accessibility/" target="_blank">
+                        <div style="float: right; text-align: right; color: black;">
+                            <u>Visit our accessibility information and help page.</u>
+                        </div>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+    @*@Scripts.Render("~/Scripts/jsrender.min.js")
+        @Scripts.Render("~/Scripts/ej/web/ej.web.all.min.js")
+        @RenderSection("scripts", required: false)*@
+    <div id="SyncFusionScript">
+        @Scripts.Render("~/Scripts/ej/common/ej.unobtrusive.min.js")
+    </div>
+    <noscript>
+        <div>
+            <h2>This site requires JavaScript</h2>
+        </div>
+    </noscript>
+
+
+
+
+</body>
+</html>
+

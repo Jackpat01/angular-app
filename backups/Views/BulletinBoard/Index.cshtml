@@ -1,0 +1,95 @@
+﻿@using System.Globalization
+@model WebPortal_OH_FI.Models.BulletinBoardViewModel
+@{
+    Layout = null;
+}
+<script type="text/javascript">
+
+</script>
+<div role="dialog">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Bulletin Board</h3>
+                <button href="#" class="close" data-dismiss="modal">&times;</button>
+            </div>
+
+            <div class="modal-body" style="max-height: 655px; max-width: 765px; overflow-x: hidden; overflow-y: auto;">
+                <div style="margin: 5px;">
+                    @if (Model.myBulletinBoards != null)
+                    {
+                        if (Model.myBulletinBoards.Any())
+                        {
+                            foreach (string myBulletinBoardType in Model.BulletinBoardTypes)
+                            {
+                                <text><div class="pull-left" style="font-weight: bold; font-size: 18px; margin-top: 5px;">@myBulletinBoardType</div></text>
+                                <div style="width: 100%; height: 1px; background: #dee2e6; overflow: hidden;"></div>
+                                foreach (var mySingleBulletinBoard in Model.myBulletinBoards.Where(c => c.Type.ToUpper() == myBulletinBoardType.ToUpper()).OrderByDescending(c => c.AlwaysShow.HasValue && c.AlwaysShow.Value).ThenByDescending(c => c.CreateDate).ThenByDescending(c => c.LastModified).ThenByDescending(c => c.Order).Take(2).ToList())
+                                {
+                                    <text>
+
+                                        <div style="margin-top: 5px; margin-bottom: 5px; border-radius: 12px;">
+                                            <table width="100%" height="100%" cellpadding="0" cellspacing="0" border="0" style="padding: 15px;">
+                                                @if (mySingleBulletinBoard.IsNewBulletinBoard)
+                                                {
+                                                    <text>
+                                                        <tr>
+                                                            <td colspan="2">
+                                                                <label class="MandSOrange">New!</label>&nbsp;&nbsp;
+                                                            </td>
+                                                        </tr>
+                                                    </text>
+                                                }
+                                                <tr>
+                                                    <td width="20%" align="left" style="text-align: left !important;">
+                                                        Date Posted:
+                                                    </td>
+                                                    <td align="left" style="text-align: left !important;">
+                                                        <div>
+                                                            @(CultureInfo.CurrentCulture.DateTimeFormat.GetMonthName(mySingleBulletinBoard.PostedDate.Month) + " " + mySingleBulletinBoard.PostedDate.Day + ", " + mySingleBulletinBoard.PostedDate.Year)
+                                                        </div>
+                                                    </td>
+                                                </tr>
+                                                <tr>
+                                                    <td width="20%" align="left" style="text-align: left !important;">
+                                                        Title:
+                                                    </td>
+                                                    <td align="left" style="text-align: left !important;">
+                                                        @Html.Raw(mySingleBulletinBoard.Title)
+                                                    </td>
+                                                </tr>
+                                                <tr>
+                                                    <td width="20%" valign="top" align="left" style="text-align: left !important;">
+                                                        Message:
+                                                    </td>
+                                                    <td align="left" style="text-align: left !important;">
+                                                        @Html.Raw(mySingleBulletinBoard.Message)
+                                                    </td>
+                                                </tr>
+                                            </table>
+                                        </div>
+                                    </text>
+                                }
+                            }
+                        }
+                        else
+                        {
+                            <text>Application Currently has no Bulletin Boards Available.</text>
+                        }
+                    }
+                    else
+                    {
+                        <text>Application Currently has no Bulletin Boards Available.</text>
+                    }
+                </div>
+            </div>
+            <div id="dvFooter" class="modal-footer" style="text-align: center !important;">
+                <button id="btnClose" class="btn btn-MSGreen BoldMe" data-dismiss="modal" aria-hidden="true">Close</button>
+                @if (Model.myBulletinBoards != null)
+                {
+                    <text>&nbsp;&nbsp;<a id="ancShowAll" href="@Url.AbsoluteAction("ShowAll", "BulletinBoard")" class="btn btn-MSGreen" style="text-decoration:none">Show All</a></text>
+                }
+            </div>
+        </div>
+    </div>
+</div>

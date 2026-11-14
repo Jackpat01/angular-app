@@ -1,0 +1,145 @@
+﻿@Styles.Render("~/Content/StatLog.css")
+@model WebPortal_OH_FI.Models.ViewModels.SettingsViewModel.View
+@{
+    Layout = "~/Views/Shared/_LayoutWithMenu.cshtml";
+    ViewBag.Title = "Event Management";
+}
+
+<h2>Web Portal Settings Management</h2>
+
+<div id="dialogDiv" class="modal fade" tabindex="-1" aria-labelledby="windowTitleLabel" aria-hidden="true" role="dialog">
+    <div id="modal-dialog" class="modal-dialog" role="document">
+        <div id="dialogContent" style="font-size: 14px; width:100%"></div>
+        <div id="dialogMessage" style="font-size: 14px; width:100%"></div>
+    </div>
+</div>
+@if (TempData["Message"] != null)
+{
+    <br />
+    <br />
+    <div class="errorLabel mb-2" style="text-align: center;">
+        @Html.Raw(TempData["Message"].ToString())
+    </div>
+}
+
+@using (Html.BeginForm("Save", "Settings", FormMethod.Post, new { id = "frmSubmit", enctype = "multipart/form-data" }))
+{
+    <div class="tab-panel">
+        <div>
+            <div class="nav nav-tabs m-0 d-flex" id="nav-tab" role="tablist">
+                <div id="nav-feature-roles-tab" href="#nav-feature-roles" class="nav-item nav-link active"
+                     data-toggle="tab" role="tab" aria-selected="true" tabindex="0">Feature Roles</div>
+
+                @foreach (var tabName in Model.TabNames)
+                {
+                    <div id="nav-@tabName-tab" href="#nav-@tabName" class="nav-item nav-link"
+                         data-toggle="tab" role="tab" aria-selected="true" tabindex="-1">@tabName</div>
+                    }
+            </div>
+        </div>
+
+        <div class="tab-content px-4 pb-4 pt-2" id="nav-tabContent">
+            <div id="nav-feature-roles" aria-labelledby="nav-feature-roles-tab" role="tabpanel" class="tab-pane fade show active">
+                <div style="overflow-x: auto;">
+                    <table class="table table-hover" style="overflow-x: scroll">
+                        <thead>
+                            <tr>
+                                <th class="border-top-0">Feature</th>
+                                @foreach (var roleName in Model.ApplicationRoles)
+                                {
+                                    <th class="text-center border-top-0" style="cursor: pointer;" onclick="toggleRole('@roleName')">@roleName</th>
+                                }
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var feature in Model.PermissionsList)
+                            {
+                                var featureName = feature.Key;
+                                var roles = feature.Value;
+
+                                <tr>
+                                    <td onclick="toggleFeature('@featureName')" style="cursor: pointer;">@featureName</td>
+                                    @foreach (var role in roles)
+                                    {
+                                        var roleName = role.Key;
+                                        <td class="text-center">
+                                            @Html.CheckBoxFor(m => m.PermissionsList[featureName][roleName], new { Feature = featureName, Role = roleName, style = "cursor: pointer;" })
+                                        </td>
+                                    }
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+                @foreach (var tabName in Model.TabNames)
+                {
+                    <div id="nav-@tabName" aria-labelledby="nav-@tabName-tab" role="tabpanel" class="tab-pane fade">
+                        @foreach (var feature in Model.FeatureList.Where(f => f.Tab == tabName))
+                        {
+                            <div>
+                                <label>@feature.FeatureName</label>
+                                <br />
+                                <label>@feature.Description</label>
+                                <br />
+                                @switch (feature.Type)
+                                {
+                                    case "ReadOnly":
+                                        {
+                                            <input type="text" value="@feature.Value" class="w-100" disabled="true" />
+                                            break;
+                                        }
+                                    default:
+                                        {
+                                            <input type="text" value="@feature.Value" class="w-100" />
+                                            break;
+                                        }
+                                }
+                            </div>
+                            <hr />
+                        }
+                    </div>
+                }
+                <hr />
+                <button class="btn btn-success BoldMe" type="submit">Save</button>
+            </div>
+    </div>
+
+}
+
+<script>
+    function toggleFeature(featureName) {
+        // Select all of the inputs with the given featureName
+        var inputs = document.querySelectorAll('input[feature="' + featureName + '"]');
+
+        // Check if all of the inputs are checked
+        var allChecked = true;
+        for (var i = 0; i < inputs.length; i++) {
+            if (!inputs[i].checked) {
+                allChecked = false;
+                break;
+            }
+        }
+
+        // Set the checked property of each input to the opposite of the current value
+        inputs.forEach(function(input) { input.checked = !allChecked; });
+    }
+
+    function toggleRole(roleName) {
+        // Select all of the inputs with the given roleName
+        var inputs = document.querySelectorAll('input[role="' + roleName + '"]');
+
+        // Check if all of the inputs are checked
+        var allChecked = true;
+        for (var i = 0; i < inputs.length; i++) {
+            if (!inputs[i].checked) {
+                allChecked = false;
+                break;
+            }
+        }
+
+        // Set the checked property of each input to the opposite of the current value
+        inputs.forEach(function(input) { input.checked = !allChecked; });
+    }
+</script>

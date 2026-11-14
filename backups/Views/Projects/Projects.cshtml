@@ -1,0 +1,52 @@
+﻿@using MSLC.Portal.Utility.Encoding
+@using WebPortal_OH_FI.Common
+@model WebPortal_OH_FI.Models.ProjectsViewModel.Projects
+
+@{
+    ViewBag.Title = "Projects";
+    Layout = "~/Views/Shared/_LayoutWithProject.cshtml";
+}
+
+<div id="Projects" class="View" style="max-width: 500px; margin: auto;">
+    @if (TempData["Message"] != null)
+    {
+        <br /><br />
+        <div class="errorLabel">
+            @Html.Raw(TempData["Message"].ToString())
+        </div>
+        <br /><br />
+    }
+    <fieldset>
+        <table class="table table-bordered table-hover">
+            <thead>
+                <tr>
+                    <th><legend><b>Select a Project</b></legend></th>
+                </tr>
+            </thead>
+            @if (Model.Classifications != null && Model.Classifications.Any())
+            {
+                <tbody>
+                @foreach (var singleClassfication in Model.Classifications.OrderBy(x => x.DisplayName))
+                {
+                    <tr>
+                        <td>
+                            <a href="@Url.AbsoluteAction("SetProject", "Projects", new
+                                     {
+                                         cID = EncodingTools.GetEncodedStringWithSalt(singleClassfication.DisplayName.ToString().Trim())
+                                     })">@singleClassfication.DisplayName.ToString().Trim()</a>
+                        </td>
+                    </tr>
+                }
+                </tbody>
+            }
+            else
+            {
+                <tbody>
+                <tr>
+                    <td colspan="42">No Projects available</td>
+                </tr>
+                </tbody>
+            }
+        </table>
+    </fieldset>
+</div>

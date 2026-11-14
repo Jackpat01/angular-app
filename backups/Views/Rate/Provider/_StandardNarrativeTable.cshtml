@@ -1,0 +1,291 @@
+﻿
+﻿<h1>Standard Narrative Table</h1>
+<center>
+    <div id="crStandardNarrativeTable"></div>
+</center>
+<input type="hidden" id="hdnRecordId" />
+<div id="divStandardNarrativeHistory"></div>
+
+<script id="StandardNarrativeTableHistory" type="text/x-template">
+    <center>
+        <a aria-label="History" data-toggle="modal" href="" data-target="#window_StandardNarrativeTableHistory" onclick="LoadStandardNarrativeTableHistory('{{:RecordId}}')">
+            <i data-feather='rotate-ccw' class='history-info'></i>
+        </a>
+    </center>
+</script>
+
+<div id="SyncFusionScript">
+    <script src="@Url.AbsoluteContentUri("~/Scripts/ej/common/ej.unobtrusive.min.js")"></script>
+</div>
+
+<script>
+    const stdNarTblGrid = '#crStandardNarrativeTable';
+
+    $(function () {
+
+        //========== Logic that Fires when Page Loads ==========
+        LoadNotificationDialog('Loading').then(() => {
+            GetStandardNarrativeTableData().then((data) => {
+                if (data !== undefined)
+                    RenderStandardNarrativeTable(data);
+            });
+        }).then(() => ClearNotificationDialog());
+    });
+
+    //========== Ajax Requests ==========
+    function GetStandardNarrativeTableData() {
+        return new Promise((resolve, reject) => {
+            $.ajax({
+                async: true,
+                url: '@Url.AbsoluteAction("GetStandardNarratives", "Rate")',
+                contentType: "application/json;charset=utf-8",
+                type: 'POST',
+                cache: false,
+                success: function (result) {
+                    if (result.Success) {
+                        resolve(result);
+                    }
+                },
+                error: function (errorMessage) {
+                    StaticAlert({ content: `Standard Narrative Table  Error: ${errorMessage.responseText}` }).then(() => {
+                        resolve();
+                    });
+                }
+            })
+        });
+    }
+
+    //========== Table Functionality =========
+    function RenderStandardNarrativeTable(result) {
+        var cols = [];
+
+        const createTextArea = function (args) {
+            const textarea = document.createElement('textarea');
+            textarea.class = 'e-field e-ejinputtext valid';
+            textarea.style.width = '100%';
+            textarea.style.height = '200px';
+            return textarea;
+        };
+        const readTextArea = function (args) { return args.val(); };
+        const writeTextArea = function (args) {
+            $(args.element).val(args.rowdata["Description"]);
+            $(args.element).addClass("ejinputtext");
+        };
+
+        for (const col of result.Data.Columns) {
+            let column = {
+                field: col.Field, headerText: col.HeaderText, isPrimaryKey: col.IsPrimaryKey, isIdentity: col.IsIdentity, visible: col.Visible,
+                textAlign: col.TextAlign, allowEditing: col.AllowEditing, allowFiltering: col.AllowFiltering, allowSorting: col.AllowSorting,
+                width: col.Width, template: col.Template
+            };
+            if (col.Field == 'NarrativeCode') {
+                column.editType = 'dropdownedit';
+                column.editParams = { dataSource: result.Data.ValidNarrativeCodes, fields: { text: 'Text', value: 'Value' } };
+            }
+            else if (col.Field === 'Description') {
+                column.editTemplate = {
+                    create: createTextArea,
+                    read: readTextArea,
+                    write: writeTextArea
+                };
+                column.validationRules = {
+                    required: true
+                }
+            }
+            cols.push(column);
+        }
+
+        const editSettings = { allowEditing: result.Data.CanEdit, allowAdding: result.Data.CanEdit };
+        const toolbarSettings = { showToolbar: true, toolbarItems: [ej.Grid.ToolBarItems.Search] };
+        const pageSettings = { pageSize: 5, pageSizeList: [5, 10, 15, 20] };
+        const textWrapSettings = { wrapMode: ej.Grid.WrapMode.Both };
+        const filterSettings = { filterType: 'menu', showPredicate: false };
+        const data = massageStdNarrRecords(result.Data.Records);
+
+        if (result.Data.CanEdit) {
+            toolbarSettings.toolbarItems.push(ej.Grid.ToolBarItems.Add);
+            toolbarSettings.toolbarItems.push(ej.Grid.ToolBarItems.Edit);
+            toolbarSettings.toolbarItems.push(ej.Grid.ToolBarItems.Update);
+            toolbarSettings.toolbarItems.push(ej.Grid.ToolBarItems.Cancel);
+        }
+
+        $(stdNarTblGrid).ejGrid({
+            dataSource: data,
+            columns: cols,
+            editSettings: editSettings,
+            toolbarSettings: toolbarSettings,
+            pageSettings: pageSettings,
+            allowPaging: true,
+            enableRowHover: false,
+            allowSelection: true,
+            allowSorting: true,
+            allowTextWrap: true,
+            allowFiltering: true,
+            allowSearching: true,
+            textWrapSettings: textWrapSettings,
+            cssClass: 'mslcTable',
+            locale: 'en-US',
+            filterSettings: filterSettings,
+            actionBegin: stdNarActionBegin,
+            actionComplete: stdNarActionComplete,
+            templateRefresh: loadIcons
+        });
+    }
+
+    //========== On Click Functions =========
+    function LoadStandardNarrativeTableHistory(recordId) {
+        $('#divStandardNarrativeHistory').empty();
+        $('#hdnRecordId').val(recordId);
+        LoadNotificationDialog("Loading Standard Narrative Table History...").then(() => {
+            return new Promise((resolve, reject) => {
+                $.ajax({
+                    url: '@Url.AbsoluteAction("LoadNarrativeTableHistory", "Rate")',
+                    cache: false,
+                    type: 'GET',
+                    success: function (result) {
+                        $('#divStandardNarrativeHistory').html(result);
+                        $('#window_standardnarrativehistory').modal('show');
+                        resolve();
+                    },
+                    error: function (errormessage) {
+                        StaticAlert({ content: "Standard Narrtive Table Error: " + errormessage.responseText }).then(() => {
+                            resolve();
+                        });
+                    }
+                });
+            })
+        }).then(() => ClearNotificationDialog());
+    }
+
+    function massageStdNarrRecords(records) {
+        return records.map(x => ({
+            ...x,
+            NarrativeNumber: parseInt(x.NarrativeNumber, 10) // Standard Narrative Number will always be an int value 
+        }));
+    }
+</script>
+
+@if(MSLC.Portal.MVC.Utility.RetrieveSession.CanAccessFeature("RateSetting:StandardNarrative:Edit"))
+{
+    <script>
+        //========== Ajax Requests ==========
+        function SaveNarrativeRecord(data) {
+            return new Promise((resolve, reject) => {
+                $.ajax({
+                    async: true,
+                    url: '@Url.AbsoluteAction("SaveStandardNarrative", "Rate")',
+                    data: JSON.stringify({model: data}),
+                    type: "POST",
+                    contentType: "application/json;charset=utf-8",
+                    success: function (result) {
+                        const data = massageStdNarrRecords(result.Data);
+                        if (result.Success) {
+                            $(stdNarTblGrid).ejGrid('dataSource', data);
+                            resolve();
+                        } else {
+                            StaticAlert({ content: `Standard Narrative Table Error: ${result.Message}` }).then(() => {
+                                
+                                $(stdNarTblGrid).ejGrid('dataSource', data);
+                                resolve();
+                            });
+                        }
+                    },
+                    error: function (result) {
+                        StaticAlert({ content: `Standard Narrative Table Error: ${result.Message}` }).then(() => {
+                            $(stdNarTblGrid).ejGrid('instance').refresh();
+                            resolve();
+                        });
+                    }
+                });
+            });
+        }
+
+        //========== Table Functionality =========
+        function stdNarActionBegin(args) {
+            if (args.requestType === 'save')
+                SaveNarrativeRecord(args.data);
+            else if (args.requestType === 'add')
+                args.data.NarrativeType = 'S';
+            else if (args.requestType === 'beginedit')
+                BlockRestrictedEdit(args);
+        }
+
+        function stdNarActionComplete(args) {
+            if (args.requestType == 'beginedit') 
+                $('#crStandardNarrativeTableNarrativeCode').data('ejDropDownList').disable();
+            if (args.requestType == 'beginedit' || args.requestType == 'add') {
+                SetStandardNarrativeInputMaxes();
+                NarrativeNumberChangeEvent(args);
+            }
+                
+        }
+
+        //===== Input Functionality =====
+        function SetStandardNarrativeInputMaxes() {
+            $('#crStandardNarrativeTableNarrativeNumber').attr('maxLength', 4);
+            $('#crStandardNarrativeTableRYBeginYear').attr('maxLength', 4);
+            $('#crStandardNarrativeTableRYEndYear').attr('maxLength', 4);
+        }
+
+        function BlockRestrictedEdit(args) {
+            if (args.rowData.IsRestricted) {
+                args.cancel = true;
+                StaticAlert({ content: 'Narrative cannot be modified' });
+            } 
+        }
+
+        function NarrativeNumberChangeEvent(args) { 
+            $('#crStandardNarrativeTableNarrativeNumber').on('change', function () {
+                const val = $(this)[0].value.trim();
+                let narrCode = null;
+                try {
+                    if (isNaN(val) || val.length > 4) {
+                        StaticAlert({ content: 'Field must be numeric and maximum length of 4' }).then(() => {
+                            $(this)[0].value = '';
+                        });
+                    } else {
+                        const codeDropDown = $('#crStandardNarrativeTableNarrativeCode').data('ejDropDownList');
+                        const matches = findRecordsForNarrativeNumber(val, args.rowData.RecordId);
+                        if (matches.length > 0) {
+                            if (matches[0].IsRestricted == "true") {
+                                StaticAlert({ content: 'Narrative cannot be modified' }).then(() => {
+                                    $(this)[0].value = '';
+                                });
+                            }
+                            else {
+                                $(this)[0].value = val;
+                                narrCode = matches[0].NarrativeCode
+                                codeDropDown.setSelectedValue(matches[0].NarrativeCode);
+                                codeDropDown.disable();
+                            }
+                        } else {
+                            narrCode = '';
+                            codeDropDown.setSelectedValue(narrCode);
+                            codeDropDown.enable();
+                        }
+                    }
+                } catch (exc) {
+                    args.rowData.NarrativeCode = narrCode;
+                }
+            });
+        }
+
+        function findRecordsForNarrativeNumber(narrativeNumber, recordId) {
+            const records = $(stdNarTblGrid).ejGrid('instance').model.dataSource;
+            return records.filter(x => {
+                return x.NarrativeNumber == narrativeNumber
+                    && x.NarrativeCode != null
+                    && x.RecordId != null
+                    && x.RecordId != recordId;
+            }).sort(y => y.RYBeginDate);
+        }
+    </script>
+}
+else
+{
+    <script>
+        function stdNarActionBegin(args) { }
+
+        function stdNarActionComplete(args) { }
+    </script>
+}

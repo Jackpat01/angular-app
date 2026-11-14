@@ -1,0 +1,245 @@
+﻿@using WebPortal_OH_FI.Web
+@model WebPortal_OH_FI.Models.CMIOverrideReportViewModel
+@{ 
+    var isNF = false;
+    var isICF = false;
+    if (OHFISession.IsNF)
+    {
+        isNF = true;
+    }
+    if (OHFISession.IsICF)
+    {
+        isICF = true;
+    }
+
+}
+    <style type="text/css">
+        .nav-tabs .nav-item.show .nav-link, .nav-tabs .nav-link.active {
+            background: moccasin;
+            border-bottom: 2px solid green;
+        }
+
+        th, td {
+            padding: 10px;
+        }
+
+        .e-grid .e-pager .e-pagercontainer {
+            float: left;
+        }
+
+        .e-grid .e-pager .e-pager-itemsinterval {
+            float: left;
+        }
+
+        .e-pager-itemsinterval {
+            direction: rtl;
+            float: left;
+        }
+    </style>
+    <script>
+        $(document).ready(function () {
+            $("#reportButton").on("click", function () {
+                $("#ratesetting-reports").show();
+                $("#report-details").hide();
+            });
+        });
+    </script>
+    <div>
+        <button class="btn btn-success" id="reportButton">Back to Reports</button>
+    </div>
+    <div id="cmiOverrideReport">
+        <table>
+            <tr>
+                <td>CMI Override Report</td>
+            </tr>
+
+            <tr>
+                <td><label id="reportTypeLabel">Report Type:</label></td>
+
+                <td>
+                    @Html.DropDownListFor(model => model.ReportTypeList, (IEnumerable<SelectListItem>)Model.ReportTypeList, "Select Report Type", new { ID = "reportTypeList", @style = "width: 190px", aria_label="Report Type" })
+                </td>
+            </tr>
+        </table>
+        <div id="redDateInfo">
+            <table>
+                <tr>
+                    <td><label id="lblRedDateListLabel"></label></td>
+                    <td>@Html.DropDownListFor(model => model.RedDateList, (IEnumerable<SelectListItem>)Model.RedDateList, "Select", new { ID = "drpReportRedDateList", @style = "width: 190px", aria_label="Red Date" })</td>
+                </tr>
+                <tr>
+                    <td><input id="btnCMIOverride" value="Generate Report" type="submit" class="btn btn-success" onclick="GenerateCMIOverrideReport()" /></td>
+                </tr>
+            </table>
+        </div>
+    </div>
+    <script type="text/javascript">
+        $(document).ready(function () {
+            var drpSelectText = "Select";
+            var isNF = @Html.Raw(Json.Encode(isNF));
+            var redDateSelected = $('#drpReportRedDateList option:selected').text();
+            $("#btnCMIOverride").prop("disabled", redDateSelected == drpSelectText);
+            $("#redDateInfo").hide();
+
+            var ddl = $('#drpReportRedDateList');
+            ddl.empty();
+            $(document.createElement('option'))
+                .attr('value', '')
+                .text(drpSelectText)
+                .appendTo(ddl);
+
+            $("#drpReportRedDateList").change(function () {
+                var val = $('#drpReportRedDateList option:selected').val();
+                if (val != "") {
+                    $("#btnCMIOverride").prop("disabled", false);
+                } else {
+                    $("#btnCMIOverride").prop("disabled", true); // Disables
+                }
+            });
+
+            $("#reportTypeList").change(function () {
+                $("#btnCMIOverride").prop("disabled", true);
+                var val = $('#reportTypeList option:selected').val();
+                if (val != "") {
+                    GetRedDatesList(val);
+                } else {
+                    $("#redDateInfo").hide();
+                    $('#drpReportRedDateList').val("").change();
+                    $("#drpReportRedDateList").prop("disabled", true);
+                }
+            });
+        });
+
+        function GetRedDatesList(val) {
+            $("#drpReportRedDateList").prop("disabled", false);
+            var isICF = @Html.Raw(Json.Encode(isICF));
+            var drpSelectText = '';
+
+            var urlAbsoluteAction = '';
+            var actionDialog = '';
+            var isQuarterlyReportSelected = val === 'QuarterlyCaseMixScoresSFY';
+
+            if (isICF && isQuarterlyReportSelected)
+            {
+                urlAbsoluteAction = "@Url.AbsoluteAction("GetSFYDates", "Rate")";
+                actionDialog = "Get SFY Date List...";
+
+            } else { 
+                urlAbsoluteAction = "@Url.AbsoluteAction("GetRedDatesForFYE", "Rate")";
+                actionDialog = "Get RED Date List...";
+
+            }
+            return LoadNotificationDialog(actionDialog).then(() => {
+                return new Promise((resolve, reject) => {
+                    $.ajax({
+                        async: true,
+                        url: urlAbsoluteAction,
+                        data: JSON.stringify({ "annualRateSettingEnum": val }),
+                        type: "POST",
+                        contentType: "application/json;charset=utf-8",
+                        dataType: "json",
+                        success: function (result) {
+                            if (!result.Success) {
+                                StaticAlert({ content: result.Message }).then(() => {
+                                    resolve();
+                                });
+                            }
+                            else {
+                                if (val == 'AnnualCaseMixScores') {
+                                    $('#lblRedDateListLabel').text("CYE");
+                                    drpSelectText = "Select CYE";
+                                }
+                                else if (val == 'SemiAnnualCaseMixScores') {
+                                    $('#lblRedDateListLabel').text("Effective Date");
+                                    drpSelectText = "Select Effective Date";
+                                }
+                                else if (val == 'QuarterlyCaseMixScores'
+                                     ||  val == 'QuarterlyCaseMixScoresPDPM') {
+                                        $('#lblRedDateListLabel').text("Quarter End Date");
+                                        drpSelectText = "Select Quarter End Date";
+                                }
+                                else {
+                                    if (val == 'QuarterlyCaseMixScoresSFY') {
+                                        $('#lblRedDateListLabel').text("SFY Date");
+                                        drpSelectText = "Select SFY";
+                                    }
+                                }
+
+                                var ddl = $('#drpReportRedDateList');
+                                ddl.empty();
+                                $(document.createElement('option'))
+                                    .attr('value', '')
+                                    .text(drpSelectText)
+                                    .appendTo(ddl);
+
+                                //Check if drop down list is empty
+                                if (result.data.length == 0) {
+                                    $().filter(function () {
+                                        return this.text == drpSelectText;
+                                    }).attr('selected', true).trigger('change');
+                                }
+                                else {
+                                    $(result.data).each(function () {
+                                        $(document.createElement('option'))
+                                            .attr('value', this.Value)
+                                            .text(this.Text)
+                                            .appendTo(ddl);
+                                    });
+                                }
+                                $("#redDateInfo").show();
+                                resolve();
+                            }
+                        },
+                        error: function (errormessage) {
+                            StaticAlert({ content: errormessage.responseText || errormessage }).then(() => {
+                                resolve();
+                            });
+                        }
+                    });
+                });
+            }).then(() => {
+                return ClearNotificationDialog();
+            });
+        }
+
+    function GenerateCMIOverrideReport() {
+        var fiscalYear = $('#drpReportRedDateList option:selected').text();
+        var val = $('#reportTypeList option:selected').val();
+
+        return LoadNotificationDialog("Generate CMI Override Report, please wait...").then(() => {
+            return new Promise((resolve, reject) => {
+                $.ajax({
+                    async: true,
+                    url: "@Url.AbsoluteAction("GenerateCMIOverrideReport", "Rate")",
+                    data: { "fiscalYear": fiscalYear, "annualRateSettingEnum": val },
+                    cache: false,
+                    type: "POST",
+                    dataType: "json",
+                    success: function (response) {
+                        if (response.Success) {
+                            //get the file name for download
+                            if (response.fileName != "") {
+                                //use window.location.href for redirect to download action for download the file
+                                window.location.href = "@Url.AbsoluteAction("Download", "Rate")/?fileName=" + response.fileName;
+                            }
+                        }
+                        else {
+                            StaticAlert({ content: "Generate CMI Override Report: " + response.Message }).then(() => {
+                                resolve();
+                            });
+                        }
+                        resolve();
+                    },
+                    error: function (a, b, c) {
+                        StaticAlert({ content: "AJAX callback error, Generate CMI Override Report: " + a.responseText }).then(() => {
+                            resolve();
+                        });
+                    }
+                });
+            });
+        }).then(() => {
+            return ClearNotificationDialog();
+        });
+    }
+    </script>
+

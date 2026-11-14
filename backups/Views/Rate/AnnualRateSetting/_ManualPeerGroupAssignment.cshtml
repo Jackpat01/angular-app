@@ -1,0 +1,330 @@
+﻿@model WebPortal_OH_FI.Models.DatabaseLookupViewModel
+@{
+    string annualRateSettingEnum = Model.AnnualRateSettingEnum;
+}
+
+<style type="text/css">
+    .e-grid .e-pager .e-pagercontainer {
+        float: left;
+    }
+
+    .e-grid .e-pager .e-pager-itemsinterval {
+        float: left;
+    }
+    .e-pager-itemsinterval {
+        direction: rtl;
+        float: left;
+    }
+</style>
+<div style='width: 100%; font-weight: bold;'>
+    <div><h1>Peer Group Assignment by FYE</h1></div>
+</div>
+<div>
+    <table>
+        <tr>
+            <td>FYE:</td>
+            <td>@Html.DropDownListFor(x => x.FiscalYear, (IEnumerable<SelectListItem>)Model.RedDateList, "Select FYE", new { ID = "drpRedDateList", @style = "width: 80%;", aria_label="FYE" })</td>
+            <td><input id="btnRemoveFYE" value="Remove FYE" onclick="RemoveFYE()" type="submit" class="btn btn-success" /></td>
+            <td>@Html.TextBoxFor(x => x.RedDateYear, new { @placeholder = "Add New FYE", id = "txtREDDate", maxlength = 4, @oninput = "this.value = this.value.replace(/[^0-9.]/g, '').replace(/(\\..*)\\./g, '$1');", @style = "width: 100px;", aria_label="Add New FYE" })</td>
+            <td><input id="btnAddFYE" value="ADD FYE" onclick="AddFYE()" type="submit" class="btn btn-success" /></td>
+        </tr>
+    </table>
+    <center>
+        <div id="tblGrid"></div>
+    </center>
+</div>
+
+<div id="SyncFusionScript">
+    <script src="@Url.AbsoluteContentUri("~/Scripts/ej/common/ej.unobtrusive.min.js")"></script>
+</div>
+
+<script type="text/javascript">
+    $(document).ready(function () {
+        var annualRateSettingEnum = @Html.Raw(Json.Encode(annualRateSettingEnum));
+        $("#btnAddFYE").prop("disabled", true);
+        $("#txtREDDate").val("");
+        var fiscalYearSelected = $('#drpRedDateList option:selected').text();
+        $("#btnRemoveFYE").prop("disabled", fiscalYearSelected == "Select FYE");
+
+        $("#txtREDDate").keyup(function () {
+            var val = $('#txtREDDate').val();
+            if (val != "") {
+                $("#btnAddFYE").prop("disabled", false);
+            } else {
+                $("#btnAddFYE").prop("disabled", true);
+            }
+        });
+
+        $("#drpRedDateList").change(function () {
+            var fiscalYearSelected = $('#drpRedDateList option:selected').text();
+            if (fiscalYearSelected != "Select FYE") {
+                $("#btnRemoveFYE").prop("disabled", false);
+                LoadNotificationDialog("Loading").then(() => {
+                    return new Promise((resolve, reject) => {
+                        $.ajax({
+                            async: true,
+                            url: "@Url.AbsoluteAction("GetDatabaseLookUpVariableInfo", "Rate")",
+                            data: JSON.stringify({ annualRateSettingEnum: annualRateSettingEnum, "fiscalYear": fiscalYearSelected }),
+                            type: "POST",
+                            cache: false,
+                            contentType: "application/json;charset=utf-8",
+                            success: function (result) {
+                                if (!result.Success) return;
+
+                                var cols = [];
+                                cols.push({ field: 'DatabaseLookupVariableId', headerText: 'PrimaryKeyID', isPrimaryKey: true, isIdentity: true, visible: false });
+                                //cols.push({ field: 'DisplayName', headerText: 'Display Name', width: '50', validationRules: { required: true }, visible: true });
+                                cols.push({ field: 'Key', headerText: 'Provider Number', width: '50', validationRules: { required: true }, visible: true });
+                                cols.push({ field: 'Value', headerText: 'Peer Group Assigned', width: '50', validationRules: { required: true }, visible: true });
+
+                                $("#tblGrid").ejGrid({
+                                    dataSource: result.DatabaseLookupViewModel.DatabaseLookupGridViewModelList,
+                                    columns: cols,
+                                    toolbarSettings: {
+                                        showToolbar: true,
+                                        toolbarItems: [ej.Grid.ToolBarItems.Add, ej.Grid.ToolBarItems.Edit, ej.Grid.ToolBarItems.Update, ej.Grid.ToolBarItems.Cancel, ej.Grid.ToolBarItems.Delete]
+                                    },
+                                    pageSettings: { pageSize: 5, pageSizeList: [5, 10, 15, 20] },
+                                    allowPaging: true,
+                                    enableRowHover: true,
+                                    allowSelection: true,
+                                    allowSorting: true,
+                                    allowTextWrap: true,
+                                    editSettings: { allowEditing: true, allowAdding: true, allowDeleting: true, showDeleteConfirmDialog: true },
+                                    actionBegin: function (args) {
+                                        if (args.requestType == "beginedit") {
+                                            return true;
+                                        }
+                                        else if (args.requestType == "save") {
+                                            //Add or Update
+                                            //********************** Local Store ************
+                                            // Use Localstorage to save the grid's "CurrentPageIndex" to reset it after Postback.
+                                            // Syncfusion Forum link for future reference:
+                                            // --https://www.syncfusion.com/forums/144600/retain-last-selected-row-and-page-in-grid-after-postback--
+                                            window.localStorage.removeItem("currentPageIndex");
+                                            window.localStorage.setItem("currentPageIndex", args.model.pageSettings.currentPage);
+                                            //*********************** Local Store ************
+
+                                            var fiscalYearSelected = $('#drpRedDateList option:selected').text();
+
+                                            new Promise((res, rej) => {
+                                                $.ajax({
+                                                    async: true,
+                                                    url: "@Url.AbsoluteAction("SaveLookUpVariables", "Rate")",
+                                                    data: JSON.stringify({ annualRateSettingEnum: annualRateSettingEnum, value: args.data, "fiscalYear": fiscalYearSelected }),
+                                                    type: "POST",
+                                                    contentType: "application/json;charset=utf-8",
+                                                    dataType: "json",
+                                                    success: function (response) {
+                                                        if (!response.Success) {
+                                                            window.localStorage.removeItem("currentPageIndex");
+                                                            StaticAlert({ content: "Error Saving Data" }).then(() => {
+                                                                res();
+                                                            });
+                                                        }
+                                                        else {
+                                                            //Re-bind Grid Data
+                                                            var currentPageIndex = parseInt(window.localStorage.getItem("currentPageIndex"), 10);
+                                                            $("#tblGrid").ejGrid({
+                                                                dataSource: response.DatabaseLookupViewModel.DatabaseLookupGridViewModelList
+                                                            });
+                                                            $("#tblGrid").ejGrid({
+                                                                pageSettings: { currentPage: currentPageIndex },
+                                                            });
+
+                                                            res();
+                                                        }
+                                                    },
+                                                    error: function (errormessage) {
+                                                        StaticAlert({ content: errormessage.responseText }).then(() => {
+                                                            res();
+                                                        });
+                                                    }
+                                                });
+                                            });
+                                        }
+                                        else if (args.requestType == "delete") {
+                                            var fiscalYearSelected = $('#drpRedDateList option:selected').text();
+
+                                            new Promise((res, rej) => {
+                                                $.ajax({
+                                                    async: true,
+                                                    url: "@Url.AbsoluteAction("DeleteLookUpVariables", "Rate")",
+                                                    data: JSON.stringify({ annualRateSettingEnum: annualRateSettingEnum, value: args.data, "fiscalYear": fiscalYearSelected }),
+                                                    type: "POST",
+                                                    contentType: "application/json;charset=utf-8",
+                                                    dataType: "json",
+                                                    success: function (response) {
+                                                        if (!response.Success) {
+                                                            StaticAlert({ content: "Error Deleting Data" }).then(() => {
+                                                                res();
+                                                            });
+                                                        }
+                                                        else {
+                                                            //Re-bind Grid Data
+                                                            $("#tblGrid").ejGrid("dataSource", response.DatabaseLookupViewModel.DatabaseLookupGridViewModelList);
+                                                            $("#tblGrid").show();
+
+                                                            res();
+                                                        }
+                                                    },
+                                                    error: function (errormessage) {
+                                                        StaticAlert({ content: errormessage.responseText }).then(() => {
+                                                            res();
+                                                        });
+                                                    }
+                                                });
+                                            });
+                                        }
+                                    }
+                                });
+
+                                $("#tblGrid").show();
+
+                                resolve();
+                            },
+                            error: function (errormessage) {
+                                StaticAlert({ content: errormessage.responseText }).then(() => {
+                                    resolve();
+                                });
+                            }
+                        });
+                    });
+                }).then(() => {
+                    return ClearNotificationDialog();
+                });
+            }
+            else {
+                $('#tblGrid').hide();
+                $("#btnRemoveFYE").prop("disabled", true);
+            }
+        })
+    })
+
+    function AddFYE() {
+        var yearSelected = $('#txtREDDate').val();
+        var annualRateSettingEnum = @Html.Raw(Json.Encode(annualRateSettingEnum));
+        return LoadNotificationDialog("Saving...").then(() => {
+            return new Promise((resolve, reject) => {
+                $.ajax({
+                    async: true,
+                    url: "@Url.AbsoluteAction("AddFYE", "Rate")",
+                    data: JSON.stringify({ annualRateSettingEnum: annualRateSettingEnum, "fiscalYear": yearSelected }),
+                    type: "POST",
+                    contentType: "application/json;charset=utf-8",
+                    dataType: "json",
+                    success: function (result) {
+                        if (!result.Success) {
+                            StaticAlert({ content: result.Message }).then(() => {
+                                $("#txtREDDate").val("");
+                                $("#btnAddFYE").prop("disabled", true);
+                                $("#drpRedDateList option").filter(function () {
+                                    return this.text == yearSelected;
+                                }).attr('selected', true).trigger('change');
+
+                                resolve();
+                            });
+                        }
+                        else {
+                            $("#txtREDDate").val("");
+                            $("#btnAddFYE").prop("disabled", true);
+                            var ddl = $('#drpRedDateList');
+                            ddl.empty();
+                            $(document.createElement('option'))
+                                .attr('value', '')
+                                .text('Select FYE')
+                                .appendTo(ddl);
+                            //Check if FYE drop down list is empty
+                            if (result.DatabaseLookupViewModel.RedDateList.length === 0) {
+                                $(document.createElement('option'))
+                                    .attr('value', yearSelected)
+                                    .text(yearSelected)
+                                    .appendTo(ddl);
+                            }
+                            else {
+                                $(result.DatabaseLookupViewModel.RedDateList).each(function () {
+                                    $(document.createElement('option'))
+                                        .attr('value', this.Value)
+                                        .text(this.Text)
+                                        .appendTo(ddl);
+                                });
+                            }
+                            // Load Grid
+                            $("#drpRedDateList option").filter(function () {
+                                return this.text == yearSelected;
+                            }).attr('selected', true).trigger('change');
+
+                            resolve();
+                        }
+                    },
+                    error: function (errormessage) {
+                        StaticAlert({ content: errormessage.responseText }).then(() => {
+                            resolve();
+                        });
+                    }
+                });
+            });
+        }).then(() => {
+            return ClearNotificationDialog();
+        });
+    }
+
+    function RemoveFYE() {
+        return StaticConfirm({
+            title: "Delete Confirm",
+            content: "Are you sure you want to Delete?",
+            buttons: ["Ok", "Cancel"]
+        }).then((key) => {
+            if (key != 0) return;
+
+            var annualRateSettingEnum = @Html.Raw(Json.Encode(annualRateSettingEnum));
+            var year = $('#drpRedDateList option:selected').text();
+            return LoadNotificationDialog("Deleting...").then(() => {
+                return new Promise((resolve, reject) => {
+                    $.ajax({
+                        async: true,
+                        url: "@Url.AbsoluteAction("RemoveFYE", "Rate")",
+                        data: JSON.stringify({ annualRateSettingEnum: annualRateSettingEnum, "year": year }),
+                        type: "POST",
+                        contentType: "application/json;charset=utf-8",
+                        dataType: "json",
+                        success: function (result) {
+                            if (!result.Success) {
+                                StaticAlert({ content: result.Message }).then(() => {
+                                    resolve();
+                                });
+                            }
+                            else {
+                                $("#btnRemoveFYE").prop("disabled", true);
+                                var ddl = $('#drpRedDateList');
+                                ddl.empty();
+                                $(document.createElement('option'))
+                                    .attr('value', 'Select FYE')
+                                    .text('Select FYE')
+                                    .appendTo(ddl);
+                                $(result.DatabaseLookupViewModel.RedDateList).each(function () {
+                                    $(document.createElement('option'))
+                                        .attr('value', this.Value)
+                                        .text(this.Text)
+                                        .appendTo(ddl);
+                                });
+
+                                $('#tblGrid').hide(); // Hide the grid and set DD to default
+                                $('select#drpRedDateList option:contains("Select FYE")').prop('selected', true);
+
+                                resolve();
+                            }
+                        },
+                        error: function (errormessage) {
+                            StaticAlert({ content: errormessage.responseText }).then(() => {
+                                resolve();
+                            });
+                        }
+                    });
+                });
+            }).then(() => {
+                return ClearNotificationDialog();
+            });
+        });
+    }
+</script>

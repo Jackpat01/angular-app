@@ -1,0 +1,397 @@
+﻿@using WebPortal_OH_FI.Web
+@model WebPortal_OH_FI.Models.ProviderGeneralInformationViewModel
+
+<style>
+    .modal-dialog {
+        margin: 3.75rem auto !important;
+    }
+</style>
+
+    <table class="table table-borderless bold-every-other-column" style="table-layout: fixed;">
+        <tr>
+            <td colspan="2">Provider Name:</td>
+            <td colspan="2">@Html.DisplayFor(model => model.Name)</td>
+            <td colspan="2">Facility Type:</td>
+            <td colspan="2">@Html.DisplayFor(model => model.FacilityType)</td>
+        </tr>
+        <tr>
+            <td colspan="2">Medicaid Number:</td>
+            <td colspan="2">@Html.DisplayFor(model => model.MedicaidID)</td>
+            <td colspan="2">Facility Subtype:</td>
+            <td colspan="2">@Html.DisplayFor(model => model.FacilitySubType)</td>
+        </tr>
+        <tr>
+            <td colspan="2">Medicare Number:</td>
+            <td colspan="2">@Html.DisplayFor(model => model.MedicareID)</td>
+            <td colspan="2">Ownership / Control Type:</td>
+            <td colspan="2">@Html.DisplayFor(model => model.Ownership)</td>
+        </tr>
+        <tr>
+            <td colspan="2">National Provider Number:</td>
+            <td colspan="2">@Html.DisplayFor(model => model.NPINumber)</td>
+            <td colspan="2">Initial Certification Date:</td>
+            <td colspan="2">@Html.DisplayFor(model => model.EffectiveDate)</td>
+        </tr>
+        <tr>
+            <td colspan ="2">Federal Tax ID Number:</td>
+            <td colspan="2">@Html.DisplayFor(model => Model.FederalTaxId)</td>
+            <td colspan="2"> Closure Date:</td>
+            <td colspan="2">@Html.DisplayFor(model => Model.ClosureDate)</td>
+        </tr>
+        <tr>
+            <td colspan="2">County:</td>
+            <td colspan="2">@Html.DisplayFor(model => model.County)</td>
+            <td colspan="2">Status:</td>
+            <td colspan="2">@Html.DisplayFor(model => model.Status)</td>
+        </tr>
+        <tr>
+
+            @if (OHFISession.IsNF)
+            {
+                <td colspan="2">Ancillary Peer Group:</td>
+                <td colspan="2">@Html.DisplayFor(model => model.AncillaryPeerGroup)</td>
+            }
+            @if (OHFISession.IsICF)
+            {
+                <td colspan="2">Indirect Care Peer Group:</td>
+                <td colspan="2">@Html.DisplayFor(model => model.IndirectCarePeerGroup)</td>
+            }
+            <td colspan="2">Home Medicaid ID:</td>
+            <td colspan="2">@Html.DisplayFor(model => model.HomeMedicaidId)</td>
+        </tr>
+        <tr>
+            @if (OHFISession.IsNF)
+            {
+                <td colspan="2">Capital Peer Group:</td>
+                <td colspan="2">@Html.DisplayFor(model => model.CapitalPeerGroup)</td>
+            }
+            @if (OHFISession.IsICF)
+            {
+                <td colspan="2">Direct Care Peer Group:</td>
+                <td colspan="2">@Html.DisplayFor(model => model.DirectCarePeerGroup)</td>
+            }
+            <td colspan="2">ODH Number:</td>
+            <td colspan="2">@Html.DisplayFor(model => model.ODHID)</td>
+        </tr>
+        <tr>
+            @if (OHFISession.IsNF)
+            {
+                <td colspan="2">Direct Care Peer Group:</td>
+                <td colspan="2">@Html.DisplayFor(model => model.DirectCarePeerGroup)</td>
+                <td colspan="2">Risk/Alert Status:</td>
+                <td colspan="2">@Html.DisplayFor(model => model.RiskStatus)</td>
+            }
+            @if (OHFISession.IsICF)
+            {
+                <td colspan="2"></td>
+                <td colspan="2"></td>
+                <td colspan="2">MRDD Number:</td>
+                <td colspan="2">@Html.DisplayFor(model => model.MRDDNumber)</td>
+            }
+        </tr>
+
+        <tr>
+        @if (OHFISession.IsICF)
+        {
+            <td colspan="2"></td>
+            <td colspan="2"></td>
+            <td colspan="2">Risk/Alert Status:</td>
+            <td colspan="2">@Html.DisplayFor(model => model.RiskStatus)</td>
+        }
+        </tr>
+        <tr>
+            <td>Chop From:</td>
+            <td>@Html.DisplayFor(model => model.CHOPFromProviderNumber)</td>
+            <td>To:</td>
+            <td>@Html.DisplayFor(model => model.CHOPToProviderNumber)</td>
+            <td colspan="2">Practice Type:</td>
+            <td colspan="2">@Html.DisplayFor(model => model.PracticeType)</td>
+        </tr>
+        <tr>
+            <td colspan="2">
+                Certified Beds:
+            </td>
+            <td colspan="2">
+                <a data-toggle="modal" href="#" data-target="#window_CertifiedBeds" onclick="LoadCertifiedBeds()">@Html.DisplayFor(model => model.CertifiedBeds)</a>
+            </td>
+            <td colspan="2">
+                Licensed Beds:
+            </td>
+            <td colspan="2">
+                <a data-toggle="modal" href="#" data-target="#window_LicensedBeds" onclick="LoadLicensedBeds()">@Html.DisplayFor(model => model.LicensedBeds)</a>
+            </td>
+        </tr>
+
+        <tr>
+            <td colspan="2">
+                <a data-toggle="modal" href="#" data-target="#window_CertifiedBedTransfers" onclick="loadCertifiedBedTransfers()">Certified Bed Transfers</a>
+            </td>
+            <td colspan="2"></td>
+            <td colspan="2">
+                <a data-toggle="modal" href="#" data-target="#window_ChangeofOwnership" onclick="loadChangeofOwnership()">Change of Ownership</a>
+            </td>
+            <td colspan="2"></td>
+        </tr>
+    </table>
+
+
+<div style="display: none; border: 1px solid darkgrey">
+    <div class="col-sm-12" style="margin:10px">
+        <button type="button" class="btn btn-success" data-toggle="modal" data-target="#generalInformationModal" onclick="loadGeneralInformation(0);">Add Provider Attribute</button>
+    </div>
+
+    <div id="tblAttributeList" class="col-sm-11" style="margin:10px">
+
+        @(Html.EJ().Grid<object>("tblProviderAttribute")
+                        .CssClass("mslcTable")
+                        .Datasource(Model.ProviderAttributes)
+                        .Locale("en-US")
+                        .EnableRowHover(true)
+                        .AllowSelection(true)
+                        .AllowTextWrap(true)
+                        .TextWrapSettings(wrap => { wrap.WrapMode(WrapMode.Both); })
+                        .Columns(col =>
+                        {
+                            col.Field("ProviderAttributeId").HeaderText("PrimaryKey Id").IsPrimaryKey(true).Visible(false).Width("120").TextAlign(TextAlign.Right).Add();
+                            col.Field("IsEnabled").HeaderText("IsEnabled").Visible(false).TextAlign(TextAlign.Right).Add();
+                            col.Field("Name").HeaderText("Name").TextAlign(TextAlign.Left).Width(20).CssClass("noWrap").Add();
+                            col.Field("DateRange").HeaderText("Date Range").TextAlign(TextAlign.Left).Width(40).CssClass("noWrap").Add();
+                            col.Template("#editAttribute").HeaderText("Edit").CssClass("icon").TextAlign(TextAlign.Center).Width(10).Add();
+                            col.Template("#enableDisableAttribute").HeaderText("Enable/Disable").CssClass("icon").TextAlign(TextAlign.Center).Width(10).Add();
+
+                        }).ClientSideEvents(events =>
+                        {
+                            events.TemplateRefresh("loadIcons");
+                            events.QueryCellInfo("querycellinfo");
+                        }))
+        <script id="editAttribute" type="text/x-template">
+            <a onclick="loadGeneralInformation('{{:ProviderAttributeId}}')" href="#" type="submit">
+                <i data-feather="edit" aria-label="Edit"></i>
+            </a>
+        </script>
+        <script id="enableDisableAttribute" type="text/x-template">
+            {{if IsEnabled}}
+            <a onclick="enableDisableAttribute('{{:ProviderAttributeId}}',false)" href="#" type="submit" style="color: #C83C3C">
+                Disable
+            </a>
+            {{else}}
+            <a onclick="enableDisableAttribute('{{:ProviderAttributeId}}',true)" href="#" type="submit" style="color:green">
+                Enable
+            </a>
+            {{/if}}
+        </script>
+    </div>
+
+</div>
+
+<div id="editGeneralInformationModalBody"></div>
+<input type="hidden" id="IsNF" value="@OHFISession.IsNF" />
+<input type="hidden" id="IsICF" value="@OHFISession.IsICF" />
+
+<div id="divCertifiedBeds"></div>
+<div id="divLicensedBeds"></div>
+<div id="divCertifiedBedsTransfers"></div>
+<div id="divChangeofOwnership"></div>
+
+<script>
+
+    function loadGeneralInformation() {
+        var id = $("#editAttribute").attr("data-tabname");
+        return LoadNotificationDialog("Loading...").then(() => {
+            return new Promise((resolve, reject) => {
+                $.ajax({
+                    url: "@Url.AbsoluteAction("GetAttribute", "Rate")",
+                    data: JSON.stringify({ "providerId": id }),
+                    type: "POST",
+                    cache: false,
+                    contentType: "application/json;charset=utf-8",
+                    success: function (result) {
+                        $("#editGeneralInformationModalBody").html(result);
+                        $("#generalInformationModal").modal('show');
+                        resolve();
+                    },
+                    error: function (errormessage) {
+                        StaticAlert({ content: errormessage.responseText }).then(() => {
+                            resolve();
+                        });
+                    }
+                });
+            });
+        }).then(() => {
+            return ClearNotificationDialog();
+        })
+    }
+
+    function loadGeneralInformation(id) {
+        return LoadNotificationDialog("Loading...").then(() => {
+            return new Promise((resolve, reject) => {
+                $.ajax({
+                    url: "@Url.AbsoluteAction("GetAttribute", "Rate")",
+                    data: JSON.stringify({ "attributeId": id }),
+                    type: "POST",
+                    cache: false,
+                    contentType: "application/json;charset=utf-8",
+                    success: function (result) {
+                        $("#editGeneralInformationModalBody").html(result);
+                        $("#generalInformationModal").modal('show');
+                        if (id <= 0) {
+                            $("#txtStartDate").val('');
+                            $("#txtEndDate").val('');
+                        }
+                        resolve();
+                    },
+                    error: function (errormessage) {
+                        StaticAlert({ content: errormessage.responseText }).then(() => {
+                            resolve();
+                        });
+                    }
+                });
+            });
+        }).then(() => {
+            return ClearNotificationDialog();
+        });
+    }
+
+    function loadCertifiedBedTransfers() {
+        $("#divCertifiedBedsTransfers").empty();
+        $.ajax({
+            url: "@Url.AbsoluteAction("LoadCertifiedBedTransfers", "Rate")",
+            cache: false,
+            type: 'POST',
+            success: function (result) {
+                $("#divCertifiedBedsTransfers").html(result);
+                $("#window_CertifiedBedTransfers").modal('show');
+            },
+            error: function (errormessage) {
+                StaticAlert({ content: errormessage.responseText });
+            }
+        });
+    }
+
+    function LoadCertifiedBeds() {
+        $("#divCertifiedBeds").empty();
+        $.ajax({
+            url: "@Url.AbsoluteAction("LoadCertifiedBeds", "Rate")",
+            cache: false,
+            type: 'POST',
+            success: function (result) {
+                $("#divCertifiedBeds").html(result);
+                $("#window_CertifiedBeds").modal('show');
+            },
+            error: function (errormessage) {
+                StaticAlert({ content: errormessage.responseText });
+            }
+        });
+    }
+
+    function LoadLicensedBeds() {
+        $("#divLicensedBeds").empty();
+        $.ajax({
+            url: "@Url.AbsoluteAction("LoadLicensedBeds", "Rate")",
+            cache: false,
+            type: 'POST',
+            success: function (result) {
+                $("#divLicensedBeds").html(result);
+                $("#window_LicensedBeds").modal('show');
+            },
+            error: function (errormessage) {
+                StaticAlert({ content: errormessage.responseText });
+            }
+        });
+    }
+
+    function loadChangeofOwnership() {
+        $("#divChangeofOwnership").empty();
+        $.ajax({
+            url: "@Url.AbsoluteAction("LoadChangeofOwnership", "Rate")",
+            cache: false,
+            type: 'POST',
+            success: function (result) {
+                $("#divChangeofOwnership").html(result);
+                $("#window_ChangeofOwnership").modal('show');
+            },
+            error: function (errormessage) {
+                StaticAlert({ content: errormessage.responseText });
+            }
+        });
+    }
+
+    function SaveAttribute() {
+        var attributesObj = {
+            ProviderAttributeId: $('#providerAttributeId').val(),
+            Name: $('#txtName').val(),
+            StartDate: $('#txtStartDate').val(),
+            EndDate: $('#txtEndDate').val(),
+            IsEnabled: $('#hdnIsEnabled').val()
+        };
+
+        return LoadNotificationDialog("Updating...").then(() => {
+            return new Promise((resolve, reject) => {
+                $.ajax({
+                    async: true,
+                    url: "@Url.AbsoluteAction("SaveProviderAttribute", "Rate")",
+                    data: JSON.stringify(attributesObj),
+                    type: "POST",
+                    contentType: "application/json;charset=utf-8",
+                    dataType: "json",
+                    success: function (result) {
+                        $("#tblProviderAttribute").ejGrid("dataSource", result.ProviderAttributes);
+                        $('#generalInformationModal').modal('hide');
+                        $(".modal-backdrop").remove();
+                        ClearNotificationDialog();
+                        resolve();
+
+                    },
+                    error: function (errormessage) {
+                        StaticAlert({ content: errormessage.responseText }).then(() => {
+                            resolve();
+                        });
+                    }
+                });
+            });
+        }).then(() => {
+            return ClearNotificationDialog();
+        });
+    }
+
+    function closeModal() {
+        $('.modal-backdrop').remove();
+    }
+
+    function enableDisableAttribute(id,isEnabled) {
+        return LoadNotificationDialog("Loading...").then(() => {
+            return new Promise((resolve, reject) => {
+                $.ajax({
+                    url: "@Url.AbsoluteAction("EnableDisableProviderAttribute", "Rate")",
+                    data: JSON.stringify({ "attributeId": id, "isEnabled": isEnabled }),
+                    type: "POST",
+                    cache: false,
+                    contentType: "application/json;charset=utf-8",
+                    success: function (result) {
+                        $("#tblProviderAttribute").ejGrid("dataSource", result.ProviderAttributes);
+                        resolve();
+                        ClearNotificationDialog();
+                    },
+                    error: function (errormessage) {
+                        StaticAlert({ content: errormessage.responseText }).then(() => {
+                            resolve();
+                        });
+                    }
+                });
+            });
+        }).then(() => {
+            return ClearNotificationDialog();
+        });
+    }
+
+    function querycellinfo(args) {
+
+        if (args.column.field == "Name" && args.data.IsEnabled == false) {
+            $($(args.cell)).css("text-decoration", "line-through");
+        }
+        if (args.column.field == "DateRange" && args.data.IsEnabled == false) {
+            $($(args.cell)).css("text-decoration", "line-through");
+        }
+    }
+
+</script>

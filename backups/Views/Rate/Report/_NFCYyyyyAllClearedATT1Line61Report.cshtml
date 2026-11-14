@@ -1,0 +1,88 @@
+﻿@model WebPortal_OH_FI.Models.ViewModels.NFCYyyyyAllClearedATT1Line61ViewModel
+
+<script>
+	$(document).ready(function () {
+		$("#reportButton").on("click", function () {
+			$("#ratesetting-reports").show();
+			$("#report-details").hide();
+		});
+	});
+</script>
+<div>
+	<button class="btn btn-success" id="reportButton">Back to Reports</button>
+</div>
+
+<table>
+	<tr>
+		<td colspan="2">NF_CYyyyy_All_Cleared_ATT1_Line_61 Report</td>
+	</tr>
+	<tr>
+		<td>CY:</td>
+		<td>
+			@Html.DropDownListFor(model => model.Period.PeriodList, Model.Period.PeriodList, "Select CY", new { ID = "drpCYList", aria_label = "CY" })
+		</td>
+	</tr>
+	<tr>
+		<td>
+			<input id="btnGenerateReport" value="Generate Report" type="submit" class="btn btn-success" onclick="GenerateReport()" />
+		</td>
+	</tr>
+</table>
+
+<script type="text/javascript">
+    $(document).ready(function () {
+        ClearNotificationDialog();
+        $("#btnGenerateReport").prop("disabled", true);
+
+        $("#drpCYList").change(function () {
+            var val = $('#drpCYList option:selected').text();
+            if (val != "Select CY") {
+
+                    $("#btnGenerateReport").prop("disabled", false);
+
+            } else {
+                    $("#btnGenerateReport").prop("disabled", true);
+                }
+        });
+    });
+
+    function GenerateReport() {
+        var cy = $('#drpCYList option:selected').text();
+
+        return LoadNotificationDialog("Generating Report, please wait...").then(() => {
+            return new Promise((resolve, reject) => {
+                $.ajax({
+                    async: true,
+                    url: "@Url.AbsoluteAction("GenerateNFCYyyyyAllClearedATT1Line61Report", "Rate")",
+                    data: JSON.stringify({ cy: cy }),
+                    cache: false,
+                    type: "POST",
+                    dataType: "json",
+                    contentType: "application/json;charset=utf-8",
+                    success: function (response) {
+                        if (response.Success) {
+                            //get the file name for download
+                            if (response.FileName != "") {
+                                //use window.location.href for redirect to download action for download the file
+                                window.location.href = "@Url.AbsoluteAction("Download", "Rate")/?fileName=" + response.FileName;
+                            }
+                        }
+                        else {
+							StaticAlert({ content: "Generating NF_CYyyyy_All_Cleared_ATT1_Line_61 Report: " + response.Message }).then(() => {
+                                resolve();
+                            });
+                        }
+                        resolve();
+                    },
+                    error: function (a, b, c) {
+						StaticAlert({ content: "AJAX callback error, Generating NF_CYyyyy_All_Cleared_ATT1_Line_61 Report: " + a.responseText }).then(() => {
+                            resolve();
+                        });
+                    }
+                });
+            });
+        }).then(() => {
+            return ClearNotificationDialog();
+        });
+    }
+</script>

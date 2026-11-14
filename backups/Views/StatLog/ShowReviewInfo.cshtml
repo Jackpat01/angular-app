@@ -1,0 +1,80 @@
+﻿@*
+    DO NOT MODIFY OUTSIDE OF MSLC.STATLOG
+    This file comes from MSLC.Statlog, any changes to it will be wiped out when the nuget package is updated.
+    Please make the appropriate enhancements to MSLC.Statlog instead of here.
+*@
+
+@model MSLC.StatLog.MVC.ViewModels.ReviewInfoViewModel.View
+@Styles.Render("~/Content/StatLog.css")
+@{
+    Layout = null;
+}
+
+<div class="modal-content">
+    <div class="modal-header">
+        <span id="myModalLabel" style="text-align: left; font-size: 1.5em; font-weight: bolder;" color:black;>
+            Review Notes - @Model.InitialEventName
+        </span>
+        <button href="#" class="close" data-dismiss="modal">&times;</button>
+    </div>
+    <div style="padding-left: 15px; margin: 8px;">
+        <table width="100%">
+            <tr>
+                <td width="20%" nowrap align="right">
+                    Review User ID:
+                </td>
+                <td width="80%" align="left">
+                    @Html.DisplayFor(x => x.ReviewUserName, new { id = "lblReviewUserID" })
+                </td>
+            </tr>
+            @if (!String.IsNullOrEmpty(Model.FileType) && Model.IsFileReview)
+            {
+                <tr>
+                    <td width="20%" nowrap align="right">
+                        Review File Type:
+                    </td>
+                    <td width="80%" align="left">
+                        @Html.DisplayFor(x => x.FileType, new { id = "lblFileType" })
+                    </td>
+                </tr>
+            }
+            <tr>
+                <td width="20%" nowrap align="right">
+                    Is Review OK:
+                </td>
+                <td width="80%" align="left">
+                    @*@Html.CheckBoxFor(x=>x.IsReviewOK, new {id="chkIsReviewOk",@readonly="readonly", @disabled="disabled"})*@
+                    @if (Model.IsReviewOK)
+                    {
+                        <text>Yes</text>
+                    }
+                    else
+                    {
+                        <text>No</text>
+                    }
+                </td>
+            </tr>
+            <tr>
+                <td width="20%" nowrap align="right">
+                    Review Date:
+                </td>
+                <td width="80%" align="left">
+                    @Html.DisplayFor(x => x.ReviewDate, new { id = "lblReviewDate" })
+                </td>
+            </tr>
+            <tr>
+                <td width="20%" valign="top" align="right">
+                    Notes:
+                </td>
+                <td width="80%" align="left">
+                    <textarea rows="10" cols="1" id="txtReviewNotes" readonly style="width: 95% !important; text-align: left;">@MvcHtmlString.Create(Model.Notes.Trim())</textarea>
+                </td>
+            </tr>
+            <tr>
+                <td colspan="2" align="center">
+                    <button class="btn btn-primary BoldMe" data-dismiss="modal" aria-hidden="true">Close</button>
+                </td>
+            </tr>
+        </table>
+    </div>
+</div>

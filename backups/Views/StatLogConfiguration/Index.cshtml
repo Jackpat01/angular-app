@@ -1,0 +1,48 @@
+﻿@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+@model MSLC.StatLog.MVC.ViewModels.StatLogConfigurationViewModel.View
+<link rel='icon' href='~/favicon.ico' type='image/x-icon'>
+<link rel='shortcut icon' href='~/favicon.ico' type='image/x-icon' />
+<script src="~/Scripts/bootstrap-datepicker.js" type="text/javascript"></script>
+<script src="~/Scripts/date.js" type="text/javascript"></script>
+@*<script src="~/Scripts/jquery.fileDownload.js" type="text/javascript"></script>*@
+<script src="~/Scripts/jquery.cookie.js" type="text/javascript"></script>
+<script src="~/Scripts/Pages/Index.js" type="text/javascript"></script>
+<script src="~/Scripts/Pages/LogOut.js" type="text/javascript"></script>
+<script src="~/Scripts/moment.min.js" type="text/javascript"></script>
+<script src="~/Content/feather-icons/dist/feather.min.js"></script>  @*This is used to load icons https://feathericons.com/*@
+<link href="~/Content/datepicker.css" rel="stylesheet" type="text/css" />
+@Scripts.Render("~/Scripts/jsrender.min.js")
+@Scripts.Render("~/Scripts/ej/web/ej.web.all.min.js")
+<link href="~/Content/buttons.css" rel="stylesheet" type="text/css" />
+<link href="~/Content/south-street/jquery-ui-1.9.2.custom.css" rel="stylesheet" type="text/css" />
+<div>
+    <table style="margin-left: auto; margin-right: auto;">
+        <tr>
+            <td colspan="2" style="text-align: center;">
+                <h3>StatLog Configuration Report</h3>
+            </td>
+        </tr>
+        <tr>
+            <td style="text-align: center; width: 75%; padding: 10px;">
+                <h4>Is Logging Enabled</h4>
+            </td>
+            @if (Model.IsLoggingSetUp)
+            {
+                <td style="text-align: center; width: 25%; padding: 10px;" title='Logging is enabled for project.'>
+                    <i data-feather='check-circle' class='text-success'></i>
+                </td>
+            }
+            else
+            {
+                <td style="text-align: center; width: 25%; padding: 10px;" title='Logging is not enabled for project.'>
+                    <i data-feather='slash' class='text-danger'></i>
+                </td>
+            }
+        </tr>
+    </table>
+</div>
+<script>
+    feather.replace()
+</script>

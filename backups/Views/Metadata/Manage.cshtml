@@ -1,0 +1,84 @@
+﻿@*
+    DO NOT MODIFY OUTSIDE OF MSLC.STATLOG
+    This file comes from MSLC.Statlog, any changes to it will be wiped out when the nuget package is updated.
+    Please make the appropriate enhancements to MSLC.Statlog instead of here.
+*@
+
+@using MSLC.Portal.Configuration
+@using MSLC.Portal.MVC.Utility
+@model MSLC.StatLog.MVC.ViewModels.MetadataViewModel.Manage
+@{
+    Layout = PortalConfiguration.DetermineLayout("Menu");
+    ViewBag.Title = "Metadata Management";
+}
+@Html.Script("~/Scripts/Pages/Metadata/Index.js", "jquery")
+@* @Styles.Render("~/Content/Metadata.css") *@
+
+<h2>Metadata Management - @Model.Name</h2>
+
+<div id="dialogDiv" class="modal fade" tabindex="-1" aria-labelledby="windowTitleLabel" aria-hidden="true" role="dialog">
+    <div id="modal-dialog" class="modal-dialog" role="document">
+        <div id="dialogContent" style="font-size: 14px; width:100%"></div>
+        <div id="dialogMessage" style="font-size: 14px; width:100%"></div>
+    </div>
+</div>
+
+@if (TempData["Message"] != null)
+{
+    <br />
+    <br />
+    <div class="errorLabel mb-2" style="text-align: center;">
+        @Html.Raw(TempData["Message"].ToString())
+    </div>
+}
+
+<div class="mb-1 d-flex justify-content-between">
+    <div class="button-box">
+        <a href="@Url.AbsoluteAction("Index", "Metadata")?schemaID=0&name=@(Model.Name)" class="btn btn-kyBlue BoldMe">Back to index</a>
+    </div>
+    <div class="button-box">
+        <a onclick="return modalButton(this, 'mediumSmall')" href="@Url.AbsoluteAction("Edit", "Metadata")?schemaID=0&name=@(Model.Name)" class="btn btn-kyBlue BoldMe">Add New Metadata</a>
+    </div>
+</div>
+
+@(Html.EJ().Grid<SelectListItem>("tblSchemaList")
+    .CssClass("mslcTable")
+    .Datasource(Model.Versions)
+    .AllowPaging()
+    .EnableRowHover(true)
+    .AllowSelection(false)
+    .AllowSorting(true)
+    .AllowFiltering(true)
+    .AllowTextWrap(true)
+    .TextWrapSettings(wrap => { wrap.WrapMode(WrapMode.Both); })
+    .FilterSettings(filter => { filter.FilterType(FilterType.Menu); filter.ShowPredicate(false); })
+
+    .ToolbarSettings(toolbar =>
+    {
+        toolbar.ShowToolbar().ToolbarItems(items =>
+        {
+            items.AddTool(ToolBarItems.Search);
+        });
+    })
+    .Columns(col =>
+    {
+        col.Template("#viewKeys").HeaderText("View Keys").CssClass("icon").TextAlign(TextAlign.Center).Width(10).Add();
+        col.Template("#manageSchema").HeaderText("Edit").CssClass("icon").TextAlign(TextAlign.Center).Width(10).Add();
+        col.Field(e => e.Text).HeaderText("Version").TextAlign(TextAlign.Center).Width(30).Add();
+    })
+    .ClientSideEvents(events =>
+    {
+        events.TemplateRefresh("loadIcons");
+    }))
+
+<script id="viewKeys" type="text/x-template">
+    <a onclick="return modalButton(this, 'tallerWide')" href="@Url.AbsoluteAction("ViewKeys", "Metadata")?schemaID={{:Value}}">
+        <i data-feather="eye"></i>
+    </a>
+</script>
+
+<script id="manageSchema" type="text/x-template">
+    <a onclick="return modalButton(this, 'mediumSmall')" href="@Url.AbsoluteAction("Edit", "Metadata")?schemaID={{:Value}}&name=@(Model.Name)">
+        <i data-feather="settings"></i>
+    </a>
+</script>

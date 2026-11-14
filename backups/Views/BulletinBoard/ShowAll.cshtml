@@ -1,0 +1,83 @@
+﻿@using System.Globalization
+@using MSLC.Portal.Configuration
+@using WebPortal_OH_FI.Common
+@model WebPortal_OH_FI.Models.BulletinBoardViewModel
+@{
+	Layout = "~/Views/Shared/_LayoutWithMenu.cshtml";
+	ViewBag.Title = PortalConfiguration.Application + " - Bulletin Board";
+}
+
+<div class="modal-header-ShowAll">
+	<h3>Bulletin Board</h3>
+</div>
+<div style="padding: 25px; border: 1px solid #74c141; border-bottom-left-radius: 8px; border-bottom-right-radius: 8px;">
+	@if (Model.myBulletinBoards != null)
+	{
+		if (Model.myBulletinBoards.Any())
+		{
+			foreach (string myBulletinBoardType in Model.BulletinBoardTypes)
+			{
+				<text><div class="pull-left" style="font-weight: bold; font-size: 18px; margin-top: 5px;">@myBulletinBoardType</div></text>
+				<div style="width: 100%; height: 1px; background: #dee2e6; overflow: hidden;"></div>
+
+				foreach (var mySingleBulletinBoard in Model.myBulletinBoards.Where(c => c.Type.ToUpper() == myBulletinBoardType.ToUpper()).OrderByDescending(c => c.AlwaysShow.HasValue && c.AlwaysShow.Value).ThenByDescending(c => c.Order).ThenByDescending(c => c.CreateDate).ThenByDescending(c => c.LastModified).ToList())
+				{
+					<text>
+						<div style="margin-top: 5px; margin-bottom: 5px; border-radius: 12px;">
+							<table width="90%" height="100%" cellpadding="0" cellspacing="0" border="0" style="padding: 15px;">
+								@if (mySingleBulletinBoard.IsNewBulletinBoard)
+								{
+									<text>
+										<tr>
+											<td colspan="2">
+												<label class="MandSOrange">New!</label>&nbsp;&nbsp;
+											</td>
+										</tr>
+									</text>
+								}
+								<tr>
+									<td width="10%" align="left" style="text-align: left !important;">
+										Date Posted:
+									</td>
+									<td align="left" style="text-align: left !important;">
+										<div>
+											@(CultureInfo.CurrentCulture.DateTimeFormat.GetMonthName(mySingleBulletinBoard.PostedDate.Month) + " " + mySingleBulletinBoard.PostedDate.Day + ", " + mySingleBulletinBoard.PostedDate.Year)
+										</div>
+									</td>
+								</tr>
+								<tr>
+									<td width="10%" align="left" style="text-align: left !important;">
+										Title:
+									</td>
+									<td align="left" style="text-align: left !important;">
+										@Html.Raw(mySingleBulletinBoard.Title)
+									</td>
+								</tr>
+								<tr>
+									<td width="10%" valign="top" align="left" style="text-align: left !important;">
+										Message:
+									</td>
+									<td align="left" style="text-align: left !important;">
+										@Html.Raw(mySingleBulletinBoard.Message)
+									</td>
+								</tr>
+							</table>
+						</div>
+
+					</text>
+				}
+			}
+		}
+		else
+		{
+			<text>Application Currently has no Bulletin Boards Available.</text>
+		}
+	}
+	else
+	{
+		<text>Application Currently has no Bulletin Boards Available.</text>
+	}
+</div>
+
+
+

@@ -1,0 +1,76 @@
+﻿@*
+    DO NOT MODIFY OUTSIDE OF MSLC.STATLOG
+    This file comes from MSLC.Statlog, any changes to it will be wiped out when the nuget package is updated.
+    Please make the appropriate enhancements to MSLC.Statlog instead of here.
+*@
+
+@using MSLC.Portal.MVC.Utility
+@using MSLC.StatLog.Configuration
+@Styles.Render("~/Content/StatLog.css")
+@model MSLC.StatLog.MVC.ViewModels.UploadViewModel.View
+@Html.Script("~/Scripts/Pages/StatLog/Upload.js", "jquery")
+@{
+    Layout = null;
+}
+@Html.HiddenFor(x => x.BlackList, new { id = "hdnBlackList" })
+@Html.HiddenFor(x => x.WhiteList, new { id = "hdnWhiteList" })
+@Html.HiddenFor(x => x.WhiteListExtensions, new { id = "hdnWhiteListExtensions" })
+@Html.HiddenFor(x => x.MaxFileSize, new { id = "hdnMaxFileSize" })
+
+<div class="modal-content">
+    <div class="modal-header">
+        <span id="myModalLabel" style="text-align: left; font-size: 1.5em; font-weight: bolder; color:black;">
+            Upload File - @Model.InitialEventName<br />
+            @Model.ProviderName<br />
+            FYE: @Model.CostReportEndDate.ToString("MM/dd/yyyy")
+        </span>
+        <button href="#" class="close" data-dismiss="modal">&times;</button>
+    </div>
+    @using (Html.BeginForm("SaveFile", "StatLog", FormMethod.Post, new { id = "frmSubmitFile", enctype = "multipart/form-data", @class = "modal-form" }))
+    {
+        @Html.AntiForgeryToken()
+        @Html.HiddenFor(x => x.sHistoryID)
+
+        <div class="myImage" style="display: none;">
+            <center>
+                <img src="~/Images/loading.gif" alt="Loading" width="32" height="32" />
+                <h3>Uploading...</h3>
+            </center>
+        </div>
+        <div class="myControls">
+            <div style="padding-left:15px; margin: 8px;">
+                <table style="width: 100%;">
+                    <tr>
+                        <td align="left">
+                            <label for="txtUploadedFile">File:</label>
+                            @Html.TextBoxFor(x => x.UploadedFile, new { id = "txtUploadedFile", @type = "file", @name = "UploadedFile", onchange = "return CheckFileUpload();" })
+                        </td>
+                    </tr>
+                    <tr>
+                        <td width="85%" align="left">
+                            <label for="txtNotes">Notes:</label>
+                            @Html.TextAreaFor(x => x.Notes, 20, 1, new { id = "txtNotes", @style = "width: 95% !important;", maxLength = 1000 })
+                        </td>
+                    </tr>
+                    <tr>
+                        <td colspan="2" align="center">
+                            <button type="submit" name="Command" id="btnUploadResearch" value="Upload" class="btn btn-success BoldMe" onclick="return CheckFileUpload();" disabled>Upload</button>
+                            <button class="btn btn-primary BoldMe" data-dismiss="modal" aria-hidden="true">Close</button>
+                            <br />
+                            <br />
+                            <div class="errorLabel" id="spanfile"></div>
+                            <div>@Html.ValidationMessage("File")</div>
+                            @if (TempData["SuccessMessageAttachmentUpload"] != null && !string.IsNullOrEmpty(TempData["SuccessMessageAttachmentUpload"].ToString()))
+                            {
+                                <div id="dvSuccessMessage" class="errorLabel">
+                                    @Html.Raw(@TempData["SuccessMessageAttachmentUpload"].ToString())
+                                </div>
+                            }
+                        </td>
+                    </tr>
+
+                </table>
+            </div>
+        </div>
+    }
+</div>

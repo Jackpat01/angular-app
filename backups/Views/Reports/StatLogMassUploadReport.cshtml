@@ -1,0 +1,62 @@
+﻿@using MSLC.Portal.MVC.Utility
+@model WebPortal_OH_FI.Models.ViewModels.StatLogMassUploadReport
+@{
+    ViewBag.Title = "StatLogUploadDownloadReport";
+    Layout = "~/Views/Shared/_LayoutWithMenu.cshtml";
+}
+@Html.Script("~/Scripts/Pages/Reports/StatLogUploadDownloadReport.js", "jquery")
+
+<h2>StatLog Mass Upload Report</h2>
+<hr />
+
+@if (TempData["Message"] != null && !string.IsNullOrEmpty(TempData["Message"].ToString()))
+{
+    <br />
+    <br />
+    <center>
+        <div class="errorLabel">
+            @Html.Raw(TempData["Message"].ToString())
+        </div>
+    </center>
+}
+else
+{
+    @Html.Script("~/Scripts/Pages/Event/Edit.js", "jquery")
+
+    <div id="UploadDownloadReportURL" data-url="@Url.AbsoluteAction("GenerateStatLogMassUploadReport", "Reports")"></div>
+    <div id="DownloadReportURL" data-url="@Url.AbsoluteAction("DownloadReport", "Reports")"></div>
+
+    <div class="d-flex justify-content-around">
+        <div class="d-flex flex-column ui-widget-content rounded m-3 p-2" style="max-width: 800px">
+            <div class="d-flex flex-row my-2" style="min-width: 200px; max-width: 400px;">
+                <label for="Dates">Zip Upload Date Range</label>
+                @Html.EJ().DateRangePicker("Dates").DateFormat("M/d/yyyy").CssClass("w-100").WatermarkText("Zip Upload Date Range")
+            </div>
+            Select the identifiers you want included in the report:
+            <div>
+                @{
+                    foreach (SelectListItem identifier in Model.ProviderIdentifiers)
+                    {
+                        @(Html.EJ().CheckBox(identifier.Value + "_ProviderIdentifier")
+                            .CssClass("col-4")
+                            .Value(identifier.Value)
+                            .Checked(true)
+                            .Text(identifier.Text)
+                            .Enabled(!identifier.Disabled)
+                            .Size(Size.Medium)
+                            .CheckState(CheckState.Uncheck))
+                    }
+                }
+            </div>
+            <hr class="m-0 border" />
+            <div>
+                @* class="d-flex justify-content-around m-2"> *@
+                <input id="btnSubmit" type="submit" onclick="GetReport()" class="btn btn-success m-2" value="Run Report">
+                <img id="dvLoading" class="hide align-self-end" src="~/Images/loading.gif" alt="Loading" width="48" height="48" />
+            </div>
+        </div>
+    </div>
+    <div id="SyncFusionScript">
+        <script src="@Url.AbsoluteContent("~/Scripts/ej/common/ej.unobtrusive.min.js")"></script>
+    </div>
+}

@@ -1,0 +1,93 @@
+﻿@model  WebPortal_OH_FI.Models.ManagementViewModel
+@{ 
+    bool isChangeButtonDisabled = !Model.CanCreateFromCopy || !Model.CanCreateCostReport;
+}
+
+<div data-resize='100' style='border: solid thin black; overflow: auto; padding: 1rem;'>
+    <div style='width: 100%; font-weight: bold;'>
+        <div>Copy Cost Report Data</div>
+        <br />
+    </div>
+    <table>
+        <tbody>
+            @if (Model.CanCreateFromCopy)
+            {
+            <tr>
+                <td><input type='radio' value='StaticDataAndTrialBalance' name='rdBtnCopyData' checked />&nbsp;Static Data and Trial Balance Adjustments</td>
+            </tr>
+            <tr>
+                <td><input type='radio' value='All' name='rdBtnCopyData' />&nbsp;Entire Cost Report</td>
+            </tr>
+            <tr>
+                <td>&nbsp;</td>
+            </tr>
+            }
+            <tr>
+                <td>
+                    <button id="Copy_Data" class="btn btn-success" disabled=@isChangeButtonDisabled>Copy Data</button>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+</div>
+<script>
+    $(document).ready(function () {
+        let previousPeriod = '@Model.PeriodId';
+        let perviousYear = previousPeriod.substring(2, 6) - 1;
+        perviousYear = "CY" + perviousYear;
+
+        $("#Copy_Data").click(function () {
+            StaticConfirm({
+                title: "Copy Confirm",
+                content: "Do you want to copy last submitted cost report data data for " + perviousYear + " and '@Model.ProviderName' to this cost report?",
+                buttons: ["Ok", "Cancel"]
+            }).then((key) => {
+                if (key != 0) {
+                    this.close();
+                    return;
+                }
+
+                return LoadNotificationDialog("Copying ...").then(() => {
+                    return new Promise((resolve, reject) => {
+                        var selectedVal = "";
+                        var selected = $("input[type='radio'][name='rdBtnCopyData']:checked");
+                        if (selected.length > 0) {
+                            selectedVal = selected.val();
+                        }
+
+                        $.ajax({
+                            url: "@Url.AbsoluteAction("CopyCostReportData", "Management")",
+                            cache: false,
+                            type: "POST",
+                            data: { costReportOption: selectedVal },
+                            dataType: "json",
+                            success: function (response) {
+                                if (response.Success)
+                                    Promise.all([
+                                        window.CostReport.Selected.LoadModelOCRT(),
+                                        window.CostReport.Selected.LoadModelTB()
+                                    ]).then(() => {
+                                        return StaticAlert({ content: "Copied previous fiscal year cost report data successfully." });
+                                    }).then(() => {
+                                        resolve();
+                                    });
+                                else {
+                                    StaticAlert({ content: "Copy Cost Report Data: " + response.Message }).then(() => {
+                                        resolve();
+                                    });
+                                }
+                            },
+                            error: function (a, b, c) {
+                                StaticAlert({ content: "AJAX callback error, Copy Cost Report Data: " + a.responseText }).then(() => {
+                                    resolve();
+                                });
+                            }
+                        });
+                    });
+                }).then(() => {
+                    return ClearNotificationDialog();
+                });
+            });
+        });
+    });
+</script>

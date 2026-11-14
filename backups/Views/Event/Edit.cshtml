@@ -1,0 +1,73 @@
+﻿@*
+    DO NOT MODIFY OUTSIDE OF MSLC.STATLOG
+    This file comes from MSLC.Statlog, any changes to it will be wiped out when the nuget package is updated.
+    Please make the appropriate enhancements to MSLC.Statlog instead of here.
+*@
+
+@Styles.Render("~/Content/StatLog.css")
+@using MSLC.Portal.MVC.Utility
+@model MSLC.StatLog.MVC.ViewModels.EventViewModel.Edit
+@{
+    Layout = null;
+}
+
+<script src="~/Scripts/jquery.validate.js" type="text/javascript"></script>
+<script src="~/Scripts/jquery.validate.unobtrusive.js" type="text/javascript"></script>
+<link href="~/Content/south-street/jquery-ui-1.9.2.custom.min.css" rel="stylesheet" />
+
+
+<script src="~/Scripts/jHtmlArea-0.8.js" type="text/javascript"></script> @*Used for editing bulletin boards*@
+<script src="~/Scripts/jHtmlArea.ColorPickerMenu-0.8.js" type="text/javascript"></script> @*Used for editing bulletin boards*@
+
+<link href="~/Content/jHtmlArea/jHtmlArea.ColorPickerMenu.css" rel="stylesheet" type="text/css" />
+<link href="~/Content/jHtmlArea/jHtmlArea.css" rel="stylesheet" type="text/css" />
+<link href="~/Content/jHtmlArea/jHtmlArea.Editor.css" rel="stylesheet" type="text/css" />
+@using (Html.BeginForm("Save", "Event", FormMethod.Post, new { id = "frmSubmit", enctype = "multipart/form-data", @class = "modal-form", defaultbutton = "btnSave" }))
+{
+    @Html.AntiForgeryToken()
+    @Html.HiddenFor(m => m.sEventID)
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3 id="myModalLabel" style="text-align: left;">
+                @if (!Model.IsNewEvent && !String.IsNullOrEmpty(Model.sEventID) && Model.sEventID != "0")
+                {
+                    <text>Edit</text>
+                }
+                else
+                {
+                    <text>Add</text>
+                }
+                Event
+            </h3>
+            <button href="#" class="close" data-dismiss="modal">&times;</button>
+        </div>
+        <div class="modal-body">
+            <div id="divGetFileExtensionsUrl" data-url="@Url.AbsoluteAction("GetFileTypeExtensions", "Event")"></div>
+            <div class="w-100">
+                <label for="Name">Event Name</label>
+                @Html.TextBoxFor(m => m.Name, new { @class = "w-25", placeholder = "Event Name", maxlength = 50 })
+            </div>
+            <div class="w-100 pt-2">
+                <label for="Description">Event Description</label>
+                @Html.TextAreaFor(m => m.Description, new { @class = "w-75 h-100", @rows = 3, placeholder = "Event Description", maxlength = 254 })
+            </div>
+        </div>
+
+        <div class="modal-footer mslcModalFooter" id="dvFooter" style="text-align: left !important;">
+            <div class="myImage" style="display: none; text-align: center;">
+                <img src="~/Images/loading.gif" alt="Loading" width="32" height="32" />
+            </div>
+            <div class="myControls">
+                <button id="btnClose" class="btn btn-basic BoldMe" data-dismiss="modal" aria-hidden="true">Close</button>&nbsp;&nbsp;
+                <button id="btnSave" type="submit" class="btn btn-success BoldMe" name="Command" value="Save">Save</button>
+                @if (!Model.IsNewEvent)
+                {
+                    <button id="btnSave" type="submit" class="btn btn-success BoldMe" name="Command" value="SaveToManage">Save Go To Manage</button>
+                }
+            </div>
+        </div>
+    </div>
+}
+<div id="SyncFusionScript">
+    <script src="@Url.AbsoluteContent("~/Scripts/ej/common/ej.unobtrusive.min.js")"></script>
+</div>

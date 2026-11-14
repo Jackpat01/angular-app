@@ -1,0 +1,167 @@
+﻿<h1>Cost Report Audit Staff Table</h1>
+<center>
+    <div id="crAuditStaffTable"></div>
+</center>
+<input type="hidden" id="hdnUserId" />
+<div id="divCRAuditStaffHistory"></div>
+
+<script id="auditStaffhistory" type="text/x-template">
+    <center>
+        <a aria-label="History" data-toggle="modal" href="" data-target="#window_crsaudittafftablehistory" onclick="LoadCRAuditStaffHistory('{{:UserId}}')">
+            <i data-feather='rotate-ccw' class='history-info'></i>
+        </a>
+    </center>
+</script>
+
+<div id="SyncFusionScript">
+    <script src="@Url.AbsoluteContentUri("~/Scripts/ej/common/ej.unobtrusive.min.js")"></script>
+</div>
+
+<script>
+    $(function () {
+        const auditGrid = '#crAuditStaffTable';
+
+        //========== Logic that Fires when Page Loads ==========
+        LoadNotificationDialog("Loading").then(() => {
+            GetUsers().then((data) => {
+                if (data !== undefined)
+                    RenderTable(data);
+            });
+        }).then(() => ClearNotificationDialog());
+
+        //========== Ajax Requests ==========
+        function GetUsers() {
+            return new Promise((resolve, reject) => {
+                const userId = $("#hdnUserId").val();
+                $.ajax({
+                    async: true,
+                    url: "@Url.AbsoluteAction("GetCRAuditStaffTable", "Rate")",
+                    type: "GET",
+                    cache: false,
+                    success: (data) => resolve(data),
+                    error: function (errormessage) {
+                        StaticAlert({ content: "CR Audit Staff Table Error: " + errormessage.responseText }).then(() => {
+                            resolve();
+                        });
+                    }
+                });
+            });
+        }
+
+        function SaveUser(args) {
+            LoadNotificationDialog('Saving CR Audit Staff Table Data...').then(() => {
+                return new Promise((resolve, reject) => {
+                    $.ajax({
+                        async: true,
+                        url: '@Url.AbsoluteAction("SaveCRAuditStaffTable", "Rate")',
+                        data: JSON.stringify(args.rowData),
+                        dataType: 'json',
+                        type: 'POST',
+                        contentType: 'application/json;charset=utf-8',
+                        success: function (result) {
+                            $(auditGrid).ejGrid('dataSource', result.Data);
+                            resolve();
+                        },
+                        error: function (error) {
+                            StaticAlert({ content: `CR Audit Staff Error: ${error.Message}` });
+                            resolve();
+                        }
+                    });
+                });
+            }).then(() => ClearNotificationDialog());
+        }
+
+        //========== Table Functionality ==========
+        function RenderTable(result) {
+            $.validator.addMethod("phoneNumberValidator", function (value, element) {
+                return /^[0-9+\-\s]+$/.test(value);
+            }, "Only numbers, +, -, and spaces are allowed.");
+
+            var cols = [];
+            for (const col of result.Data.Columns) {
+                let column = {
+                    field: col.Field, headerText: col.HeaderText, isPrimaryKey: col.IsPrimaryKey, isIdentity: col.IsIdentity, visible: col.Visible,
+                    textAlign: col.TextAlign, allowEditing: col.AllowEditing, allowFiltering: col.AllowFiltering, allowSorting: col.AllowSorting,
+                    width: col.Width, template: col.Template, editTemplate: col.editTemplate, editType: col.editType, editParams: col.editParams, validationRules: col.validationRules
+                };
+                if (col.Field == 'Mnemonic') {
+                    column.editType = 'dropdownedit';
+                    column.editParams = { dataSource: result.Data.UserTypes, fields: { text: 'text', value: 'value' } };
+                } else if (col.Field == 'ActiveFlag') {
+                    column.editType = 'dropdownedit';
+                    column.editParams = { dataSource: [{ value: "Yes", text: "Yes" }, { value: "No", text: "No" }], fields: { text: 'text', value: 'value' } };
+                }
+                else if (col.Field == 'PhoneNumber') {
+                    column.validationRules = {
+                        phoneNumberValidator: true  };
+                }
+                cols.push(column);
+            }
+
+            const editSettings = { allowEditing: result.Data.CanEdit, allowAdding: result.Data.CanEdit };
+            const toolBarSettings = { showToolbar: true, toolbarItems: [ej.Grid.ToolBarItems.Search] };
+            const pageSettings = { pageSize: 5, pageSizeList: [5, 10, 15, 20] };
+            const textWrapSettings = { wrapMode: ej.Grid.WrapMode.Both };
+            const filterSettings = { filterType: 'menu', showPredicate: false };
+
+            if (result.Data.CanEdit) {
+                toolBarSettings.toolbarItems.push(ej.Grid.ToolBarItems.Add);
+                toolBarSettings.toolbarItems.push(ej.Grid.ToolBarItems.Edit);
+                toolBarSettings.toolbarItems.push(ej.Grid.ToolBarItems.Update);
+                toolBarSettings.toolbarItems.push(ej.Grid.ToolBarItems.Cancel);
+            }
+
+            $(auditGrid).ejGrid({
+                dataSource: result.Data.Users,
+                columns: cols,
+                editSettings: editSettings,
+                toolbarSettings: toolBarSettings,
+                pageSettings: pageSettings,
+                allowPaging: true,
+                enableRowHover: false,
+                allowSelection: true,
+                allowSorting: true,
+                allowTextWrap: true,
+                textWrapSettings: textWrapSettings,
+                allowFiltering: true,
+                cssClass: 'mslcTable',
+                locale: 'en-US',
+                filterSettings: filterSettings,
+                actionBegin: actionBegin,
+                templateRefresh: loadIcons,
+            });
+        }
+
+        function actionBegin(args) {
+            if (args.requestType == 'save')
+                SaveUser(args);
+        }
+    });
+
+    //========== On Click Functions =========
+    function LoadCRAuditStaffHistory(userId) {
+    $("#divCRAuditStaffHistory").empty();
+    $("#hdnUserId").val(userId);
+    LoadNotificationDialog("Loading CR Audit Staff Table History...").then(() => {
+        return new Promise((CRStaffResolve, CRStaffReject) => {
+            $.ajax({
+                url: "@Url.AbsoluteAction("LoadCRAuditStaffTableHistory", "Rate")",
+                cache: false,
+                type: 'POST',
+                success: function (result) {
+                    $("#divCRAuditStaffHistory").html(result);
+                    $("#window_crauditstafftablehistory").modal('show');
+                    CRStaffResolve();
+                },
+                error: function (errormessage) {
+                    StaticAlert({ content: "CR Staff Table Error: " + errormessage.responseText }).then(() => {
+                        CRStaffResolve();
+                    });
+                }
+            });
+        });
+    }).then(() => {
+        return ClearNotificationDialog();
+    })
+}
+</script>

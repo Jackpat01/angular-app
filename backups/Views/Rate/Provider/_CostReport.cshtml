@@ -1,0 +1,547 @@
+﻿@model WebPortal_OH_FI.Models.ProviderCostReportViewModel
+@using WebPortal_OH_FI.Web
+@{
+    string canViewStatlog = Model.CanViewStatlog.ToString().ToLower();
+    string canEditStatlog = Model.CanEditStatlog.ToString().ToLower();
+    string disableReview = Model.CanEditStatlog ? string.Empty : "e-disabled";
+}
+
+<style>
+    .tableFirst tbody td {
+        padding-bottom: 0px;
+    }
+</style>
+<table>
+
+    <tr>
+        <td>
+            <label class="FormLabel">Select Reporting Period:</label><br />
+            @Html.DropDownListFor(x => x.CostReportPeriod, (IEnumerable<SelectListItem>)Model.CostReportPeriod, "Select a Cost Report Period", new { ID = "drpCostReportPeriod", @style = "width:200px", aria_label="Reporting Period"})
+        </td>
+        <td width="400px">&nbsp;</td>
+        <td>
+            <label class="FormLabel">Cost Report Version:</label><br />
+            @Html.DropDownListFor(x => x.CostReportVersion, (IEnumerable<SelectListItem>)Model.CostReportVersion, "Select a Cost Report Version", new { ID = "drpCostReportVersion", @style = "width:300px", aria_label="Cost Report Version" })
+        </td>
+    </tr>
+</table>
+
+<div hidden id="auditTabRefreshTrigger"></div> <!-- The event for this one will be defined in _AuditCostReport.cshtml -->
+<div hidden id="infoTabRefreshTrigger"></div>
+
+<div class="tab-panel m-2 p-2">
+    <div class="nav nav-tabs m-0 d-flex fs-5" id="nav-tab" role="tablist">
+        <div id="nav-cr-tab" href="#nav-cr-info" aria-controls="nav-cr-info" class="nav-item nav-link active btn"
+                data-toggle="tab" role="tab" aria-selected="true">Info</div>
+        <div id="nav-statlog-tab" href="#nav-costReport-statlog" aria-controls="nav-statlog-info" class="nav-item nav-link btn"
+                data-toggle="tab" role="tab" aria-selected="false">Statlog</div>
+        @if (Model.CanViewAudit)
+        {
+            <div id="nav-audit-tab" href="#nav-costReport-audit" aria-controls="nav-audit-info" class="nav-item nav-link btn"
+                 data-toggle="tab" role="tab" aria-selected="false">Audit</div>
+        }
+
+
+
+    </div>
+    <div class="tab-content px-4 pb-4 pt-2" id="nav-tabContent">
+
+        <div id="nav-cr-info" aria-labelledby="nav-cr-info" role="tabpanel" class="tab-pane fade show active">
+            <table class="table table-borderless tableFirst" style="table-layout: fixed;">
+                <tr>
+                    <td colspan="2" align="left" valign="bottom">
+                        <label class="FormLabel">Cost Report Begin Date:</label>
+                        <span id="displayBeginDate">@Html.DisplayFor(model => model.BeginDate, new { ID = "lblBeginDate" })</span>
+                    </td>
+                    <td colspan="2" align="right" valign="top" style="padding-top:0px">
+                        <label class="FormLabel" for="drpCostReportStatus">Cost Report Status:</label>
+                        @Html.DropDownListFor(x => x.CostReportStatusId, (IEnumerable<SelectListItem>)Model.CostReportStatus, "Select", new { ID = "drpCostReportStatus", @style = "width:200px" })
+                    </td>
+                </tr>
+                <tr>
+                    <td colspan="2" align="left">
+                        <label class="FormLabel">Cost Report End Date:</label>
+                        <span id="displayEndDate">@Html.DisplayFor(model => model.EndDate, new { ID = "lblEndDate" })</span>
+                    </td>
+                    <td colspan="2">&nbsp;</td>
+                </tr>
+                <tr>
+                    <td colspan="2" align="left">
+                        <label class="FormLabel">Cost Report Due Date:</label>
+                        <span id="displayDueDate">@Html.DisplayFor(model => model.EndDate, new { ID = "lblDueDate" })</span>
+                    </td>
+                    <td colspan="2">&nbsp;</td>
+                </tr>
+            </table>
+            <table class="table table-borderless">
+                <tr>
+                    <th>
+                        Cost Report Review Assignment
+                    </th>
+                </tr>
+                <tr>
+                    <td>
+                        <label class="FormLabel" for="drpExaminer">Examiner:</label>
+                        @Html.DropDownListFor(x => x.ExaminerUserId, (IEnumerable<SelectListItem>)Model.ExaminerListItem, "Select", new { ID = "drpExaminer", @style = "width:300px" })
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <label class="FormLabel" for="drpReviewer">Reviewer:</label>
+                        @Html.DropDownListFor(x => x.ReviewerUserId, (IEnumerable<SelectListItem>)Model.ReviewerListItem, "Select", new { ID = "drpReviewer", @style = "width:300px" })
+                    </td>
+                </tr>
+                <tr align="right">
+                    <td>
+                        <input id="btnSubmitCostInfo" value="Submit" type="submit" class="btn btn-success" />
+                    </td>
+                </tr>
+            </table>
+        </div>
+
+        <div id="nav-costReport-statlog" aria-labelledby="nav-statlog-info" role="tabpanel" class="tab-pane fade">
+            <div style='width: 100%; font-weight: bold;'>
+                <div><h1>History</h1></div>
+            </div>
+            <div id="tblCostReportStatlogGrid">
+                <script id="actionTemplate" type="text/x-jsrender">
+                    <div>
+                        <a data-toggle="modal" href="" data-target="#window_costReportReviewsSatlog" class="statlogAction" title='Review Notes'
+                           onclick="ShowReviewCostReportStatlog('{{:ProviderCostReportStatlogId}}', '{{:CRID}}', {{:CanEdit}})">
+                            <i data-feather='zap' class='text-warning {{:CanEdit ? '' : 'e-disabled'}}'></i>
+                        </a>
+                    </div>
+                </script>
+                <script id="detailsTemplate" type="text/x-jsrender">
+                    <center>
+                        <a data-toggle="modal" href="" data-target="#window_costreportdetailsstatlog" onclick="ShowDetailsCostReportStatlog('{{:ProviderCostReportStatlogId}}', '{{:CRID}}')" title='Review Notes'>
+                            <i data-feather='info' class='infoButton'></i>
+                        </a>
+                    </center>
+                </script>
+            </div>
+        </div>
+        @if (Model.CanViewAudit)
+        {
+            <div id="nav-costReport-audit" aria-labelledby="nav-audit-info" role="tabpanel" class="tab-pane fade">
+                @Html.Action("GetAuditCostReport", "Rate")
+            </div>
+        }
+    </div>
+</div>
+
+<div id="divReviewCostReportStatlog"></div>
+<div id="divDetailsCostReportStatlog"></div>
+<input type="hidden" id="hdnStatlogId" />
+<input type="hidden" id="hdnCostReportId" />
+
+<input type="hidden" id="IsNF" value="@OHFISession.IsNF" />
+<input type="hidden" id="IsICF" value="@OHFISession.IsICF" />
+
+<div id="SyncFusionScript">
+    <script src="@Url.AbsoluteContentUri("~/Scripts/ej/common/ej.unobtrusive.min.js")"></script>
+</div>
+
+<script type="text/javascript">
+    var costReportStatus;
+    var examinerUser;
+    var reviewerUser;
+    var oldCostReportStatus;
+    var oldExaminerUser;
+    var oldReviewerUser;
+    var canViewAudit = @Json.Encode(Model.CanViewAudit);
+    $(document).ready(function () {
+        $("#btnSubmitCostInfo").prop("disabled", true);
+        //LoadCostReportStatlogList(result.ProviderCostReportViewModel.ProviderCostReportStatlogList);
+        $("#drpCostReportPeriod").change(function () {
+            var periodSelected = $('#drpCostReportPeriod option:selected').val();
+            if (periodSelected == "") {
+                var opt = '<option value="" >Select a Cost Report Version</option>';
+                $("#drpCostReportVersion").html(opt);
+                $("#displayBeginDate").html("");
+                $("#displayEndDate").html("");
+                $("#displayDueDate").html("");
+                var selectOption = '<option value="" >Select</option>';
+                $("#drpCostReportStatus").html(selectOption);
+                $("#drpExaminer").html(selectOption);
+                $("#drpReviewer").html(selectOption);
+                $("#btnSubmitCostInfo").prop("disabled", true);
+                LoadCostReportStatlogList("", false);
+            }
+            else {
+                LoadNotificationDialog("Get Cost Report Version...").then(() => {
+                    return new Promise((resolve, reject) => {
+                        $.ajax({
+                            async: true,
+                            url: "@Url.AbsoluteAction("GetCostReportVersion", "Rate")",
+                            data: JSON.stringify({ "periodCode": periodSelected }),
+                            type: "POST",
+                            cache: false,
+                            contentType: "application/json;charset=utf-8",
+                            success: function (result) {
+                                if (result.Success) {
+                                    var costReportVersionList = result.ProviderCostReportViewModel.CostReportVersion;
+                                    var opt = '<option value="" >Select a Cost Report Version</option>';
+
+                                    for (var i = 0; i < costReportVersionList.length; i++) {
+                                        opt += '<option value="' + costReportVersionList[i].Value + '" >' + costReportVersionList[i].Text + '</option>'
+                                    }
+                                    $("#drpCostReportVersion").html(opt);
+                                    if (result.ProviderCostReportViewModel.CanViewInfo) {
+                                        $("#displayBeginDate").html("");
+                                        $("#displayEndDate").html("");
+                                        $("#displayDueDate").html("");
+                                        var selectOption = '<option value="" >Select</option>';
+                                        $("#drpCostReportStatus").html(selectOption);
+                                        $("#drpExaminer").html(selectOption);
+                                        $("#drpReviewer").html(selectOption);
+                                        console.log('!result.ProviderCostReportViewModel.CanEditInfo', !result.ProviderCostReportViewModel.CanEditInfo);
+                                        $("#drpCostReportStatus").prop('disabled', !result.ProviderCostReportViewModel.CanEditInfo);
+                                        $("#drpExaminer").prop('disabled', !result.ProviderCostReportViewModel.CanEditInfo);
+                                        $("#drpReviewer").prop('disabled', !result.ProviderCostReportViewModel.CanEditInfo);
+                                    }
+                                    //Load Statlog grid
+                                    if (result.ProviderCostReportViewModel.CanViewStatlog) {
+                                        LoadCostReportStatlogList(result.ProviderCostReportViewModel.ProviderCostReportStatlogList, result.ProviderCostReportViewModel.CanEditStatlog);
+                                    } else LoadCostReportStatlogList("", false);
+                                    $("#btnSubmitCostInfo").prop("disabled", true);
+                                }
+
+                                resolve();
+                            },
+                            error: function (errormessage) {
+                                StaticAlert({ content: errormessage.responseText }).then(() => {
+                                    resolve();
+                                });
+                            }
+                        });
+                    });
+                }).then(() => {
+                    return ClearNotificationDialog();
+                });
+            }
+        });
+
+        $("#drpCostReportVersion").change(function () {
+            var providerCostReportId = $('#drpCostReportVersion option:selected').val();
+            var providerCostReportVersion = $('#drpCostReportVersion option:selected').text();
+
+
+            // show all tabs
+            $("#nav-cr-tab, #nav-statlog-tab, #nav-audit-tab").removeClass("d-none");
+
+            $("#nav-cr-info, #nav-costReport-statlog, #nav-costReport-audit").removeClass("d-none");
+            const isAudit = providerCostReportVersion.includes("4.9");
+            if (isAudit) { // "showTabs2And3";
+                // Hide CR
+                $("#nav-cr-tab").addClass("d-none");
+                $("#nav-cr-info").addClass("d-none");
+
+                // Activate Audit Tab 3
+                if (canViewAudit) {
+                    new bootstrap.Tab(document.getElementById('nav-audit-tab')).show();
+                }
+                else {
+                    new bootstrap.Tab(document.getElementById('nav-statlog-tab')).show();
+                }
+            }
+            else if (!isAudit) {// "showTabs1And2";
+                // Hide Audit
+                $("#nav-audit-tab").addClass("d-none");
+                $("#nav-costReport-audit").addClass("d-none");
+
+                // Activate Tab 1
+                new bootstrap.Tab(document.getElementById('nav-cr-tab')).show();
+            }
+            else {
+                // Default: show all, activate Tab 1
+                new bootstrap.Tab(document.getElementById('nav-cr-tab')).show();
+            }
+
+            if (providerCostReportId == "") {
+                $("#displayBeginDate").html("");
+                $("#displayEndDate").html("");
+                $("#displayDueDate").html("");
+                var selectOption = '<option value="" >Select</option>';
+                $("#drpCostReportStatus").html(selectOption);
+                $("#drpExaminer").html(selectOption);
+                $("#drpReviewer").html(selectOption);
+                $("#btnSubmitCostInfo").prop("disabled", true);
+                LoadCostReportStatlogList("", false);
+            }
+            else {
+                const target = isAudit ? "#auditTabRefreshTrigger" : "#infoTabRefreshTrigger";
+                $(target).trigger('change');
+            }
+        });
+
+        $('#infoTabRefreshTrigger').change(function () {
+            var providerCostReportId = $('#drpCostReportVersion option:selected').val();
+            LoadNotificationDialog("Get Cost Report Version...").then(() => {
+                return new Promise((resolve, reject) => {
+                    $.ajax({
+                        async: true,
+                        url: "@Url.AbsoluteAction("GetCostReportInfo", "Rate")",
+                        data: JSON.stringify({ "ProviderCostReportId": providerCostReportId }),
+                        type: "POST",
+                        cache: false,
+                        contentType: "application/json;charset=utf-8",
+                        success: function (result) {
+                            if (result.Success) {
+                                if (result.ProviderCostReportViewModel.CanViewInfo) {
+                                    $("#displayBeginDate").html(result.ProviderCostReportViewModel.BeginDate);
+                                    $("#displayEndDate").html(result.ProviderCostReportViewModel.EndDate);
+                                    $("#displayDueDate").html(result.ProviderCostReportViewModel.DueDate);
+
+
+                                    var costReportStatusList = result.ProviderCostReportViewModel.CostReportStatus;
+                                    var opt = '';
+                                    // Removing select option from the status dropdown, status's should be set by the time they are submitted.
+                                    //'<option value="" >Select</option>';
+
+                                    for (var i = 0; i < costReportStatusList.length; i++) {
+                                        opt += '<option value="' + costReportStatusList[i].Value + '" >' + costReportStatusList[i].Text + '</option>'
+                                    }
+                                    //Load CostReportStatus dropdown
+                                    $("#drpCostReportStatus").html(opt);
+
+                                    $("#drpCostReportStatus").val(result.ProviderCostReportViewModel.CostReportStatusId);
+
+                                    var examinerusersList = result.ProviderCostReportViewModel.ExaminerListItem;
+
+                                    var examinerusers = '';
+                                    // Removing select option from the Examiner dropdown, examiners should be set by the time they are submitted.
+                                    //'<option value="" >Select</option>';
+
+                                    for (var i = 0; i < examinerusersList.length; i++) {
+                                        examinerusers += '<option value="' + examinerusersList[i].Value + '" >' + examinerusersList[i].Text + '</option>'
+                                    }
+                                    //Load Examiner dropdown
+                                    $("#drpExaminer").html(examinerusers);
+                                    $("#drpExaminer").val(result.ProviderCostReportViewModel.ExaminerUserId);
+
+                                    var reviewerUsersList = result.ProviderCostReportViewModel.ReviewerListItem;
+                                    var reviewerUsers = '<option value="" >Select</option>';
+
+                                    for (var i = 0; i < reviewerUsersList.length; i++) {
+                                        reviewerUsers += '<option value="' + reviewerUsersList[i].Value + '" >' + reviewerUsersList[i].Text + '</option>'
+                                    }
+                                    //Load Reviewer dropdown
+                                    $("#drpReviewer").html(reviewerUsers);
+                                    $("#drpReviewer").val(result.ProviderCostReportViewModel.ReviewerUserId);
+
+
+                                    oldCostReportStatus = $('#drpCostReportStatus option:selected').text();
+                                    oldExaminerUser = $('#drpExaminer option:selected').text();
+                                    oldReviewerUser = $('#drpReviewer option:selected').text();
+
+                                    const disable = !result.ProviderCostReportViewModel.CanEditInfo;
+                                    $("#displayBeginDate").prop('disabled', disable);
+                                    $("#displayEndDate").prop('disabled', disable);
+                                    $("#displayDueDate").prop('disabled', disable);
+                                    $("#drpCostReportStatus").prop('disabled', disable);
+                                    $("#drpExaminer").prop('disabled', disable);
+                                    $("#drpReviewer").prop('disabled', disable);
+                                }
+
+                                //Load Statlog grid
+                                if (result.ProviderCostReportViewModel.CanViewStatlog) {
+                                    LoadCostReportStatlogList(result.ProviderCostReportViewModel.ProviderCostReportStatlogList, result.ProviderCostReportViewModel.CanEditStatlog);
+                                } else {
+                                    LoadCostReportStatlogList("", false);
+                                }
+
+                                $("#btnSubmitCostInfo").prop("disabled", true);
+
+                                //************** TO DO Set the values from Audit tables and Set the calender date*/
+                                //var auditorOneAssignedList = result.AuditCostReportViewModel.AuditorOneAssigned;
+                                //var auditorOneAssigned = '<option value="" >Select</option>';
+                                //for (var i = 0; i < auditorOneAssignedList.length; i++) {
+                                //    auditorOneAssigned += '<option value="' + auditorOneAssignedList[i].Value + '" >' + auditorOneAssignedList[i].Text + '</option>'
+                                //}
+                                //************** TO DO Set the values from Audit tables and Set the calender date*/
+                                //$("#drpAuditorAssignedOne").html(auditorOneAssigned);
+                                //$("#drpAuditorAssignedOne").val(result.AuditCostReportViewModel.AuditorOneAssignedId);
+
+                                //const dateObject = new Date(result.AuditCostReportViewModel.CompletionDateId);
+                                //// Format the date as "yyyy-MM-dd"
+                                //const formattedDate = `${dateObject.getFullYear()}-${String(dateObject.getMonth() + 1).padStart(2, '0')}-${String(dateObject.getDate()).padStart(2, '0')}`;
+                                //$("#txtAuditCompletionDate").val(formattedDate);
+                                //************** TO DO Set the values from Audit tables and Set the calender date*/
+                            }
+                            else {
+                                $("#displayBeginDate").html("");
+                                $("#displayEndDate").html("");
+                                $("#displayDueDate").html("");
+                                var selectOption = '<option value="" >Select</option>';
+                                $("#drpCostReportStatus").html(selectOption);
+                                $("#drpExaminer").html(selectOption);
+                                $("#drpReviewer").html(selectOption);
+                                $("#btnSubmitCostInfo").prop("disabled", true);
+                            }
+
+                            resolve();
+                        },
+                        error: function (errormessage) {
+                            StaticAlert({ content: errormessage.responseText }).then(() => {
+                                resolve();
+                            });
+                        }
+                    });
+                });
+            }).then(() => {
+                return ClearNotificationDialog();
+            });
+        });
+
+        $("#drpCostReportStatus").change(function () {
+            StateUIChange();
+        });
+        $("#drpExaminer").change(function () {
+            StateUIChange();
+        });
+        $("#drpReviewer").change(function () {
+            StateUIChange();
+        });
+
+        //Enable or disable Submit button
+        function StateUIChange() {
+            costReportStatus = $('#drpCostReportStatus option:selected').text();
+            examinerUser = $('#drpExaminer option:selected').text();
+            reviewerUser = $('#drpReviewer option:selected').text();
+            var providerCostReportId = $('#drpCostReportVersion option:selected').val();
+            $("#btnSubmitCostInfo").prop("disabled", true);
+
+            if (((oldCostReportStatus != costReportStatus) || (oldExaminerUser != examinerUser) || (oldReviewerUser != reviewerUser)) && (providerCostReportId != "0")) {
+                $("#btnSubmitCostInfo").prop("disabled", false);
+            }
+        }
+
+        $('#btnSubmitCostInfo').on('click', function () {
+            var providerCostReportId = $('#drpCostReportVersion option:selected').val();
+            var costReportStatusId = $('#drpCostReportStatus option:selected').val();
+            var examinerId = $('#drpExaminer option:selected').val();
+            var reviewerId = $('#drpReviewer option:selected').val();
+            costReportStatus = $('#drpCostReportStatus option:selected').text();
+            examinerUser = $('#drpExaminer option:selected').text();
+            reviewerUser = $('#drpReviewer option:selected').text();
+            LoadNotificationDialog("Saving...").then(() => {
+                return new Promise((resolve, reject) => {
+                    $.ajax({
+                        async: true,
+                        url: "@Url.AbsoluteAction("SaveCostReportInfo", "Rate")",
+                        data: JSON.stringify({
+                            "ProviderCostReportId": providerCostReportId,
+                            "CostReportStatusId": costReportStatusId,
+                            "ExaminerId": examinerId,
+                            "ReviewerId": reviewerId,
+                            "CostReportStatus": costReportStatus,
+                            "ExaminerUser": examinerUser,
+                            "ReviewerUser": reviewerUser,
+                            "OldCostReportStatus": oldCostReportStatus,
+                            "OldExaminerUser": oldExaminerUser,
+                            "OldReviewerUser": oldReviewerUser
+                        }),
+                        type: "POST",
+                        cache: false,
+                        contentType: "application/json;charset=utf-8",
+                        success: function (result) {
+                            if (result.Success) {
+                                // Reload the cost report by calling the cost report version OnChange function.
+                                $("#drpCostReportVersion").change()
+                                resolve();
+                            } else {
+								StaticAlert({ content: result.message }).then(() => {
+									resolve();
+								});
+                            }
+                        },
+                        error: function (errormessage) {
+                            StaticAlert({ content: errormessage.responseText }).then(() => {
+                                resolve();
+                            });
+                        }
+                    });
+                });
+            }).then(() => {
+                return ClearNotificationDialog();
+            });
+        });
+    });
+
+    function ShowReviewCostReportStatlog(providerCostReportStatlogId, costReportId, canEdit) {
+        $("#divReviewCostReportStatlog").empty();
+        $("#hdnCostReportId").val(costReportId)
+        $("#hdnStatlogId").val(providerCostReportStatlogId);
+        if (canEdit) {
+            $.ajax({
+                url: "@Url.AbsoluteAction("ShowReviewCostReportStatlog", "Rate")",
+                data: JSON.stringify({ costReportId: costReportId }),
+                type: "POST",
+                contentType: "application/json;charset=utf-8",
+                success: function (result) {
+                    $("#divReviewCostReportStatlog").html(result);
+                    $("#window_costReportReviewsSatlog").modal('show');
+                },
+                error: function (errormessage) {
+                    StaticAlert({ content: errormessage.responseText });
+                }
+            });
+        }
+    }
+
+    function LoadCostReportStatlogList(costReportStatlogList, canEdit) {
+        var cols = [];
+        cols.push({ field: 'ProviderCostReportStatlogId', headerText: 'PrimaryKeyID', isPrimaryKey: true, isIdentity: true, visible: false });
+        cols.push({ field: 'EventDate', headerText: 'Event Date', width: '60', visible: true });
+        cols.push({ field: 'EventName', headerText: 'Event', width: '280', visible: true });
+        cols.push({ field: 'UserId', headerText: 'User ID', width: '125', visible: true });
+        cols.push({ headerText: 'Add Notes', template: '#actionTemplate', cssClass: 'icon', width: '60', textAlign: 'center', visible: true });
+        cols.push({ headerText: 'Details', template: '#detailsTemplate', cssClass: 'icon', width: '40', textAlign: 'center', visible: true });
+
+        $("#tblCostReportStatlogGrid").ejGrid({
+            dataSource: costReportStatlogList,
+            columns: cols,
+            toolbarSettings: {
+                showToolbar: true
+            },
+            pageSettings: { pageSize: 5, pageSizeList: [5, 10, 15, 20] },
+            allowPaging: true,
+            enableRowHover: true,
+            allowSelection: true,
+            allowSorting: true,
+            allowTextWrap: true,
+            editSettings: {},
+            templateRefresh: loadIcons
+        });
+    }
+
+    function ShowDetailsCostReportStatlog(providerCostReportStatlogId, costReportId) {
+        $("#divDetailsCostReportStatlog").empty();
+        $("#hdnStatlogId").val(providerCostReportStatlogId);
+        $('#hdnCostReportId').val(costReportId);
+        $.ajax({
+            url: "@Url.AbsoluteAction("ShowDetailsCostReportStatlog", "Rate")",
+            data: JSON.stringify({ costReportId: costReportId }),
+            type: "POST",
+            contentType: "application/json;charset=utf-8",
+            success: function (result) {
+                $("#divDetailsCostReportStatlog").html(result);
+                $("#window_costreportdetailsstatlog").modal('show');
+            },
+            error: function (errormessage) {
+                StaticAlert({ content: errormessage.responseText });
+            }
+        });
+    }
+</script>
+
+<style type="text/css">
+    table {
+        table-layout: fixed;
+    }
+
+    span {
+        font-weight: normal;
+    }
+</style>

@@ -1,0 +1,1709 @@
+﻿@model WebPortal_OH_FI.Models.CostReportDataWizardViewModel
+@{
+    ViewBag.Title = "CostReportDataWizard";
+    Layout = "~/Views/Shared/_LayoutWithMenu.cshtml";
+}
+
+<style>
+    .e-grid .e-pager .e-pagercontainer {
+        float: left;
+    }
+
+    .e-grid .e-pager .e-pager-itemsinterval {
+        float: left;
+    }
+
+    .e-rowcell {
+        cursor: pointer;
+    }
+
+    .SelectionBrief {
+        margin: .5rem 0;
+        padding: 8px 0;
+        background-color: #f1f1f1;
+        border: solid #4e4c4c 1px;
+        border-radius: .25rem;
+        overflow: hidden;
+    }
+
+    .SelectionVerbose {
+        margin: .5rem 0;
+        padding: 8px 0;
+        background-color: #f1f1f1;
+        border: solid #4e4c4c 1px;
+        border-radius: .25rem;
+        min-height: 2rem;
+        overflow: hidden;
+    }
+
+    .flexBox {
+        display: flex;
+        flex-flow: row;
+        gap: 30px;
+    }
+
+    .treeviewFont {
+        font-weight: bold;
+    }
+</style>
+
+
+<div id="savedSearches" class="myControlsSaveSearch">
+    <div id="SelectionBriefSS" class="SelectionBrief">
+        <div style="float: left; padding: .25rem .5rem;">
+            <b>Saved Reports</b>
+        </div>
+        <div style="float: right; width: 14rem; text-align: right; padding: 0 .5rem 0 0;">
+            <button type="button" class="expands" aria-label="Expand"></button>
+        </div>
+    </div>
+    <div id="SelectionVerboseSS" class="SelectionVerbose">
+        <div style="float: left; padding: 0 .5rem;">
+            <b>Saved Reports</b>
+        </div>
+        <div style="float: right; width: 16rem; text-align: right; padding: 0 .5rem 0 0;">
+            <div style="padding-bottom: .5rem"><button aria-label="Collapse/Expand" type="button" class="collapses"></button></div>
+        </div>
+        <br />
+
+        <center id="divTableSavedSearches">
+            @(Html.EJ().Grid<object>("tblSavedSearches")
+                        .CssClass("mslcTable")
+                        .Datasource(Model.DataPointsReportsViewModel)
+                        .Locale("en-US")
+                        .EnableRowHover(true)
+                        .AllowSelection(true)
+                        .AllowSorting(true)
+                        .AllowFiltering(true)
+                        .AllowTextWrap(true)
+                        .AllowPaging(true)
+    .TextWrapSettings(wrap => { wrap.WrapMode(WrapMode.Both); })
+    .FilterSettings(filter =>
+    {
+        filter.FilterType(FilterType.Menu);
+        filter.ShowPredicate(false);
+    })
+    .ToolbarSettings(toolbar =>
+    {
+        toolbar.ShowToolbar().ToolbarItems(items =>
+        {
+            items.AddTool(ToolBarItems.Search);
+        });
+    })
+    .PageSettings(page =>
+    {
+        page.PageSize(25);
+        page.PageSizeList(new List<int>() { 25, 50, 75, 100 });
+    })
+    .Columns(col =>
+    {
+        col.Field("ReportId").HeaderText("PrimaryKey Id").IsPrimaryKey(true).Visible(false).Add();
+        col.Field("ReportName").HeaderText("Saved Report Name").TextAlign(TextAlign.Left).Width(18).Add();
+        col.Field("CRYear").HeaderText("CR Year").TextAlign(TextAlign.Left).Width(5).CssClass("noWrap").Add();
+        col.Field("CRLength").HeaderText("CR Length").TextAlign(TextAlign.Left).Width(5).CssClass("noWrap").Add();
+        col.Field("CRType").HeaderText("CR Type").TextAlign(TextAlign.Left).Width(5).CssClass("noWrap").Add();
+        col.Field("CRStatus").HeaderText("CR Status").TextAlign(TextAlign.Left).Width(6).CssClass("noWrap").Add();
+        col.Field("Creator").HeaderText("Creator").TextAlign(TextAlign.Left).Width(10).CssClass("noWrap").Add();
+        col.Field("DateCreated").HeaderText("Date Created").TextAlign(TextAlign.Left).Width(8).CssClass("noWrap").Add();
+        col.Template("#deleteSavedSearch").CssClass("icon").HeaderText("Delete").TextAlign(TextAlign.Left).Width(4).Add();
+
+    }).ClientSideEvents(events =>
+    {
+        events.TemplateRefresh("loadIcons");
+        events.RecordClick("recordClick");
+    }))
+            <script id="deleteSavedSearch" type="text/x-template">
+                <div style="display:flex">
+                    <a onclick="DeleteSavedSearch('{{:ReportId}}')" href="#" type="submit" data-toggle="tooltip" data-placement="top" title="Delete">
+                        <i data-feather="trash-2"></i>
+                    </a>
+                </div>
+            </script>
+
+        </center>
+        <br />
+        <div class="flexBox" style="padding:.5rem .1rem;">
+            <input id="btnLoadReport" value="Load Report" onclick="LoadExistingReport()" type="button" class="btn btn-success" />
+            <input id="btnDownloadReport" value="Process and Download" onclick="DownloadReport()" type="button" class="btn btn-success" />
+        </div>
+    </div>
+</div>
+
+
+<div id="newSearchCriteria" class="myControlsNewSearchCriteria">
+    <div id="SelectionBriefNSC" class="SelectionBrief">
+        <div style="float: left; padding: .25rem .5rem;">
+            <b>New Reports/New Criteria</b>
+        </div>
+        <div style="float: right; width: 14rem; text-align: right; padding: 0 .5rem 0 0;">
+            <button type="button" class="expands" aria-label="Expand"></button>
+        </div>
+    </div>
+    <div id="SelectionVerboseNSC" class="SelectionVerbose">
+        <div style="float: left; padding: 0 .5rem;">
+            <b>New Reports/New Criteria</b>
+        </div>
+        <div style="float: right; width: 16rem; text-align: right; padding: 0 .5rem 0 0;">
+            <div style="padding-bottom:.5rem"><button aria-label="Collapse/Expand" type="button" class="collapses"></button></div>
+        </div>
+        <br />
+        <br />
+        <div style="float: left; padding: .25rem .5rem;">
+            <table style="width:70%">
+                <tr>
+                    <td width="15%">
+                        <label for="drpCostReportYears">Cost Report Year:</label>
+                    </td>
+                    <td width="55%">
+                        @Html.DropDownListFor(x => x.CostReportYear, (IEnumerable<SelectListItem>)Model.CostReportYears, "Select a Cost Report Year", new { ID = "drpCostReportYears" })
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <label for="drpCostReportLength">Length of Cost Report:</label>
+                    </td>
+                    <td>
+                        @Html.DropDownListFor(x => x.CostReportLength, Model.CostReportLengths, "Select a Cost Report Length", new { ID = "drpCostReportLengths" })
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <label for="drpCostReportTypes">Cost Report Type:</label>
+                    </td>
+                    <td>
+                        @Html.DropDownListFor(x => x.CostReportType, (IEnumerable<SelectListItem>)Model.CostReportTypes, "Select a Cost Report Type", new { ID = "drpCostReportTypes" })
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <label for="drpCostReportStatus">Cost Report Status:</label>
+                    </td>
+                    <td>
+                        @Html.DropDownListFor(x => x.CostReportStatus, (IEnumerable<SelectListItem>)Model.CostReportStatuses, "Select a Cost Report Status", new { ID = "drpCostReportStatus" })
+                        <input id="btnLoad" value="Load" onclick="LoadNewReport()" type="button" class="btn btn-success" />
+                    </td>
+                </tr>
+                <tr>
+                    <td width="15%">
+                        <label for="txtReportName">Report Name:</label>
+                    </td>
+                    <td width="55%">
+                        @Html.TextBoxFor(model => model.ReportName, new { placeholder = "Please Enter Report Name", id = "txtReportName", @class = "form-control", style = "width: 75%;" })
+                        <input id="btnSaveReport" value="Save Report" onclick="SaveReport()" type="button" class="btn btn-success" />
+                    </td>
+                </tr>
+            </table>
+        </div>
+    </div>
+</div>
+
+
+<div id="providerGrid" class="myControls">
+    <div id="SelectionBrief" class="SelectionBrief">
+        <div style="float: left; padding: .25rem .5rem;">
+            <b>Providers</b>
+        </div>
+        <div style="float: right; width: 14rem; text-align: right; padding: 0 .5rem 0 0;">
+            <button type="button" class="expands" aria-label="Expand"></button>
+        </div>
+    </div>
+    <div id="SelectionVerbose" class="SelectionVerbose">
+        <div style="float: left; padding: 0 .5rem;">
+            <b>Providers</b>
+        </div>
+        <div style="float: right; width: 16rem; text-align: right; padding: 0 .5rem 0 0;">
+            <div style="padding-bottom: .5rem"><button aria-label="Collapse/Expand" type="button" class="collapses"></button></div>
+        </div>
+        <div id="tblDataWizardProviders"></div>
+    </div>
+</div>
+
+<div id="dataPoints" class="myControlss" style="width:100%">
+    <div id="SelectionBrieff" class="SelectionBrief">
+        <div style="float: left; padding: .25rem .5rem;">
+            <b>Data Points</b>
+        </div>
+        <div style="float: right; width: 14rem; text-align: right; padding: 0 .5rem 0 0;">
+            <button type="button" class="expands" aria-label="Expand"></button>
+        </div>
+    </div>
+    <div id="SelectionVerbosef" class="SelectionVerbose">
+        <div style="float: left; padding: 0 .5rem;">
+            <b>Data Points</b>
+        </div>
+
+        <div style="float: right; width: 16rem; text-align: right; padding: 0 .5rem 0 0;">
+            <div style="padding-bottom: .5rem"><button aria-label="Collapse/Expand" type="button" class="collapses"></button></div>
+        </div>
+        <br />
+        <br />
+        <div>
+            <label style="display: inline-flex; gap: .5rem; align-items: center;">
+                <input type="checkbox" id="chkAllNodes" aria-label="Select/Deselect All">
+                <span>Select / Deselect all</span>
+            </label>
+        </div>
+        <br />
+        <div id="treeView" style="width:100%"> </div>
+        </div>
+    </div>
+
+<div id="selectedPoints" class="myControlsSP">
+    <div id="SelectionBriefSP" class="SelectionBrief">
+        <div style="float: left; padding: .25rem .5rem;">
+            <b>Selected Points</b>
+        </div>
+        <div style="float: right; width: 14rem; text-align: right; padding: 0 .5rem 0 0;">
+            <button type="button" class="expands" aria-label="Expand"></button>
+        </div>
+    </div>
+    <div id="SelectionVerboseSP" class="SelectionVerbose">
+        <div style="float: left; padding: 0 .5rem;">
+            <b>Selected Points</b>
+        </div>
+        <div style="float: right; width: 16rem; text-align: right; padding: 0 .5rem 0 0;">
+            <div style="padding-bottom: .5rem"><button aria-label="Collapse/Expand" type="button" class="collapses"></button></div>
+        </div>
+        <br />
+        <br />
+        <div id="treeViewSP"> </div>
+    </div>
+</div>
+
+
+
+<script id="treeTemplate" type="text/x-jsrender">
+    <div>
+        <i data-feather="trash"></i>
+        <div>{{:Text}}</div>
+        <div>{{:text}}</div>
+    </div>
+</script>
+
+<div class="flexBox">
+    <input id="btnSave" value="Save Report" onclick="SaveReport()" type="button" class="btn btn-success" />
+    <input id="btnSaveDownloadReport" value="Process and Download" onclick="SaveDownloadReport()" type="button" class="btn btn-success" />
+</div>
+<script>
+
+    // #region Document Ready
+    $(document).ready(function () {
+        window.selection.expandSS(500);
+        $("#drpCostReportLengths").prop('disabled', true);
+        $("#drpCostReportTypes").prop('disabled', true);
+        $("#drpCostReportStatus").prop('disabled', true);
+
+        $("#btnLoadReport").prop('disabled', true);
+        $("#btnDownloadReport").prop('disabled', true);
+
+        $("#btnLoad").prop("disabled", true);
+        $("#btnSaveReport").prop('disabled', true);
+
+        $("#btnSave").prop("disabled", true);
+        $("#btnSaveDownloadReport").prop('disabled', true);
+
+        $("#txtReportName").text("");
+
+        $("#txtReportName").keyup(function () {
+            var val = $("#txtReportName").val();
+            if (val != "") {
+                $("#btnSaveReport").prop("disabled", false);
+            } else {
+                $("#btnSaveReport").prop("disabled", true);
+            }
+          });
+
+        // GetSelectedDataPointsTreeData("BE9FA230-4985-4095-84AE-7D717FD55C2E");
+        resetSDPTreeview();
+    });
+    // #endregion
+
+    //#region Dropdown Selected events
+    $("#drpCostReportYears").change(function () {
+        if ($("#drpCostReportYears option:selected").text() !== "Select a Cost Report Year") {
+            $("#drpCostReportLengths").prop("disabled", false);
+            $("#btnLoad").prop("disabled", !isExistingReport);
+        } else {
+            $("#txtReportName").val("");
+            $("#btnLoad").prop("disabled", true);
+            $("#btnSaveReport").prop('disabled', true);
+
+            $("#drpCostReportLengths").val($("#drpCostReportLengths option:first").val());
+            $("#drpCostReportLengths").prop("disabled", true);
+
+            $("#drpCostReportTypes").val($("#drpCostReportTypes option:first").val());
+            $("#drpCostReportTypes").prop("disabled", true);
+
+            $("#drpCostReportStatus").val($("#drpCostReportStatus option:first").val());
+            $("#drpCostReportStatus").prop("disabled", true);
+
+            $("#tblDataWizardProviders").hide();
+            $("#treeView").hide();
+            $("#treeViewSP").hide();
+            window.selection.collapse(0);
+            window.selection.collapses(0);
+            window.selection.collapseSP(0);
+        }
+    });
+
+    $('#drpCostReportLengths').change(function () {
+        if ($("#drpCostReportLengths option:selected").text() !== "Select a Cost Report Length") {
+            $("#drpCostReportTypes").prop("disabled", false);
+            $("#btnLoad").prop("disabled", !isExistingReport);
+        } else {
+            $("#txtReportName").val("");
+            $("#btnLoad").prop("disabled", true);
+            $("#btnSaveReport").prop('disabled', true);
+
+            $("#drpCostReportTypes").val($("#drpCostReportTypes option:first").val());
+            $("#drpCostReportTypes").prop("disabled", true);
+
+            $("#drpCostReportStatus").val($("#drpCostReportStatus option:first").val());
+            $("#drpCostReportStatus").prop("disabled", true);
+
+            $("#tblDataWizardProviders").hide();
+            $("#treeView").hide();
+            $("#treeViewSP").hide();
+            window.selection.collapse(0);
+            window.selection.collapses(0);
+            window.selection.collapseSP(0);
+        }
+    });
+
+    $("#drpCostReportTypes").change(function () {
+        if ($("#drpCostReportTypes option:selected").text() !== "Select a Cost Report Type") {
+            $("#drpCostReportStatus").prop("disabled", false);
+            $("#btnLoad").prop("disabled", !isExistingReport);
+        }
+        else {
+            $("#txtReportName").val("");
+            $("#btnLoad").prop("disabled", true);
+            $("#btnSaveReport").prop('disabled', true);
+
+            $("#drpCostReportStatus").val($("#drpCostReportStatus option:first").val());
+            $("#drpCostReportStatus").prop("disabled", true);
+
+            $("#tblDataWizardProviders").hide();
+            $("#treeView").hide();
+            $("#treeViewSP").hide();
+            window.selection.collapse(0);
+            window.selection.collapses(0);
+            window.selection.collapseSP(0);
+        }
+    });
+
+    $("#drpCostReportStatus").change(function () {
+        if ($("#drpCostReportStatus option:selected").text() !== "Select a Cost Report Status") {
+            $("#btnLoad").prop('disabled', false);
+        } else {
+            $("#btnLoad").prop('disabled', true);
+        }
+    });
+
+    //New Reports/New Criteria
+    var isExisting;
+    function LoadNewReport() {
+        isExisting = false;
+        LoadProviderGrid(isExisting);
+        LoadDataPointsTreeView();
+        $("#btnSave").prop("disabled", false);
+        $("#btnSaveDownloadReport").prop('disabled', false);
+    }
+
+    //#region Accordian Open/ Close Selection
+    window.selection = {
+        isCollapsed: "true",
+        isCollapsedd: "true",
+        isCollapsedSP: "true",
+        isCollapsedSS: "true",
+        isCollapsedNSC: "true",
+        collapse: function (speed) {
+            if (!speed) speed = 0;
+            $(".myControls .collapses").hide();
+            $("#SelectionVerbose").slideUp(speed, function () { //  <b>Providers</b>
+                $(".myControls .expands").show();
+                $("#SelectionBrief").slideDown(speed);
+            });
+        },
+        collapses: function (speed) {
+            if (!speed) speed = 0;
+            $(".myControlss .collapses").hide();
+            $("#SelectionVerbosef").slideUp(speed, function () { // <b>Data Points</b>
+                $(".myControlss .expands").show();
+                $("#SelectionBrieff").slideDown(speed);
+            });
+        },
+        collapseSP: function (speed) {
+            if (!speed) speed = 0;
+            $(".myControlsSP .collapses").hide();
+            $("#SelectionVerboseSP").slideUp(speed, function () { // <b>Selected Points</b>
+                $(".myControlsSP .expands").show();
+                $("#SelectionBriefSP").slideDown(speed);
+            });
+        },
+        collapseSS: function (speed) {
+            if (!speed) speed = 0;
+            $(".myControlsSaveSearch .collapses").hide();
+            $("#SelectionVerboseSS").slideUp(speed, function () { // <b>Saved Reports</b>
+                $(".myControlsSaveSearch .expands").show();
+                $("#SelectionBriefSS").slideDown(speed);
+            });
+        },
+
+        collapseNSC: function (speed) {
+            if (!speed) speed = 0;
+            $(".myControlsNewSearchCriteria .collapses").hide();
+            $("#SelectionVerboseNSC").slideUp(speed, function () { //  <b>New Reports/New Criteria</b>
+                $(".myControlsNewSearchCriteria .expands").show();
+                $("#SelectionBriefNSC").slideDown(speed);
+            });
+        },
+
+        expand: function (speed) {
+            if (!speed) speed = 0;
+            $(".myControls .expands").hide();
+            $("#SelectionBrief").slideUp(speed, function () {
+                $(".myControls .collapses").show();
+                $("#SelectionVerbose").slideDown(speed);
+            });
+        },
+        expands: function (speed) {
+            if (!speed) speed = 0;
+            $(".myControlss .expands").hide();
+            $("#SelectionBrieff").slideUp(speed, function () {
+                $(".myControlss .collapses").show();
+                $("#SelectionVerbosef").slideDown(speed);
+            });
+        },
+        expandSP: function (speed) {
+            if (!speed) speed = 0;
+            $(".myControlsSP .expands").hide();
+            $("#SelectionBriefSP").slideUp(speed, function () {
+                $(".myControlsSP .collapses").show();
+                $("#SelectionVerboseSP").slideDown(speed);
+            });
+        },
+        expandSS: function (speed) {
+            if (!speed) speed = 0;
+            $(".myControlsSaveSearch .expands").hide();
+            $("#SelectionBriefSS").slideUp(speed, function () {
+                $(".myControlsSaveSearch .collapses").show();
+                $("#SelectionVerboseSS").slideDown(speed);
+            });
+        },
+        expandNSC: function (speed) {
+            if (!speed) speed = 0;
+            $(".myControlsNewSearchCriteria .expands").hide();
+            $("#SelectionBriefNSC").slideUp(speed, function () {
+                $(".myControlsNewSearchCriteria .collapses").show();
+                $("#SelectionVerboseNSC").slideDown(speed);
+            });
+        },
+    };
+
+    if (window.selection.isCollapsed) {
+        window.selection.collapse(0);
+    } else {
+        window.selection.expand(0);
+    }
+
+    if (window.selection.isCollapsedd) {
+        window.selection.collapses(0);
+    } else {
+        window.selection.expands(0);
+    }
+
+    if (window.selection.isCollapsedSP) {
+        window.selection.collapseSP(0);
+    } else {
+        window.selection.expandSP(0);
+    }
+
+    if (window.selection.isCollapsedSS) {
+        window.selection.collapseSS(0);
+    } else {
+        window.selection.expandSS(0);
+        }
+
+        if (window.selection.isCollapsedNSC) {
+            window.selection.collapseNSC(0);
+        } else {
+            window.selection.expandNSC(0);
+        }
+
+        $(".myControls .collapses")
+            .off(".sizing")
+            .on("click.sizing", function () {
+                window.selection.collapse(500);
+                $.ajax({ async: true, url: "@Url.AbsoluteAction("Collapse", "CostReport")", cache: false, type: "POST" });
+            });
+
+        $(".myControls .expands")
+            .off(".sizing")
+            .on("click.sizing", function () {
+                window.selection.expand(500);
+                $.ajax({ async: true, url: "@Url.AbsoluteAction("Expand", "CostReport")", cache: false, type: "POST" });
+            });
+
+    $(".myControlss .collapses")
+            .off(".sizing")
+            .on("click.sizing", function () {
+                window.selection.collapses(500);
+                $.ajax({ async: true, url: "@Url.AbsoluteAction("Collapse", "CostReport")", cache: false, type: "POST" });
+            });
+
+    $(".myControlss .expands")
+            .off(".sizing")
+            .on("click.sizing", function () {
+                window.selection.expands(500);
+                $.ajax({ async: true, url: "@Url.AbsoluteAction("Expand", "CostReport")", cache: false, type: "POST" });
+            });
+
+    $(".myControlsSP .collapses")
+            .off(".sizing")
+            .on("click.sizing", function () {
+                window.selection.collapseSP(500);
+                $.ajax({ async: true, url: "@Url.AbsoluteAction("Collapse", "CostReport")", cache: false, type: "POST" });
+            });
+
+    $(".myControlsSP .expands")
+            .off(".sizing")
+            .on("click.sizing", function () {
+                window.selection.expandSP(500);
+                $.ajax({ async: true, url: "@Url.AbsoluteAction("Expand", "CostReport")", cache: false, type: "POST" });
+            });
+
+    $(".myControlsSaveSearch .collapses")
+            .off(".sizing")
+            .on("click.sizing", function () {
+                window.selection.collapseSS(500);
+                $.ajax({ async: true, url: "@Url.AbsoluteAction("Collapse", "CostReport")", cache: false, type: "POST" });
+            });
+
+        $(".myControlsSaveSearch .expands")
+            .off(".sizing")
+            .on("click.sizing", function () {
+                window.selection.expandSS(500);
+                $.ajax({ async: true, url: "@Url.AbsoluteAction("Expand", "CostReport")", cache: false, type: "POST" });
+            });
+
+        $(".myControlsNewSearchCriteria .collapses")
+         .off(".sizing")
+         .on("click.sizing", function () {
+             window.selection.collapseNSC(500);
+             $.ajax({ async: true, url: "@Url.AbsoluteAction("Collapse", "CostReport")", cache: false, type: "POST" });
+         });
+
+        $(".myControlsNewSearchCriteria .expands")
+         .off(".sizing")
+            .on("click.sizing", function () {
+                window.selection.expandNSC(500);
+                $.ajax({ async: true, url: "@Url.AbsoluteAction("Expand", "CostReport")", cache: false, type: "POST" });
+            });
+     //#endregion
+
+    //#region Accordian One - Provider - Grid
+    var selectedProviderList;
+    function LoadProviderGrid(isExisting) {
+        var costReportYearSelected = $('#drpCostReportYears option:selected').val();
+        var costReportLengthSelected = $('#drpCostReportLengths option:selected').val();
+        var costReportTypeSelected = $('#drpCostReportTypes option:selected').val();
+        var costReportStatusSelected = $('#drpCostReportStatus option:selected').val();
+        var reportName = $('#txtReportName').val();
+        var costReportYearSelectedText = $('#drpCostReportYears option:selected').text();
+        var costReportTypeSelectedText = $('#drpCostReportTypes option:selected').text();
+        var costReportStatusSelectedText = $('#drpCostReportStatus option:selected').text();
+
+        if (costReportYearSelectedText != "Select a Cost Report Year" && costReportTypeSelectedText != "Select a Cost Report Type"
+            && costReportStatusSelectedText != "Select a Cost Report Status") {
+            return LoadNotificationDialog("Loading Data Points").then(() => {
+                return new Promise((resolve, reject) => {
+                    $.ajax({
+                        async: true,
+                        url: "@Url.AbsoluteAction("GetSelectedProviders", "Reports")",
+                        data: JSON.stringify({ "costReportYear": costReportYearSelected, "costReportLength": costReportLengthSelected, "costReportType": costReportTypeSelected, "costReportStatus": costReportStatusSelected, "reportName": reportName, "isExisting": isExisting }),
+                        type: "POST",
+                        cache: false,
+                        contentType: "application/json;charset=utf-8",
+                        success: function (result) {
+
+                            // Providers that should be checked on grid load
+                            selectedProviderList = result.SelectedProviders;
+                            // Build Grid - Data binding
+                            LoadDataWizardProviderList(result.Providers);
+                            checkSavedProviders(selectedProviderList);
+
+                            new Promise((res, rej) => {
+                                $.ajax({
+                                    async: true,
+                                    url: "@Url.AbsoluteAction("Expand", "CostReport")",
+                                    cache: false,
+                                    type: "POST",
+                                    success: function (result) {
+                                        resolve();
+                                    },
+                                    error: function (errormessage) {
+                                        StaticAlert({ content: errormessage.responseText }).then(() => {
+                                            resolve();
+                                        });
+                                    }
+                                });
+                            });
+                        },
+                        error: function (errormessage) {
+                            StaticAlert({ content: errormessage.responseText }).then(() => {
+                                resolve();
+                            });
+                        }
+                    });
+                });
+            }).then(() => {
+                return ClearNotificationDialog();
+            });
+        }
+        else {
+            $("#providerGrid").hide();
+
+            // Need to return a promise here.
+            return Promise.resolve();
+        }
+    }
+
+    function LoadDataWizardProviderList(providerList) {
+        var cols = [];
+        cols.push({ type: 'checkbox', width: '15', visible: true });
+        //cols.push({ type: 'checkbox', width: '15' });
+        cols.push({ field: 'ProviderName', headerText: '', width: '200', visible: true });
+        cols.push({ field: 'ProviderValue', headerText: 'Value', width: '10', visible: false });
+        $("#tblDataWizardProviders").show();
+        $("#tblDataWizardProviders").ejGrid({
+            dataSource: providerList,
+            selectionSettings: {
+                selectionMode: ["row", "checkbox"], // Enable row and checkbox selection
+                enableToggle: true
+            },
+            columns: cols,
+            height: 150,
+            toolbarSettings: {
+                showToolbar: true,
+                toolbarItems: [ej.Grid.ToolBarItems.Search]
+            },
+            enableRowHover: true,
+            allowSelection: true,
+            allowSorting: true,
+            allowTextWrap: true,
+            editSettings: {}
+        });
+
+        $("#providerGrid").show();
+        window.selection.expand(500);
+    }
+
+
+    // Function to pre-select rows based on saved providers
+    function checkSavedProviders(selectedProviderList) {
+        var gridObj = $("#tblDataWizardProviders").ejGrid("instance");
+        var rows = gridObj.getRows();
+
+        // Get the ProviderValue from selected Provider List
+        if (selectedProviderList == null) return;
+        var selectedProviderIDs = selectedProviderList.map(function (record) {
+            return record.ProviderValue;
+        });
+
+        for (var i = 0; i < rows.length; i++) {
+            var record = gridObj.model.dataSource[i];
+            if (selectedProviderIDs.indexOf(record.ProviderValue) !== -1) {
+                // Select the row if it's a saved provider
+                gridObj.selectRows([i]);
+            }
+        }
+    }
+
+    //#endregion
+
+    // #region  Accordian Two - Data Points - Treeview
+     var resultArray = new Array();
+     function LoadDataPointsTreeView() { // New Load
+         var costReportYearSelectedText = $('#drpCostReportYears option:selected').text();
+         if (costReportYearSelectedText != "Select a Cost Report Year") {
+             return LoadNotificationDialog("Loading Data Points").then(() => {
+                 return new Promise((resolve, reject) => {
+                     // Binding TreeView
+                     $.ajax({
+                         async: true,
+                         url: "@Url.AbsoluteAction("GetDataPoints", "Reports")",
+                         data: JSON.stringify({ "selectedYear": costReportYearSelectedText }),
+                         type: "POST",
+                         cache: false,
+                         contentType: "application/json;charset=utf-8",
+                         success: function (result) {
+                             $("#treeView").show();
+                             $("#treeView").ejTreeView({
+                                 showCheckbox: true, // shows each node with checkboxes
+                                 autoCheck: true,// turns off auto check of parent and child nodes
+                                 autoCheckChildNode: true,
+                                 allowFiltering: true,
+                                 fullRowSelect: true,
+                                 autoCheckParentNode: false,
+                                 nodeCheck: nodeChecked,
+                                 nodeUncheck: nodeUnchecked,
+                                 height: 300,
+                                 fields: {
+                                     dataSource: result, id: 'ID', text: 'Text', parentId: 'parentID', isChecked: 'isChecked'
+                                 },
+                                 htmlAttributes: { class: "treeviewFont" }
+                                 /*loadOnDemand: true*/
+
+                             });
+
+                             $("#dataPoints").show();
+                             resetSDPTreeview();
+                             window.selection.expand(500);
+                             $.ajax({ async: true, url: "@Url.AbsoluteAction("Expand", "CostReport")", cache: false, type: "POST" });
+                             resolve();
+                         },
+                         error: function (errormessage) {
+                             StaticAlert({ content: errormessage }).then(() => {
+                                 resolve();
+                             });
+                         }
+                     });
+                 });
+             }).then(() => {
+                 setMasterCheckboxState();
+                 return ClearNotificationDialog();
+             });
+         }
+         else {
+             $("#treeView").hide();
+         }
+    }
+    // #endregion
+
+    window.SelectedTreeViewData = [];
+
+    function ConsoleLogArgs(args) {
+    }
+
+    function beforeLoad(args) {
+    }
+
+    window.GetSelectedTreeViewData = function () {
+        var out = [];
+
+        var $tv = $("#treeView");
+        if (!$tv.length) return out;
+
+        var tree = $tv.data("ejTreeView");
+        if (!tree) return out;
+
+        function getNodeData(nodeId) {
+            var node = null;
+            if (typeof tree.getNode === "function") {
+                node = tree.getNode(nodeId);
+            }
+            if (!node && typeof tree.getTreeDataById === "function") {
+                node = tree.getTreeDataById(nodeId);
+            }
+            if (!node) {
+                var f = tree.model.fields || {};
+                var ds = f.dataSource;
+                var data = Array.isArray(ds) ? ds : (ds && ds.dataSource && (ds.dataSource.json || ds.dataSource.data)) || [];
+                var idField = f.id || "ID";
+                var guess = String(nodeId).replace(/-/g, "_");
+
+                for (var i = 0; i < data.length; i++) {
+                    if (String(data[i][idField]) === guess) {
+                        node = data[i];
+                        break;
+                    }
+                }
+            }
+            return node;
+        }
+
+        var fields = tree.model.fields;
+        var dataNode = fields.dataSource;
+        var checkedIds = tree.getCheckedNodes();
+
+        for (var i = 0; i < checkedIds.length; i++) {
+            var id = checkedIds[i];
+            var node = getNodeData(id);
+            if (!node) continue;
+
+            for (var j = 0; j < dataNode.length; j++) {
+                var item = dataNode[j];
+                if (!item || item.ID !== node.id) continue;
+
+                var scheduleName = item.ScheduleName || item.Text || "";
+                if (item.RangeName != null) {
+                    out.push(scheduleName + ":" + item.RangeName + ":" + item.DisplayColumn);
+                } else if (item.DisplayColumn != null) {
+                    out.push(scheduleName + ":" + item.DisplayColumn);
+                }
+            }
+        }
+        return out;
+    };
+
+
+    // Helper function to check if node already exists in collection
+    function nodeExists(id, collection) {
+        return collection.some(function (x) { return x.id === id; });
+    }
+
+    function nodeChecked(args) {
+        if (isBulkChecking) return; //ignore eventd during bulk check
+        LoadNotificationDialog("Updating Selected Points").then(() => {
+            return new Promise((resolve, reject) => {
+                var treeObj = $("#treeView").data("ejTreeView");
+                var treeSPObj = $("#treeViewSP").data("ejTreeView");
+                // Get all current nodes in the Selected Points tree **once**           
+                var treeDataSP = treeSPObj.getTreeData();
+                // Create a quick lookup set for faster ID existence checks
+                var existingIDs = new Set(treeDataSP.map(item => item.id));
+                var treeNode_Collection_All = []; // Collect all nodes to add
+                for (var node = 0; node < args.currentCheckedNodes.length; node++) {
+
+                    var nodeObj = args.currentCheckedNodes[node];
+                    var parentNode = treeObj.getParent(nodeObj.id);
+                    var grandChild_treeData = null;
+                    var child_treeData = null;
+                    var parent_treeData = null;
+                    // ---- Grandchild ----               
+                    if (!existingIDs.has(nodeObj.id)) {
+                        grandChild_treeData = {
+                            id: nodeObj.id,
+                            parentId: parentNode[0]?.id || "",
+                            text: nodeObj.text
+                        };
+                        treeNode_Collection_All.push(grandChild_treeData);
+                        existingIDs.add(nodeObj.id); // Avoid duplicates later
+                    }
+                    // ---- Child ----
+                    if (parentNode[0] && !existingIDs.has(parentNode[0].id)) {
+                        var rootParentNode = treeObj.getParent(parentNode[0].id);
+                        child_treeData = {
+                            id: parentNode[0].id,
+                            parentId: rootParentNode[0]?.id || "",
+                            text: parentNode[0].name
+                        };
+                        treeNode_Collection_All.push(child_treeData);
+                        existingIDs.add(parentNode[0].id);
+                    }
+                    // ---- Parent ----               
+                    var rootParentNode = parentNode[0] ? treeObj.getParent(parentNode[0].id) : null;
+                    if (rootParentNode && rootParentNode[0] && !existingIDs.has(rootParentNode[0].id)) {
+                        parent_treeData = {
+                            id: rootParentNode[0].id,
+                            parentId: "", text: rootParentNode[0].name,
+                            ischecked: true
+                        };
+                        treeNode_Collection_All.push(parent_treeData);
+                        existingIDs.add(rootParentNode[0].id);
+                    }
+                }
+                // ---- Add all nodes at once ----           
+                if (treeNode_Collection_All.length > 0) {
+                    treeSPObj.addNodes(treeNode_Collection_All);
+                }
+                // ---- Sort and rebind ----           
+                var treeDataSP_Final = treeSPObj.getTreeData();
+                var sortedData = sortTreeData(treeDataSP_Final);
+                resetSDPTreeview();
+                LoadingSelectedDataPointsTreeData(sortedData);
+                $("#treeViewSP").show();
+                resolve();
+            });
+        }).then(() => {
+            return ClearNotificationDialog();
+        });
+    }
+    //#endregion
+
+    function sortTreeData(data) {
+        return data.sort(function (a, b) {
+            var aParts = a.id.split('_').map(Number);
+            var bParts = b.id.split('_').map(Number);
+
+            for (var i = 0; i < Math.max(aParts.length, bParts.length); i++) {
+                var aVal = aParts[i] || 0;
+                var bVal = bParts[i] || 0;
+
+                if (aVal !== bVal) {
+                    return aVal - bVal;
+                }
+            }
+            return 0;
+        });
+    }
+
+    //#region  Accordian Two - Data Points - Node-Un-Checked in Treeview - Delete
+    var isSPChecked = false;
+    var TreeViewDirty = false;
+
+    function nodeUnchecked(args) {
+        if (isBulkChecking) return;
+        LoadNotificationDialog("Updating Selected Points").then(() => {
+            return new Promise((resolve, reject) => {
+                var treeSPObj = $("#treeViewSP").data("ejTreeView");
+                for (node = 0; node < args.currentUncheckedNodes.length; node++) {
+                    treeSPObj.removeNode(args.currentUncheckedNodes[node].id);
+                }
+
+                resolve();
+            });
+        }).then(() => {
+            return ClearNotificationDialog();
+        });
+    }
+
+    // #region  Accordian Three - Selected Points - NodeChecked in Treeview - Delete Node
+    function nodeUncheckedSP(args) {
+    }
+    //#endregion
+
+    //#region Select / Deselect All Data Points
+    var tree = null;
+    var fields = null;
+    var idKey = null;
+    var childKey = null;
+    var dataSrc = null;
+    let isBulkChecking = false;
+
+    function collectIdsFromHierarchical(nodes, acc) {
+        if (!nodes || !nodes.length) return;
+        for (var i = 0; i < nodes.length; i++) {
+            var n = nodes[i];
+            acc.push(n[idKey]);
+            if (n[childKey])
+                collectIdsFromHierarchical(n[childKey], acc);
+        }
+    }
+    function getAllIds() {
+        var ids = [];
+        collectIdsFromHierarchical(dataSrc, ids);
+        return ids;
+    }
+    function checkAll() {
+        isBulkChecking = true;
+        LoadNotificationDialog("Select All Data Points").then(() => {
+            return new Promise((resolve, reject) => {
+                getAllIds().forEach(function (id) {
+                    tree.checkNode(id);
+                });
+                var bulkCheckedData = $("#treeView").ejTreeView("instance");
+                var checkedIds = bulkCheckedData.getCheckedNodes();
+                var fields = bulkCheckedData.model.fields;
+                var data = fields.dataSource;
+                var idMap = {};
+                var selectedNodes = [];
+                var treeData = null;
+
+                for (var i = 0; i < checkedIds.length; i++) {
+                    var id = checkedIds[i];
+                    idMap[id] = true;
+                }
+
+                for (var j = 0; j < data.length; j++) {
+                    var item = data[j];
+                    treeData = {
+                        id: item.ID,
+                        parentId: item.parentID,
+                        text: item.Text,
+                        ischecked: item.isChecked
+                    };
+                    selectedNodes.push(treeData);
+                }
+
+                // ---- rebind ----           
+                var $selected = $("#treeViewSP");
+                if ($selected.data("ejTreeView")) {
+                    $selected.ejTreeView("destroy");
+                }
+                resetSDPTreeview();
+                LoadingSelectedDataPointsTreeData(selectedNodes);
+                $("#treeViewSP").show();
+                resolve();
+            });
+        }).then(() => {
+            isBulkChecking = false;
+            return ClearNotificationDialog();
+        });
+    } 
+
+    function uncheckAll() {
+        LoadNotificationDialog("Deselect All Data Points").then(() => {
+            return new Promise((resolve, reject) => {
+                getAllIds().forEach(function (id) {
+                    tree.uncheckNode(id);
+                });
+                resolve();
+            });
+        }).then(() => {
+            return ClearNotificationDialog();
+        });
+    }
+
+    $("#chkAllNodes").on("change", function () {
+
+        var $tree = $("#treeView");
+         tree = $tree.ejTreeView("instance");
+         fields = tree.model.fields;  // read your mappings 
+        idKey = fields.id || "id";
+        childKey = fields.child || "child";
+        dataSrc = fields.dataSource || [];
+
+        if (this.checked) {
+            checkAll();
+        }
+        else {
+            uncheckAll();
+        }
+    });
+
+    // Select / Deselect checkbox state
+    function setMasterCheckboxState() {
+        var selectedNodes = [];
+        var treeData = null;
+        var checkedFlag = true;
+        var chkAllNodes = document.getElementById("chkAllNodes");
+        var treeView = $("#treeView").ejTreeView("instance");
+        //var checkedIds = treeView.getCheckedNodes();
+        var fields = treeView.model.fields;
+        var data = fields.dataSource;
+
+        for (var j = 0; j < data.length; j++) {
+            var item = data[j];
+            if (item.hasChild === false && item.isChecked === false) {
+                checkedFlag = false;
+                return;
+            }
+        }
+
+        if (!checkedFlag) {
+            $("#chkAllNodes").prop("checked", false);
+        }
+        else {
+            $("#chkAllNodes").prop("checked", true);
+        }
+    }
+    //#endregion
+
+
+    //#endregion
+    function LoadSavedSearchGrid() {
+        $("#savedSearches").show();
+    }
+
+    //#region  Saved Reports - Grid operations  Delete/ Reload
+    function DeleteSavedSearch(id) {
+        return StaticConfirm({
+            title: "Delete Saved Search",
+            content: "Are you sure you want to delete this Saved report?",
+            buttons: ["Ok", "Cancel"]
+        }).then((key) => {
+            if (key != 0) return;
+
+            return new Promise((resolve, reject) => {
+                $.ajax({
+                    url: "@Url.AbsoluteAction("DeleteSavedSearch", "Reports")",
+                    data: JSON.stringify({ "id": id }),
+                    type: "POST",
+                    contentType: "application/json;charset=UTF-8",
+                    dataType: "json",
+                    success: function (result) {
+                        if (result.Success) {
+                            $("#tblSavedSearches").ejGrid("dataSource", result.DataPointsSavedSearchesViewModel);
+                            refreshUIControls();
+                        }
+
+                        resolve();
+                    },
+                    error: function (errormessage) {
+                        StaticAlert({ content: errormessage.responseText }).then(() => {
+                            resolve();
+                        });
+                    }
+                });
+            });
+        });
+    }
+
+    var savedReportID = null;
+    var savedCRYear = null;
+    var savedCRLength = null;
+    var savedCRType = null;
+    var savedCRStatus = null;
+    var savedReportName = null;
+
+var isExistingReport = false;
+function recordClick(args) {
+        $("#drpCostReportYears").prop('disabled', false);
+        $("#drpCostReportLengths").prop('disabled', false);
+        $("#drpCostReportTypes").prop('disabled', false);
+        $("#drpCostReportStatus").prop('disabled', false);
+
+        savedReportID = args.data.ReportId;
+        savedCRYear = args.data.CRYear;
+        savedCRLength = args.data.CRLength;
+        savedCRType = args.data.CRType;
+        savedCRStatus = args.data.CRStatus;
+        savedReportName = args.data.ReportName;
+
+        if (args.cellIndex != 7) {
+            $("#btnLoadReport").prop('disabled', false);
+            $("#btnDownloadReport").prop('disabled', false);
+
+            $("#btnLoad").prop("disabled", true);
+            //LoadReport();
+        }
+
+        $("#drpCostReportYears option").attr('selected', true).filter(function () {
+            return this.text == savedCRYear;
+        }).prop('selected', true);
+
+        $('#drpCostReportLengths option').attr('selected', false).filter(function () {
+            return this.text == savedCRLength;
+        }).prop('selected', true);  
+
+        $("#drpCostReportTypes option").attr('selected', false).filter(function () {
+            return this.text == savedCRType;
+        }).prop('selected', true);
+
+        if (!savedCRStatus) {
+            $("#drpCostReportStatus").val('');
+        }
+        else {
+            $("#drpCostReportStatus option").attr('selected', false).filter(function () {
+                return this.text == savedCRStatus;
+            }).prop('selected', true);
+        }
+        $("#txtReportName").val(savedReportName);
+        isExistingReport = true;
+    }
+
+    function LoadExistingReport() {
+        // Grid Selection
+        // Ensure that a new crdata.DataPointReports record is created for this as we are going to modify it.
+        // ** Reload Entire page data **
+        return LoadNotificationDialog("Reloading Data Points").then(() => {
+            return new Promise((resolve, reject) => {
+                var costReportYearSelected = $('#drpCostReportYears option:selected').val();
+                var costReportTypeSelected = $('#drpCostReportTypes option:selected').val();
+                var costReportStatusSelected = $('#drpCostReportStatus option:selected').val();
+                isExisting = true;
+
+                $.ajax({
+                    cache: false,
+                    crossDomain: true,
+                    url: "@Url.AbsoluteAction("GetSelectedDataPoints", "Reports")",
+                    data: { "savedReportID": savedReportID, "selectedYear": savedCRYear },
+                    type: "POST",
+                    success: function (result) {
+                        if (result.Success) {
+                            // Call LoadProviderGrid first
+                            LoadProviderGrid(isExisting).then(() => {
+                                // Then bind the TreeView with GetDataPoints
+                                $.ajax({
+                                    async: true,
+                                    url: "@Url.AbsoluteAction("GetDataPoints", "Reports")",
+                                    data: JSON.stringify({ "selectedYear": savedCRYear }),
+                                    type: "POST",
+                                    cache: false,
+                                    contentType: "application/json;charset=utf-8",
+                                    success: function (result) {
+                                        $("#treeView").show();
+                                        $("#treeView").ejTreeView({
+                                            showCheckbox: true, // shows each node with checkboxes
+                                            autoCheck: true, // turns off auto check of parent and child nodes
+                                            autoCheckChildNode: true,
+                                            allowFiltering: true,
+                                            fullRowSelect: true,
+                                            autoCheckParentNode: false,
+                                            nodeCheck: nodeChecked,
+                                            nodeUncheck: nodeUnchecked,
+                                            height: 300,
+                                            fields: {
+                                                dataSource: result,
+                                                id: 'ID',
+                                                text: 'Text',
+                                                parentId: 'parentID',
+                                                isChecked: 'isChecked'
+                                            },
+                                            htmlAttributes: { class: "treeviewFont" }
+                                        });
+                                    }
+                                });
+
+                                $("#dataPoints").show();
+                                window.selection.expand(500);
+
+                                // Optional additional calls
+                                $.ajax({
+                                    async: true,
+                                    url: "@Url.AbsoluteAction("Expand", "CostReport")",
+                                    cache: false,
+                                    type: "POST"
+                                });
+
+                                isExistingReport = true;
+                                GetSelectedDataPointsTreeData(savedReportID, costReportYearSelected);
+                                // Enable buttons
+                                $("#btnSaveReport").prop("disabled", false);
+                                $("#btnSaveDownloadReport").prop("disabled", false);
+                                $("#btnSave").prop("disabled", false);
+
+                                resolve();
+                            });
+                        } else {
+                            // If not successful
+                            resolve();
+                        }
+                    },
+                    error: function (errormessage) {
+                        StaticAlert({ content: errormessage }).then(() => {
+                            resolve();
+                        });
+                    }
+                });
+            });
+        }).then(() => {
+            return ClearNotificationDialog();
+        });
+    }
+    //#endregion
+
+    // #region GetSelectedDataPointsTreeData
+    function GetSelectedDataPointsTreeData(savedReportID, costReportYearSelected) {
+        return LoadNotificationDialog("Loading Selected Data Points").then(() => {
+            return new Promise((resolve, reject) => {
+                $.ajax({
+                    cache: false,
+                    crossDomain: true,
+                    url: "@Url.AbsoluteAction("GetSelectedDataPointsTreeData", "Reports")",
+                    data: ({ "savedReportID": savedReportID , "costReportYear": costReportYearSelected }),
+                    type: "POST",
+                    success: function (result) {
+
+                        $("#treeViewSP").show();
+                            $("#treeViewSP").ejTreeView({
+                                showCheckbox: false, // shows each node with checkboxes
+                                autoCheck: true,// turns off auto check of parent and child nodes
+                                fullRowSelect: true,
+                                autoCheckParentNode: false,
+                                nodeUncheck: nodeUncheckedSP,
+                                /*template: "#treeTemplate",*/
+                                height: 300,
+                                fields: {
+                                    dataSource: result, id: 'id', text: 'text', parentID: 'parentId', isChecked: 'ischecked'
+                                    //dataSource: result, id: "ID", text: 'Text', parentId: 'parentID', hasChild: "hasChild", isChecked: 'isChecked'
+                                },
+                                htmlAttributes: { class: "treeviewFont" }
+                            });
+                            $("#selectedPoints").show();
+                        setMasterCheckboxState();
+                        resolve();
+                    },
+                    error: function (errormessage) {
+                        StaticAlert({ content: errormessage }).then(() => {
+                            resolve();
+                        });
+                    }
+                });
+            });
+        }).then(() => {
+            return ClearNotificationDialog();
+        });
+    }
+
+    function LoadingSelectedDataPointsTreeData(result) {
+        $("#treeViewSP").show();
+        $("#treeViewSP").ejTreeView({
+            showCheckbox: false, // shows each node with checkboxes
+            autoCheck: true,// turns off auto check of parent and child nodes
+            fullRowSelect: true,
+            autoCheckParentNode: false,
+            nodeUncheck: nodeUncheckedSP,
+            height: 300,
+            fields: {
+                dataSource: result, id: 'id', text: 'text', parentID: 'parentId', isChecked: 'ischecked'
+            },
+            htmlAttributes: { class: "treeviewFont" }
+        });
+        $("#selectedPoints").show();
+    }
+    // #endregion
+
+    // #region Download Report
+    function DownloadReport() {
+        if (TreeViewDirty) {
+            // Need to ensure that tree view selected items are saved.
+        }
+        // TODO
+        GenerateDataPointsReport(savedReportID); // From Selected Provider
+    }
+    // #endregion
+
+
+    //// #region SaveDownloadReport
+    function SaveDownloadReport() {
+        var selectedTreeData = GetSelectedTreeViewData();
+        var reportName = $('#txtReportName').val();
+        var costReportYearSelected = $('#drpCostReportYears option:selected').val();
+        var costReportLengthSelected = $('#drpCostReportLengths option:selected').val();
+        var costReportTypeSelected = $('#drpCostReportTypes option:selected').val();
+        var costReportStatusSelected = $('#drpCostReportStatus option:selected').val();
+
+        var gridObj = $("#tblDataWizardProviders").ejGrid("instance");
+        var selectedRecords = gridObj.getSelectedRecords();
+
+        // Get the ProviderValue from selected records
+        var selectedProviderIDs = selectedRecords.map(function (record) {
+            return record.ProviderValue;
+        });
+
+        if (selectedTreeData.length == 0) {
+            return StaticAlert({ content: "Please select a Data Point to save." });
+        }
+
+        if (selectedProviderIDs.length == 0) {
+            return StaticAlert({ content: "Please select a Provider to save." });
+        }
+
+        var dataPointReportsViewModel = {
+            ReportName: reportName,
+            CostReportYear: costReportYearSelected,
+            CostReportLength: costReportLengthSelected,
+            CostReportType: costReportTypeSelected,
+            CostReportStatus: costReportStatusSelected,
+            ProviderData: selectedProviderIDs,
+            RangeName: selectedTreeData,
+        };
+
+        return LoadNotificationDialog("Generating Data Points").then(() => {
+            return new Promise((resolve, reject) => {
+
+
+                $.ajax({
+                    cache: false,
+                    crossDomain: true,
+                    url: "@Url.AbsoluteAction("SaveDownloadReport", "Reports")",
+                    data: ({ "DataPointReportsViewModel": dataPointReportsViewModel }),
+                    type: "POST",
+                    success: function (result) {
+                        if (result.Success) {
+                            GenerateDataPointsReport(result.reportID);
+
+                        }
+
+                        resolve();
+                    },
+                    error: function (errormessage) {
+                        StaticAlert({ content: errormessage }).then(() => {
+                            resolve();
+                        });
+                    }
+                });
+            });
+        }).then(() => {
+            return ClearNotificationDialog();
+        });
+    }
+
+    function GenerateDataPointsReport(savedReportId) {
+
+        var reportName = $('#txtReportName').val();
+
+        return LoadNotificationDialog("Generating Report").then(() => {
+            return new Promise((resolve, reject) => {
+                $.ajax({
+                    cache: false,
+                    crossDomain: true,
+                    url: "@Url.AbsoluteAction("GenerateDataWizardReport", "Reports")",
+                    data: ({ "reportId": savedReportId, "reportName": reportName }),
+                    type: "POST",
+                    success: function (result) {
+                        if (result.Success) {
+                            //get the file name for download
+                            if (result.fileName != "") {
+                                //use window.location.href for redirect to download action for download the file
+                                window.location.href = "@Url.AbsoluteAction("Download", "Rate")/?fileName=" + result.fileName;
+                            }
+
+                            resolve();
+                        }
+
+                        resolve();
+                    },
+                    error: function (errormessage) {
+                        StaticAlert({ content: errormessage }).then(() => {
+                            resolve();
+                        });
+                    }
+                });
+            });
+        }).then(() => {
+            return ClearNotificationDialog();
+        });
+    }
+    // #endregion
+
+    // #region Save Report Button
+    function SaveReport() {
+        var hasValidation = false;
+        var foundName = false;
+        var isOverrideReport = false;
+        var selectedProviderArray;
+        var reportName = $('#txtReportName').val();
+        var gridObj = $("#tblSavedSearches").ejGrid("instance");
+        var gridData = gridObj.model.dataSource;
+
+        for (var i = 0; i < gridData.length; i++) {
+            if (reportName == gridData[i]['ReportName']) {
+                hasValidation = true;
+                break;
+            }
+        }
+
+        var selectedTreeData = GetSelectedTreeViewData();
+        var costReportYearSelected = $('#drpCostReportYears option:selected').text();
+        var costReportLengthSelected = $('#drpCostReportLengths option:selected').val();
+        var costReportTypeSelected = $('#drpCostReportTypes option:selected').val();
+        var costReportStatusSelected = $('#drpCostReportStatus option:selected').val();
+        var gridObj = $("#tblDataWizardProviders").ejGrid("instance");
+        var selectedRecords = gridObj.getSelectedRecords();
+
+        // Get the ProviderValue from selected records
+        var selectedProviderIDs = selectedRecords.map(function (record) {
+            return record.ProviderValue;
+        });
+
+        if (selectedTreeData.length == 0) {
+            return StaticAlert({ content: "Please select a Data Point to save." });
+        }
+
+        if (selectedProviderIDs.length == 0) {
+            return StaticAlert({ content: "Please select a Provider to save." });
+        }
+
+        if (reportName.length == 0) {
+            return StaticAlert({ content: "Please enter a Report Name to save." });
+        }
+
+        if (hasValidation) {
+            return StaticConfirm({
+                title: "Override Confirm",
+                content: "Report Name already exists. Do you wish to override?",
+                buttons: ["Ok", "Cancel"]
+            }).then((key) => {
+                if (key != 0) return;
+
+               // If User selects "YES" To Override the existing Report
+                return LoadNotificationDialog("Saving Data Points").then(() => {
+                    return new Promise((resolve, reject) => {
+                        var savedReportID = null;
+                        var isExistingReport = false;
+                        let isEditing = (savedReportID != null && isExistingReport);
+                        var dataPointReportsViewModel = {
+                            IsExistingReport: isEditing,
+                            ReportName: reportName,
+                            CostReportYear: costReportYearSelected,
+                            costReportLength: costReportLengthSelected,
+                            CostReportType: costReportTypeSelected,
+                            CostReportStatus: costReportStatusSelected,
+                            ProviderData: selectedProviderIDs,
+                            RangeName: selectedTreeData,
+                            IsOverrideReport: isOverrideReport
+                        };
+                        $.ajax({
+                            cache: false,
+                            crossDomain: true,
+                            url: "@Url.AbsoluteAction("SaveDataPoints", "Reports")",
+                            data: ({ "DataPointReportsViewModel": dataPointReportsViewModel }),
+                            type: "POST",
+                            success: function (result) {
+                                if (result.Success) {
+                                    $("#tblSavedSearches").ejGrid("dataSource", result.DataPointsSavedSearchesViewModel);
+
+                                    refreshUIControls();
+                                }
+
+                                resolve();
+                            },
+                            error: function (errormessage) {
+                                StaticAlert({ content: errormessage }).then(() => {
+                                    resolve();
+                                });
+                            }
+                        });
+                    });
+                }).then(() => {
+                    return ClearNotificationDialog();
+                });
+            });
+
+        }
+        else { // If User chooses to change the Report Name and Save
+            return LoadNotificationDialog("Saving Data Points").then(() => {
+                return new Promise((resolve, reject) => {
+
+                    var savedReportID = null;
+                    var isExistingReport = false;
+                    let isEditing = (savedReportID != null && isExistingReport);
+                    var dataPointReportsViewModel = {
+                        IsExistingReport: isEditing,
+                        ReportName: reportName,
+                        CostReportYear: costReportYearSelected,
+                        CostReportLength: costReportLengthSelected,
+                        CostReportType: costReportTypeSelected,
+                        CostReportStatus: costReportStatusSelected,
+                        ProviderData: selectedProviderIDs,
+                        RangeName: selectedTreeData,
+                        IsOverrideReport: isOverrideReport
+                    };
+                    $.ajax({
+                        cache: false,
+                        crossDomain: true,
+                        url: "@Url.AbsoluteAction("SaveDataPoints", "Reports")",
+                        data: ({ "DataPointReportsViewModel": dataPointReportsViewModel }),
+                        type: "POST",
+                        success: function (result) {
+                            if (result.Success) {
+                                $("#tblSavedSearches").ejGrid("dataSource", result.DataPointsSavedSearchesViewModel);
+
+                                refreshUIControls();
+                            }
+
+                            resolve();
+                        },
+                        error: function (errormessage) {
+                            StaticAlert({ content: errormessage }).then(() => {
+                                resolve();
+                            });
+                        }
+                    });
+                });
+            }).then(() => {
+                return ClearNotificationDialog();
+            });
+        }
+    }
+        // #endregion
+
+    //#region Helper Functions
+    let getSelectedTreeNodeArray = (treeData, desired_keyOne, desired_keyTwo) => {
+        let desiredValue = treeData.filter((element) => element[desired_keyOne] == true).map(x => x[desired_keyTwo]);
+        return desiredValue;
+    }
+
+    let getSelectedProviderArray = (arrayProviders, desired_keyOne) => {
+        let desiredValue = arrayProviders.map(x => x[desired_keyOne]);
+        return desiredValue;
+    }
+
+    function ValidateSubmitButtons() {
+        var providersArray = $("#tblDataWizardProviders").ejGrid("getSelectedRecords");
+        var treeObj = $("#treeView").ejTreeView('instance');
+        var checkedNodesArray = treeObj.getCheckedNodes();
+        if (providersArray.length > 0 && checkedNodesArray.length > 0) {
+            $("#btnLoadReport").prop('disabled', false);
+            $("#btnDownloadReport").prop('disabled', false);
+            $("#btnSave").prop("disabled", false);
+            $("#btnSaveDownloadReport").prop('disabled', false);
+        }
+        else {
+            $("#btnLoadReport").prop('disabled', true);
+            $("#btnDownloadReport").prop('disabled', true);
+            $("#btnSave").prop("disabled", true);
+            $("#btnSaveDownloadReport").prop('disabled', true);
+        }
+        //$("#btnSave").prop("disabled", false);
+    }
+    //#endregion
+
+    function loadTrashIcon(args) {
+        // Grids use args.cell, tree grids use args.rowElement
+        $(args.cell ?? args.rowElement).find("i").each(function (index, element) {
+            const iconSelection = element.attributes["data-feather"];
+            if (iconSelection) {
+                const svgFile = feather.icons[iconSelection.value];
+                let newAttriubtes = {};
+                for (let i = 0; i < element.attributes.length; i++) {
+                    newAttriubtes[element.attributes[i].name] = element.attributes[i].value;
+                }
+                element.outerHTML = svgFile ? svgFile.toSvg(newAttriubtes) : "Invalid Icon Selection";
+            }
+        });
+        if (args.data && args.data.IsActive == false)
+            args.cell.parentElement.classList.add("hidden-event");
+    }
+
+    function refreshUIControls() {
+
+        $("#txtReportName").val("");
+
+        $("#btnLoadReport").prop('disabled', true);
+        $("#btnDownloadReport").prop('disabled', true);
+
+        $("#btnLoad").prop("disabled", true);
+        $("#btnSaveReport").prop('disabled', true);
+
+        $("#btnSave").prop("disabled", true);
+        $("#btnSaveDownloadReport").prop('disabled', true);
+
+        $("#drpCostReportYears option").prop("selected", false);
+        $("#drpCostReportYears option").filter(function () {
+            return this.text == "Select a Cost Report Year";
+        }).attr('selected', true).trigger('change');
+
+        $('#drpCostReportLengths option').filter(function () {
+            return this.text == "Select a Cost Report Length";
+        }).attr('selected', true).trigger('change');
+
+        $("#drpCostReportTypes option").filter(function () {
+            return this.text == "Select a Cost Report Type";
+        }).attr('selected', true).trigger('change');
+
+        $("#drpCostReportStatus option").filter(function () {
+            return this.text == "Select a Cost Report Status";
+        }).attr('selected', true).trigger('change');
+
+
+
+        resetSDPTreeview();
+
+        var gridObj = $("#tblDataWizardProviders").ejGrid("instance");
+
+        gridObj.enablePersistence = false;
+        // Clear grid’s local storage data
+        window.localStorage.setItem("gridGrid", "");
+        // Destroy the grid
+        gridObj.destroy();
+
+        window.selection.collapseNSC(0);
+        window.selection.collapse(0);
+        window.selection.collapses(0);
+        window.selection.collapseSP(0);
+        $.ajax({ async: true, url: "@Url.AbsoluteAction("Collapse", "CostReport")", cache: false, type: "POST" });
+    }
+
+    function resetSDPTreeview() {
+        var emptyArray = new Array();
+        $("#treeViewSP").ejTreeView({
+            showCheckbox: false, // shows each node with checkboxes
+            autoCheck: true,// turns off auto check of parent and child nodes
+            fullRowSelect: true,
+            autoCheckParentNode: false,
+            nodeUncheck: nodeUncheckedSP,
+            height: 300,
+            fields: {
+                dataSource: emptyArray, id: 'id', text: 'text', parentID: 'parentId', isChecked: 'ischecked'
+            },
+            htmlAttributes: { class: "treeviewFont" }
+        });
+
+
+    }
+</script>

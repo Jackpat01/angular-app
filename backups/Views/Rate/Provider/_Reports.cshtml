@@ -1,0 +1,44 @@
+﻿<style type="text/css">
+    #divReports {
+        padding: 1px 1px 1px 40px;
+    }
+</style>
+<div style='width: 100%; font-weight: bold;'>
+    <div><h1>Reports</h1></div>
+</div>
+<div id="divReports">
+    @*<div id="UploadDownloadReportURL" data-url="@Url.AbsoluteAction("GenerateStatLogMassUploadReport", "Reports")"></div>*@
+    <a href="#" onclick="ShowReportPage('AnnualRatePackagesReport')">Annual Rate Packages</a> <br />
+    <a>Median Reports</a>
+    <a href="#" onclick="ShowReportPage('ProviderAddressListRpt')">Address Report</a> <br />
+    <a href="#" onclick="ShowReportPage('ClosedFacilitiesReport')">Closed Facilities Report</a> <br />
+</div>
+<script>
+    function ShowReportPage(reportName) {
+        var url2 = "@Html.Raw(Url.AbsoluteAction("actionName","Rate"))";
+        url2 = url2.replace("actionName", reportName);
+        LoadNotificationDialog("Loading...").then(() => {
+            return new Promise((resolve, reject) => {
+                $.ajax({
+                    async: true,
+                    url: url2,
+                    type: "POST",
+                    cache: false,
+                    contentType: "application/json;charset=utf-8",
+                    success: function (result) {
+                        //$("#gridPlaceholder").show();
+                        //$("#gridPlaceholder").html(result);
+                        resolve();
+                    },
+                    error: function (errormessage) {
+                        StaticAlert({ content: "Annual Rate Packages Report Error: " + errormessage.responseText }).then(() => {
+                            resolve();
+                        });
+                    }
+                });
+            });
+        }).then(() => {
+            return ClearNotificationDialog();
+        });
+    }
+</script>

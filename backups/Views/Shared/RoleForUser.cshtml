@@ -1,0 +1,18 @@
+﻿@using MSLC.Portal.MVC.Utility
+@using WebPortal_OH_FI.Web
+@RetrieveSession.CurrentRoleName
+@*@RetrieveSession.CurrentRole*@
+@*@if(RetrieveSession.ARUMUser != null)
+{
+
+    if (RetrieveSession.ARUMUser.RoleCount >= 1)
+    {
+        @RetrieveSession.ARUMUser.Roles[0].RoleName;
+    }
+}
+else
+{
+    <text>No Role Assigned For User</text>
+}*@
+
+

@@ -1,0 +1,61 @@
+﻿@using MSLC.Portal.Configuration
+@using WebPortal_OH_FI.Common
+@model WebPortal_OH_FI.Models.HelpViewModel.View
+@{
+	ViewBag.Title = PortalConfiguration.Application + " - Help Resources - Index";
+	Layout = "~/Views/Shared/_LayoutWithMenu.cshtml";
+	var Message = string.Empty;
+}
+@if (TempData["Message"] != null)
+{
+	Message = TempData["Message"].ToString();
+}
+@if (Model.Files != null && Model.Files.Any())
+{
+	<div style="margin-left: auto; margin-right: auto; margin-bottom: 25px;">
+		<div class="ui-tabs ui-widget ui-widget-content ui-corner-all" style="width: 75%; margin: 10px auto;">
+			@foreach (var singeFileParentType in Model.Files.Select(c => c.ParentFileTypeName).ToArray().Distinct())
+			{
+				<table cellpadding="5" cellspacing="5" border="0">
+					<tr>
+						<th align="left" colspan="2">
+							@singeFileParentType
+						</th>
+						<th style="text-align: center;">
+							Size
+						</th>
+						<th style="text-align: center;">Upload Date</th>
+						<th style="text-align: center;">Download</th>
+					</tr>
+					@foreach (var singleFile in Model.Files.Where(c => c.ParentFileTypeName.ToUpper().Trim() == singeFileParentType.ToUpper().Trim()))
+					{
+						<tr>
+							<td colspan="2" width="25%">
+								@string.Format("{0}.{1}", singleFile.FileName, singleFile.Extension)
+							</td>
+							<td align="center">
+								@singleFile.SizeInString
+							</td>
+							<td width="25%" align="center">
+								@singleFile.CreateDate.ToShortDateString()
+							</td>
+							<td align="center" width="25%">
+								<a href="@Url.AbsoluteAction("DownloadFileResult", "Help", new { sFileID = singleFile.FileID })"><img src="~/Images/Download_32x32.png" title="Download File" alt="Download File" /></a>
+							</td>
+						</tr>
+					}
+				</table>
+			}
+		</div>
+	</div>
+}
+else
+{
+	if (!string.IsNullOrEmpty(Message))
+	{
+		<div class="errorLabel">
+			<center>@Html.Raw(Message)</center>
+			<br /><br />
+		</div>
+	}
+}

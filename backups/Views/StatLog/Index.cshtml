@@ -1,0 +1,438 @@
+﻿@*
+    DO NOT MODIFY OUTSIDE OF MSLC.STATLOG
+    This file comes from MSLC.Statlog, any changes to it will be wiped out when the nuget package is updated.
+    Please make the appropriate enhancements to MSLC.Statlog instead of here.
+*@
+
+@Styles.Render("~/Content/StatLog.css")
+@using MSLC.ApplicationProxy.Interfaces.Models
+@using MSLC.Portal.Configuration
+@using MSLC.Portal.MVC.Utility
+@using MSLC.StatLog.Configuration
+@using MSLC.Portal.Configuration;
+@model MSLC.StatLog.MVC.ViewModels.StatLogViewModel.View
+@Html.Script("~/Scripts/Pages/StatLog/Index.js", "jquery")
+
+@{
+    Layout = PortalConfiguration.DetermineLayout("Menu");
+    ViewBag.Title = Model.PageTitle;
+
+    //Upload File
+    RouteValueDictionary tRVD_UploadFile = new RouteValueDictionary();
+    tRVD_UploadFile.Add("ContactID", Model.ContactID);
+    IDictionary<string, object> iDrvdTop_UploadFile = new Dictionary<string, object>();
+    iDrvdTop_UploadFile.Add("id", "btnUpload");
+    iDrvdTop_UploadFile.Add("class", "btn btn-basic BoldMe");
+
+    var CustomizeHeaderText = StatlogARUMConfiguration.CustomizeHeader(RetrieveSession.Classification);
+    var CustomizeBeginDateText = StatlogARUMConfiguration.CustomizeBeginDate(RetrieveSession.Classification);
+    var CustomizeEndDateText = StatlogARUMConfiguration.CustomizeEndDate(RetrieveSession.Classification);
+}
+
+<style>
+    .e-rowcell.noWrap {
+        white-space: pre-wrap !important;
+    }
+</style>
+
+<div id="dvCostReportGetEndDates" data-url="@Url.AbsoluteAction("FillCostReportEndDates","StatLog")"></div>
+<div id="dvSelectProviderURL" data-url="@Url.AbsoluteAction("SelectProvider","StatLog")"></div>
+<div id="dvFillHistoryTable" data-url="@Url.AbsoluteAction("FillHistory","StatLog")"></div>
+<div id="dvIndexStatLog" data-url="@Url.AbsoluteAction("Index","StatLog")"></div>
+<div id="dvInteractiveEventsChange" data-url="@Url.AbsoluteAction("ShowAddInteractive","StatLog")"></div>
+
+@Html.HiddenFor(x => x.sCostReportID, new { id = "sCostReportID" })
+@Html.HiddenFor(x => x.sProviderID, new { id = "hdnProviderID" })
+@Html.HiddenFor(x => x.SelectedProviderName, new { id = "hdnProviderName" })
+@Html.HiddenFor(x => x.SelectedProviderIdentifier, new { id = "hdnProviderIdentifier" })
+@Html.HiddenFor(x => x.ContactID, new { id = "hdnContactID" })
+
+@if (TempData["Message"] != null && !string.IsNullOrEmpty(TempData["Message"].ToString()))
+{
+    <br />
+    <br />
+    <center>
+        <div class="errorLabel">
+            @Html.Raw(TempData["Message"].ToString())
+        </div>
+    </center>
+}
+
+@if (Model.IsActive == false)
+{
+    <br />
+    <br />
+    <center>
+        <div class="errorLabel">
+            Stat Log is currently hidden. To show this stat log, click the "Show Stat Log" button in the Edit Stat Log menu
+        </div>
+    </center>
+}
+
+@if (TempData["Message"] != null && !string.IsNullOrEmpty(TempData["Message"].ToString()))
+{
+    TempData["Message"] = null;
+}
+
+@if (TempData["SuccessMessageAttachmentUpload"] != null && !string.IsNullOrEmpty(TempData["SuccessMessageAttachmentUpload"].ToString()))
+{
+    <br />
+    <br />
+    <center>
+        <div id="dvSuccessMessage" class="errorLabel">
+            @Html.Raw(@TempData["SuccessMessageAttachmentUpload"].ToString())
+        </div>
+    </center>
+}
+
+<div id="dialogDiv" class="MSLCModal modal hide fade" tabindex="-1" aria-labelledby="windowTitleLabel" aria-hidden="true" role="dialog">
+    <div class="d-flex">
+        <div id="modal-dialog" class="modal-dialog" role="document" style="max-width:100%; width:auto">
+            <div id="dialogContent" style="font-size: 14px; max-width:100%"></div>
+            <div id="dialogMessage" style="font-size: 14px; max-width:100%"></div>
+        </div>
+    </div>
+</div>
+
+<div>
+    <center>
+        <div style="margin: 15px; margin-top: 15px; max-width: 1500px;">
+            <fieldset style="width: 100%; max-width: 1000px;">
+                <legend style="text-align: left;">
+                    @if (!string.IsNullOrWhiteSpace(CustomizeHeaderText))
+                    {
+                        <b style="float: left;">@CustomizeHeaderText</b>
+                    }
+                    <span style="float: right;"><a href="@Url.AbsoluteAction("SearchProvider", "StatLog")"><input type='button' class="btn btn-success BoldMe" value='Search For Provider' /></a></span>
+                    @if (RetrieveSession.CanAccessFeature("DueDateUpdate:Access"))
+                    {
+                        <span style="float: right; margin-right: 20px;"><a href='@Url.AbsoluteAction("Index", "BulkUpdate")'><input type='button' class="btn btn-success BoldMe" value='Update Due Date(s)' /></a></span>
+                    }
+                </legend>
+                <br />
+                <legend style="text-align: left;"></legend>
+                <hr />
+                <table style="width: 100%;">
+                    <tr>
+                        <th align="left">
+                            <label for="ddlProviders">Provider</label>
+                        </th>
+                        <th align="center">
+                            <label for="txtBeginningOfPeriod">
+                                @if (!string.IsNullOrWhiteSpace(CustomizeBeginDateText))
+                                {
+                                    @Html.Raw(CustomizeBeginDateText + "<br />")
+                                }
+                                Begin Date
+                            </label>
+                        </th>
+                        <th align="center">
+                            <label for="ddlCostReport">
+                                @if (!string.IsNullOrWhiteSpace(CustomizeEndDateText))
+                                {
+                                    @Html.Raw(CustomizeEndDateText + "<br />")
+                                }
+                                End Date
+                            </label>
+                        </th>
+                    </tr>
+                    <tr>
+                        @if (StatlogARUMConfiguration.ShowEffectiveDate(RetrieveSession.Classification))
+                        {
+                        <td width="70%">
+                            @*@Html.DropDownListFor(x => x.ARUMProviderID, Model.myProviderInformation, new { id = "ddlARUMProviderID", @style = "width: 80%;" })*@
+                            @(Html.EJ()
+                            .Autocomplete("ddlProviders")
+                            .Datasource(Model.myAutoProviderInformation)
+                            .AutocompleteFields(e => e.Text("Name").Key("Number"))
+                            .WatermarkText("Provider search")
+                            .MinCharacter(0)
+                            .MultiColumnSettings(obj => obj.Enable(true).Columns(obj1 =>
+                            {
+                            obj1.Field("Name").HeaderText("Name").Add();
+                            obj1.Field("Number").HeaderText(Model.PrimaryIdentifier).Add();
+                            obj1.Field("EffectiveDateString").HeaderText("Effective Date").Add();
+                            }).ShowHeader(true).SearchColumnIndices(new List<int>
+                                { 1, 0, 2 }).StringFormat("{0}"))
+                                .HighlightSearch(true)
+                                .Width("80%")
+                                .ClientSideEvents(e =>
+                                {
+                                e.Open("FixDuplicateClasses");
+                                e.Select("ddlProvidersSelect");
+                                })
+                                .PopupHeight("400px")
+                                .AllowSorting(true).SortOrder(SortOrder.Ascending)
+                                .ShowPopupButton(true)
+                                .EmptyResultText("No Provider(s) found in list."))
+                        </td>
+                        }
+                        else
+                        {
+                        <td width="70%">
+                            @*@Html.DropDownListFor(x => x.ARUMProviderID, Model.myProviderInformation, new { id = "ddlARUMProviderID", @style = "width: 80%;" })*@
+                            @(Html.EJ()
+                            .Autocomplete("ddlProviders")
+                            .Datasource(Model.myAutoProviderInformation)
+                            .AutocompleteFields(e => e.Text("Name").Key("Number"))
+                            .WatermarkText("Provider search")
+                            .MinCharacter(0)
+                            .MultiColumnSettings(obj => obj.Enable(true).Columns(obj1 =>
+                            {
+                            obj1.Field("Name").HeaderText("Name").Add();
+                            obj1.Field("Number").HeaderText(Model.PrimaryIdentifier).Add();
+                            }).ShowHeader(true).SearchColumnIndices(new List<int>
+                                { 1, 0 }).StringFormat("{0}"))
+                                .HighlightSearch(true)
+                                .Width("80%")
+                                .ClientSideEvents(e =>
+                                {
+                                e.Open("FixDuplicateClasses");
+                                e.Select("ddlProvidersSelect");
+                                })
+                                .PopupHeight("400px")
+                                .AllowSorting(true).SortOrder(SortOrder.Ascending)
+                                .ShowPopupButton(true)
+                                .EmptyResultText("No Provider(s) found in list."))
+                        </td>
+                        }
+                        <td width="10%">
+                            @Html.TextBoxFor(x => x.BeginningOfPeriod, "{0:M/d/yyyy}", new { id = "txtBeginningOfPeriod", @readonly = "readonly", @style = "width: 75px;" })
+                        </td>
+                        <td width="20%">
+                            @Html.DropDownListFor(x => x.CostReportIDConcatBeginDate, Model.myCostReportsEndDateConcatAuditTypeDesc ?? new SelectList(Enumerable.Empty<SelectListItem>(), "ID", "Value"), new { id = "ddlCostReport", @style = "width: 200px;" })
+                        </td>
+                    </tr>
+                    <tr id="dvStatLogControls">
+                        <td width="70%">
+                            @if (StatLogConfiguration.CanCreateStatLog(RetrieveSession.UserRoles) & Model.sProviderID != null)
+                            {
+                            <div class="d-flex">
+                                <a onclick="return modalButton(this, 'medium')" href="@Url.AbsoluteAction("CreateStatLog", "StatLog" )?sArumProviderID=@Model.sProviderID" class="btn btn-success BoldMe@(Model.readOnly ? " disabled" : "" )" @(Model.readOnly ? "disabled" : "" )>Create New Stat Log</a>
+                            </div>
+                            }
+                        </td>
+                        <td width="10%">
+                        </td>
+                        <td width="20%">
+                            @if (StatLogConfiguration.CanCreateStatLog(RetrieveSession.UserRoles) & Model.sProviderID != null & Model.sCostReportID != null)
+                            {
+                            <div class="d-flex flex-row-reverse">
+                                <a onclick="return modalButton(this, 'medium')" href="@Url.AbsoluteAction("CreateStatLog", "StatLog" )?sCostReportID=@Model.sCostReportID" class="btn btn-success BoldMe@(Model.readOnly ? " disabled" : "" )" @(Model.readOnly ? "disabled" : "" )>Edit Selected Stat Log</a>
+                            </div>
+                            }
+                        </td>
+                    </tr>
+                </table>
+            </fieldset>
+            <br />
+            <div id="dvLoading" style="display: none; text-align: center;">
+                <img src="~/Images/loading.gif" alt="Loading" width="32" height="32" />
+            </div>
+            <br />
+            <div id="dvStatLogHistory" style='@(Model.IsActive == false ? "opacity: 0.5; pointer-events: none" : "" )'>
+                @if (Model.myCostReportHistory != null)
+                {
+                    <div style="width: 1000px;">
+                        <table style="width: 100%;" cellpadding="5" class="legendTable" onclick="ToggleLegend()">
+                            <thead>
+                                <tr>
+                                    <td colspan="8" align="center"><label style="font-size: 12px; font-weight: bold;">Image Legend - Hover for details (Click to hide/show)</label></td>
+                                </tr>
+                            </thead>
+                            <tbody style="display: none;">
+                                <tr>
+                                    @if (!RetrieveSession.IsProviderConsultant)
+                                    {
+                                        <td title='This event has not been reviewed yet.'>
+                                            <i data-feather='zap' class='text-warning'></i>
+                                            <label>Needs Review</label>
+                                        </td>
+                                    }
+                                    <td title='This event has been reviewed and is approved. Click the icon on the event to see notes related to the review.'>
+                                        <i data-feather='check-circle' class='text-success'></i>
+                                        <label>Review is Ok</label>
+                                    </td>
+                                    <td title='This event has been reviewed and is rejected. Click the icon on the event to see the reason(s) why it was rejected.'>
+                                        <i data-feather='slash' class='text-danger'></i>
+                                        <label>Item not accepted</label>
+                                    </td>
+                                    <td title='Upload a file to the event.'>
+                                        <i data-feather='upload-cloud'></i>
+                                        <label>Upload</label>
+                                    </td>
+                                    <td title='Download the file attached to the event.'>
+                                        <i data-feather='download-cloud'></i>
+                                        <label>Download</label>
+                                    </td>
+                                    <td title='This event has an issue. Leave a comment.'>
+                                        <i data-feather='flag'></i>
+                                        <label>Report Issue</label>
+                                    </td>
+                                    <td colspan="2" title='View the issues comment.'>
+                                        <i data-feather='flag' class='text-danger'></i>
+                                        <label>View Issue</label>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td title='Show Details'>
+                                        <i data-feather='info' class='infoButton'></i>
+                                        <label>Show Details</label>
+                                    </td>
+                                    <td title='Changes a date.'>
+                                        <i data-feather='calendar'></i>
+                                        <label>Change Date</label>
+                                    </td>
+                                    <td title='Changes user assigned to the event.'>
+                                        <i data-feather='user'></i>
+                                        <label>Assigned User</label>
+                                    </td>
+                                    <td title='Refreshes the event _history grid.'>
+                                        <i data-feather='refresh-cw' class='infoButton'></i>
+                                        <label>Refresh</label>
+                                    </td>
+                                    @if (StatLogConfiguration.CanSendStatLogEmail(RetrieveSession.ARUMUser))
+                                    {
+                                        <td title='Send an email to providers and consultants.'>
+                                            <i data-feather='mail' class='infoButton'></i>
+                                            <label>Send Email</label>
+                                        </td>
+                                    }
+                                    <td title='Hide and disable interaction with an event for providers and consultants.'>
+                                        <i data-feather='eye-off'></i>
+                                        <label>Hide Event</label>
+                                    </td>
+                                    <td colspan="2" title='Show and allow interaction with an event for providers and consultants.'>
+                                        <i data-feather='eye'></i>
+                                        <label>Show Event</label>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    @if (StatLogConfiguration.IsPHIControlsEnabled)
+                                    {
+                                        <td title='File cannot be downloaded because it may contain PHI material, and it either has expired or the user is not allowed to download PHI material.'>
+                                            <i data-feather='cloud-off' class="text-warning"></i>
+                                            <label>No PHI Access</label>
+                                        </td>
+                                        <td title='Download the file attached to the event, which may contain PHI material.'>
+                                            <i data-feather='download-cloud' class="text-warning"></i>
+                                            <label>Download PHI</label>
+                                        </td>
+                                        <td title='Uploads to a PHI event cannot be downloaded by those who do not have PHI access.'>
+                                            <i data-feather='upload-cloud' class="text-warning"></i>
+                                            <label>Upload PHI</label>
+                                        </td>
+                                    }
+                                    @if (StatLogConfiguration.IsNAEnabled)
+                                    {
+                                        <td title='This event does not need an upload'>
+                                            <i data-feather='file-minus' class='text-dark'></i>
+                                            <label>N/A</label>
+                                        </td>
+                                    }
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <br /><br />
+                    <fieldset style="width: 100%">
+                        <div class="d-flex justify-content-between m-2">
+                            <div>
+                                <b style="float: left;font-size: 1.5rem">History</b>
+                            </div>
+                            <div>
+                                <a href="@Url.AbsoluteAction("DownloadFiles", "Transfer", new { sCostReportID = Model.sCostReportID })" onclick="return modalButton(this, '9080')"
+                                   style="text-decoration: none;" class="btn btn-success BoldMe" id="DownloadFiles" title="Multi-Download">
+                                    Mass-Download
+                                </a>
+                                @if (StatLogConfiguration.CanSendStatLogEmail(RetrieveSession.ARUMUser))
+                                {
+                                    <a href="@Url.AbsoluteAction("SendEmail", "Communication", new { sCostReportID = Model.sCostReportID, defaultSubjectText = Model.PageTitle })" onclick="return modalButton(this, '9080')" id="DownloadFiles"
+                                       style="text-decoration: none;@(Model.readOnly ? "cursor: not-allowed;opacity: 0.5;" : "")" title="Send Email" @(Model.readOnly ? "disabled" : "")>
+                                        <i data-feather='mail' width="40" height="40"></i>
+                                    </a>
+                                }
+                                <a href="@Url.AbsoluteAction("Refresh", "StatLog", new { sCostReportID = Model.sCostReportID })"
+                                   style="text-decoration: none;" title="Refresh Table">
+                                    <i data-feather='refresh-cw' width="40" height="40"></i>
+                                </a>
+                            </div>
+                        </div>
+                        <div id="dvTable">
+                            @(Html.EJ().Grid<object>("tblHistory")
+                                .CssClass("mslcTable")
+                                .Datasource(Model.StatLogTable)
+                                .AllowPaging()
+                                .Locale("en-US")
+                                .EnableRowHover(true)
+                                .AllowSelection(false)
+                                .AllowTextWrap(true)
+                                .PageSettings(p =>
+                                {
+                                    p.PageSize(25);
+                                    p.PageSizeList(new List<int>() { 10, 25, 50, 100});
+                                })
+                                .TextWrapSettings(wrap => { wrap.WrapMode(WrapMode.Both); })
+                                .FilterSettings(filter =>
+                                {
+                                    filter.FilterType(FilterType.Menu);
+                                    filter.ShowPredicate(false);
+                                })
+                                .Columns(col =>
+                                {
+                                    col.Field("template.EventDate").HeaderText("Event Date").Type("date").Format("{0:MM/dd/yyyy}").TextAlign(TextAlign.Center).Width(5).Add();
+                                    col.Field("Event").HeaderText("Event").TextAlign(TextAlign.Left).Width(14).CssClass("noWrap").Add();
+                                    col.Field("template.ExpectDate").HeaderText("Due Date").Type("date").Format("{0:MM/dd/yyyy}").TextAlign(TextAlign.Center).Width(6).Add();
+                                    col.Field("template.Response").HeaderText("Response Date").Type("date").Format("{0:MM/dd/yyyy}").TextAlign(TextAlign.Center).Width(8).Add();
+                                    col.Field("UserName").HeaderText("User ID").TextAlign(TextAlign.Center).Width(10).Add();
+                                    col.Template("#actionHtml").HeaderText("Action").TextAlign(TextAlign.Center).Width(7).Add();
+                                    col.Template("#notesHtml").HeaderText("Details").TextAlign(TextAlign.Center).Width(6).Add();
+                                    col.Field("FileName").HeaderText("FileName").Visible(false).TextAlign(TextAlign.Center).Width(6).Add();
+                                    col.Field("IsActive").Visible(false).Add();
+                                })
+                                .ClientSideEvents(events =>
+                                {
+                                    events.TemplateRefresh("loadIcons");
+                                    events.Load("DateStrings");
+                                }))
+                            <script id="actionHtml" type="text/x-template">
+                                {{:actionItemHtml}}
+                            </script>
+                            <script id="notesHtml" type="text/x-template">
+                                {{:notesItemHtml}}
+                            </script>
+                        </div>
+                    </fieldset>
+                }
+                <div style="clear: both;"></div>
+                @if (Model.myInteractiveEvents != null && Model.myInteractiveEvents.Count() > 0)
+                {
+                    <div class="interactiveEventsDiv" style="margin-top: 15px;">
+                        <table style="width:100%">
+                            <tbody>
+                                <tr>
+                                    @* TODO: FIX ADD SAVE INTERACTIVE *@
+
+                                    @Html.HiddenFor(x => x.sProviderID)
+                                    @Html.HiddenFor(x => x.sCostReportID)
+                                    @if (Model.readOnly)
+                                    {
+                                        <td width="80%">@Html.DropDownList("InteractiveEventID", Model.myInteractiveEvents, "-- Select an event to Add --", new { id = "ddlInteractiveEvents", style = "width: 100%; margin: 0px;", disabled = "disabled", aria_label="Select an event" })</td>
+                                    }
+                                    else
+                                    {
+                                        <td width="80%">@Html.DropDownList("InteractiveEventID", Model.myInteractiveEvents, "-- Select an event to Add --", new { id = "ddlInteractiveEvents", style = "width: 100%; margin: 0px;", aria_label = "Select an event" })</td>
+                                    }
+                                    <td width="20%"><a href="" disabled="disabled" id="btnInteractiveEvents" class="btn btn-success" style="margin-left:25px;" onclick="return modalButton(this, 'tallerWidest')">Add Event</a></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                }
+            </div>
+        </div>
+    </center>
+</div>
+<script>
+    feather.replace()
+</script>

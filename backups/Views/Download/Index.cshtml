@@ -1,0 +1,182 @@
+﻿@using System.Linq
+@using MSLC.Portal.Configuration
+@using MSLC.Portal.MVC.Utility
+@using WebPortal_OH_FI.Common
+@using WebPortal_OH_FI.Web
+@model WebPortal_OH_FI.Models.DownloadViewModel
+@{
+    Layout = "~/Views/Shared/_LayoutWithMenu.cshtml";
+    ViewBag.Title = PortalConfiguration.Application + " - Download - Index";
+    bool ShowFiles = false;
+    string Message = "";
+}
+@Html.Script("~/Scripts/Pages/Download/Index.js", "jquery")
+@using (Html.BeginForm("Index", "Download", FormMethod.Post, new { id = "frmSubmit", enctype = "multipart/form-data" }))
+{
+    @Html.HiddenFor(x => x.sProviderID, new { id = "hdnSelectedProvider" })
+
+    if (TempData["Message"] != null)
+    {
+        @*<div class="errorLabel">
+                @Html.Raw(TempData["Message"].ToString())
+            </div>*@
+        Message = TempData["Message"].ToString();
+    }
+    @Html.HiddenFor(x => x.FileIDs, new { id = "hdnFileIDs" })
+    <div>
+        <div style="margin-left: auto; margin-right: auto; margin-bottom: 25px;">
+            <div class="ui-tabs ui-widget ui-widget-content ui-corner-all" style="width: 65%;">
+                @if (Model.Providers != null && Model.Providers.Any())
+                {
+                    <div class="d-flex align-items-baseline" style="padding: 5px;">
+                        <div><label for="ddlProviders">Choose Provider:</label></div>
+                        <div class="flex-grow-1">
+                            @(Html.EJ()
+                                .Autocomplete("ddlProviders")
+                                .Datasource(Model.Providers)
+                                .AutocompleteFields(e => e.Text("Name").Key("ARUMProviderID"))
+                                .SelectValueByKey(Model.sProviderID)
+                                .WatermarkText("Provider search")
+                                .MinCharacter(0)
+                                .MultiColumnSettings(obj => obj.Enable(true).Columns(obj1 =>
+                                {
+                                    obj1.Field("Name").HeaderText("Name").Add();
+                                    obj1.Field("Number").HeaderText(Model.PrimaryIdentifier).Add();
+                                }).ShowHeader(true).SearchColumnIndices(new List<int> { 1, 0 }).StringFormat("{0}"))
+                                .HighlightSearch(true)
+                                .Width("100%")
+                                .ClientSideEvents(e =>
+                                {
+                                    e.Open("FixDuplicateClasses");
+                                    e.Select("ddlProvidersSelect");
+                                })
+                                .PopupHeight("400px")
+                                .AllowSorting(true).SortOrder(SortOrder.Ascending)
+                                .ShowPopupButton(true)
+                                .EmptyResultText("No Provider(s) found in list."))
+                        </div>
+                    </div>
+                    if (!string.IsNullOrWhiteSpace(Model.sProviderID))
+                    {
+                        ShowFiles = true;
+                    }
+                    else
+                    {
+                        if (TempData["Message"] != null)
+                        {
+                            Message = TempData["Message"].ToString();
+                        }
+                        else
+                        {
+                            Message = "Please select a Provider.";
+                        }
+                    }
+                }
+                else
+                {
+                    Message = "User Has No Providers, please contact support.";
+                }
+            </div>
+
+        </div>
+        @if (ShowFiles)
+        {
+            <div>
+                @if (Model.Files != null)
+                {
+                    if (Model.Files.Any())
+                    {
+                        <div>
+                            <div style="float: left; margin-top: 8px; margin-bottom: 8px;">
+                                <a id="anchSelectAll" class="btn btn-small btn-kyBlue BoldMe" onclick="SelectAll();">Select All</a> &nbsp;&nbsp;
+                                <a id="anchSelectNone" class="btn btn-small btn-UofL BoldMe" onclick="SelectNone();">Select None</a>
+                            </div>
+                            <div id="dvDownloadSelectedFiles" style="float: right; display: none; margin-top: 8px; margin-bottom: 8px;">
+                                <button class="btn btn-success BoldMe" id="btnDownloadSelectedFiles" name="Command" onclick="return CheckFileDownload();" type="submit" value="DownloadSelectedFiles">Download Files</button>
+                            </div>
+                        </div>
+                        <div class="clearFixedFloatingDiv"></div>
+                        <table id="tblFiles" width="100%" class="table-condensed table-striped table-bordered hoverenabled">
+                            <tr>
+                                <td>
+
+                                    @{
+                                        List<object> filterColumns = new List<object>();
+                                        filterColumns.Add(new { field = "ReportID", @operator = "contains", value = "1" });
+                                    }
+                                    @(Html.EJ().Grid<object>("FlatGrid")
+                                        .Datasource(Model.Files)
+                                        .AllowPaging()
+                                        .EnableRowHover(true)
+                                        .AllowSelection(false)
+                                        .AllowSorting(true)
+                                        .AllowFiltering(true)
+                                        .AllowTextWrap(true)
+                                        .TextWrapSettings(wrap => { wrap.WrapMode(WrapMode.Both); })
+                                        .FilterSettings(filter => { filter.FilterType(FilterType.Menu); filter.ShowPredicate(false); })
+
+                                        .ToolbarSettings(toolbar =>
+                                        {
+                                            toolbar.ShowToolbar().ToolbarItems(items =>
+                                            {
+                                                items.AddTool(ToolBarItems.Search);
+                                            });
+                                        })
+                                        .Columns(col =>
+                                        {
+                                            col.HeaderText("Select").Template("<input type = 'checkbox' id = 'chk_{{:FileID}}' value = '{{:FileID}}' name = 'FileIDs' onclick = 'SetFileIDs(\"{{:FileID}}\")' />").TextAlign(TextAlign.Center).Width(18).AllowSorting(false).Add();
+                                            col.Field("ParentFileTypeName").HeaderText("Type").TextAlign(TextAlign.Center).Width(22).Add();
+                                            col.Field("ChildFileTypeName").HeaderText("Version").TextAlign(TextAlign.Center).Width(30).Add();
+                                            col.Field("PeriodText").HeaderText("Period").TextAlign(TextAlign.Center).Width(30).Add();
+                                            col.Field("FileName").HeaderText("File Name").TextAlign(TextAlign.Center).Width(80).AllowSorting(false).AllowFiltering(true).Add();
+                                            col.Field("SourceType").HeaderText("Source").TextAlign(TextAlign.Center).Width(30).AllowSorting(false).Add();
+                                            col.Field("CreateDate").HeaderText("Create Date").TextAlign(TextAlign.Center).Width(40).Format("{0:MM/dd/yyyy hh:mm:ss tt}").Add();
+                                            col.Field("SizeInString").HeaderText("Size").TextAlign(TextAlign.Center).Width(20).AllowFiltering(false).Add();
+                                            col.HeaderText("Download").Template(
+                                                "<a href='" + Url.AbsoluteAction("DownloadFileResult", "Download") + "?sFileID={{:FileID}}'>" +
+                                                "<i data-feather='download-cloud' title='Download File' alt='Download File' ></i>" +
+                                                "</a>").TextAlign(TextAlign.Center).Width(25).AllowSorting(false).Add();
+                                        })
+                                        .ClientSideEvents(events =>
+                                        {
+                                            events.TemplateRefresh("loadIcons");
+                                            events.Load("onLoad");
+                                            events.RowSelected("RowSelected");
+                                            events.ActionComplete("onActionComplete");
+                                        })
+									)
+                                </td>
+                            </tr>
+                        </table>
+                        <br />
+                        <br />
+                    }
+                    else
+                    {
+
+                        if (TempData["Message"] != null)
+                        {
+                            Message = TempData["Message"].ToString();
+                        }
+                        else
+                        {
+                            Message = "The selected provider has no Files to download at this time, if you believe this to be an error please contact support.";
+                        }
+                    }
+                }
+                else
+                {
+                    Message = "The selected provider has no Files to download at this time, if you believe this to be an error please contact support.";
+                }
+            </div>
+        }
+    </div>
+    if (!string.IsNullOrEmpty(Message))
+    {
+        <div class="errorLabel">
+            <center>@Html.Raw(Message)</center>
+            <br /><br />
+        </div>
+    }
+}
+

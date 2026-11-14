@@ -1,0 +1,294 @@
+﻿<h1>Comment Table</h1>
+<center>
+    <div id="commentTable"></div>
+</center>
+<input type="hidden" id="hdnCommentRecordId" />
+<div id="divCommentTableHistory"></div>
+
+<script id="commentTableHistory" type="text/x-template">
+    <center>
+        <a aria-label="History" data-toggle="modal" href="" data-target="#window_commentTableHistory" onclick="LoadCommentTableHistory('{{:RecordId}}')">
+            <i data-feather='rotate-ccw' class='history-info'></i>
+        </a>
+    </center>
+</script>
+
+<script>
+    const commentGrid = '#commentTable';
+    $(function() {
+        //========== Logic that Fires when Page Loads ==========
+        LoadNotificationDialog('Loading').then(() => {
+            GetTableData().then((data) => {
+                if (data.Data !== undefined)
+                    RenderTable(data.Data);
+            });
+        }).then(() => ClearNotificationDialog());
+
+        //========== Ajax Requests ==========
+        function GetTableData() {
+            return new Promise((resolve, reject) => {
+                $.ajax({
+                    async: true,
+                    url: '@Url.AbsoluteAction("GetCommentNarratives", "Rate")',
+                    contentType: "application/json;charset=utf-8",
+                    type: 'POST',
+                    cache: false,
+                    success: (result) => resolve(result),
+                    error: function(errorMessage) {
+                        StaticAlert({ content: `Comment Table Error: ${errorMessage.responseText}` }).then(() => {
+                            resolve();
+                        });
+                    }
+                });
+            });
+        }
+
+        //========== Table Functionality ==========
+        function RenderTable(data) {
+            var cols = [];
+
+            const createTextArea = function(args) {
+                const textarea = document.createElement('textarea');
+                textarea.class = 'e-field e-ejinputtext valid';
+                textarea.style.width = '100%';
+                textarea.style.height = '200px';
+                return textarea;
+            };
+            const readTextArea = function(args) { return args.val(); };
+            const writeTextArea = function(args) {
+                $(args.element).val(args.rowdata["Description"]);
+                $(args.element).addClass("ejinputtext");
+            };
+
+            for (const col of data.Columns) {
+                let column = {
+                    field: col.Field,
+                    headerText: col.HeaderText,
+                    isPrimaryKey: col.IsPrimaryKey,
+                    isIdentity: col.IsIdentity,
+                    visible: col.Visible,
+                    textAlign: col.TextAlign,
+                    allowEditing: col.AllowEditing,
+                    allowFiltering: col.AllowFiltering,
+                    allowSorting: col.AllowSorting,
+                    width: col.Width,
+                    template: col.Template,
+                    type: col.type,
+                    editType: col.editType,
+                    edit: col.edit,
+                    editTemplate: col.editTemplate,
+                    validationRules: col.ValidationRules
+                };
+
+                if (col.Field === 'NarrativeNumber') {
+                    column.type = 'string';
+                    column.validationRules = {
+                        required: true,
+                        maxlength: '7',
+                        minlength: '1'
+                    }
+                } else if (col.Field === 'ReasonForChange') {
+                    column.type = 'string';
+                    column.validationRules = {
+                        required: true
+                    }
+                } else if (col.Field === 'Description') {
+                    column.editTemplate = {
+                        create: createTextArea,
+                        read: readTextArea,
+                        write: writeTextArea
+                    };
+                    column.validationRules = {
+                        required: true
+                    }
+                } else if (col.Field === 'RYBeginYear') {
+                    column.validationRules = {
+                        required: true,
+                        maxlength: '4',
+                        minlength: '4'
+                    }
+                } else if (col.Field === 'RYEndYear') {
+                    column.validationRules = {
+                        required: true,
+                        maxlength: '4',
+                        minlength: '4'
+                    }
+                }
+                cols.push(column);
+            }
+
+            const editSettings = { allowEditing: data.CanEdit, allowAdding: data.CanEdit };
+            const toolbarSettings = { showToolbar: true, toolbarItems: [ej.Grid.ToolBarItems.Search] };
+            const pageSettings = { pageSize: 5, pageSizeList: [5, 10, 15, 20] };
+            const textWrapSettings = { wrapMode: ej.Grid.WrapMode.Both };
+            const filterSettings = { filterType: 'menu', showPredicate: false };
+            const queryCellInfo = function(args) {
+                if (args.column.field === "Description") {
+                    args.cell.innerHTML = args.cell.innerHTML.replace(/\n/g, '<br />');
+                }
+            };
+
+            if (data.CanEdit) {
+                toolbarSettings.toolbarItems.push(ej.Grid.ToolBarItems.Add);
+                toolbarSettings.toolbarItems.push(ej.Grid.ToolBarItems.Edit);
+                toolbarSettings.toolbarItems.push(ej.Grid.ToolBarItems.Update);
+                toolbarSettings.toolbarItems.push(ej.Grid.ToolBarItems.Cancel);
+            }
+
+            $(commentGrid).ejGrid({
+                dataSource: data.Records,
+                columns: cols,
+                editSettings: editSettings,
+                toolbarSettings: toolbarSettings,
+                pageSettings: pageSettings,
+                allowPaging: true,
+                enableRowHover: false,
+                allowSelection: true,
+                allowSorting: true,
+                allowTextWrap: true,
+                allowFiltering: true,
+                allowSearching: true,
+                textWrapSettings: textWrapSettings,
+                cssClass: 'mslcTable',
+                locale: 'en-US',
+                filterSettings: filterSettings,
+                actionBegin: commentActionBegin,
+                actionComplete: commentActionComplete,
+                templateRefresh: loadIcons,
+                queryCellInfo: queryCellInfo
+            });
+        }
+    });
+
+//========== On Click Functions =========
+    function LoadCommentTableHistory(recordId) {
+        const historyDiv = '#divCommentTableHistory';
+        $(historyDiv).empty();
+        $('#hdnCommentRecordId').val(recordId);
+        LoadNotificationDialog('Loading Code Table History...').then(() => {
+            return new Promise((resolve, reject) => {
+                $.ajax({
+                    url: '@Url.AbsoluteAction("LoadCommentTableHistory", "Rate")',
+                    cache: false,
+                    type: 'GET',
+                    success: function(result) {
+                        $(historyDiv).html(result);
+                        $('#window_commentTableHistory').modal('show');
+                        resolve();
+                    },
+                    error: function(errorMessage) {
+                        StaticAlert({ content: `Comment Table History Error: ${errorMessage.responseText}` })
+                            .then(() => resolve());
+                    }
+                });
+            });
+        }).then(() => ClearNotificationDialog());
+    }
+</script>
+
+@if (MSLC.Portal.MVC.Utility.RetrieveSession.CanAccessFeature("RateSetting:AuditComment:Edit"))
+{
+    <script>
+        //========== Ajax Requests ==========
+        function SaveCommentRecord(data) {
+            return new Promise((resolve, reject) => {
+                $.ajax({
+                    async: true,
+                    url: '@Url.AbsoluteAction("SaveCommentNarrative", "Rate")',
+                    data: JSON.stringify({ model: data }),
+                    type: "POST",
+                    contentType: "application/json;charset=utf-8",
+                    success: function(result) {
+                        if (result.Success) {
+                            $(commentGrid).ejGrid('dataSource', result.Data);
+                            resolve();
+                        } else {
+                            var message = result.Message;
+
+                            if (message.includes("Invalid Narrative Number")) {
+                                message = "Invalid Comment Number";
+                            }
+                            StaticAlert({ content: `Comment Table Error: ${message}` }).then(() => {
+                                $(commentGrid).ejGrid('dataSource', result.Data);
+                                resolve();
+                            });
+                        }
+                    },
+                    error: function(result) {
+                        var message = result.Message;
+
+                        if (message.includes("Invalid Narrative Number")) {
+                            message = "Invalid Comment Number";
+                        }
+                        StaticAlert({ content: `Comment Table Error: ${message}` }).then(() => {
+                            resolve();
+                        });
+                    }
+                });
+            });
+        }
+
+//========== Table Functionality ==========
+        function commentActionBegin(args) {
+            if (args.requestType === 'save')
+                SaveCommentRecord(args.data);
+            if (args.requestType === 'add') {
+                if (!args.data.NarrativeType || args.data.NarrativeType.trim().length === 0) {
+                    args.data.NarrativeType = 'C';
+                }
+            }
+        }
+
+        function commentActionComplete(args) {
+            if (args.requestType === 'beginedit' || args.requestType === 'add') {
+                SetInputMaxes();
+                PrepCommentNumberEventListener();
+            }
+        }
+
+//===== Input Functionality =====
+        function SetInputMaxes() {
+            $('#commentTableNarrativeNumber').attr('maxLength', 7);
+            $('#commentTableRYBeginYear').attr('maxLength', 4);
+            $('#commentTableRYEndYear').attr('maxLength', 4);
+        }
+
+        function PrepCommentNumberEventListener() {
+            $('#commentTableNarrativeNumber').on('change',
+                function() {
+                    const val = $(this)[0].value.trim();
+                    if (val !== '') {
+                        const matches = findRecordsForCommentNumber(val);
+                        if (matches.length > 0) {
+                            $('#commentTableNarrativeType').val(matches[0].NarrativeType);
+                            $('#commentTableNarrativeCode').val(matches[0].NarrativeCode);
+                            $(this)[0].value = val; //Just in case user had whitespace
+                        } else if (val === 'SPC') {
+                            $('#commentTableNarrativeType').val('O');
+                        } else {
+                            StaticAlert({ content: 'Invalid Comment Number' })
+                                .then(() => $(this)[0].value = '');
+                        }
+                    } else {
+                        $('#commentTableNarrativeType').val('');
+                        $('#commentTableNarrativeCode').val('');
+                    }
+                });
+        }
+
+        function findRecordsForCommentNumber(narrativeNumber) {
+            const records = $(commentGrid).ejGrid('instance').model.dataSource;
+            return records.filter(x => {
+                return x.NarrativeNumber === narrativeNumber && x.RecordId != null;
+            }).sort(y => y.CYBeginDate);
+        }
+    </script>
+}
+else
+{
+    <script>
+        function commentActionBegin(args) { }
+
+        function commentActionComplete(args) { }
+    </script>
+}

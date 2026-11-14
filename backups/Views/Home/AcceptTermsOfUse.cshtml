@@ -1,0 +1,36 @@
+﻿@model  WebPortal_OH_FI.Models.HomeViewModel.EULA
+@using MSLC.Portal.Configuration
+@using WebPortal_OH_FI.Common
+@{
+	Layout = "~/Views/Shared/_Layout.cshtml";
+	ViewBag.Title = PortalConfiguration.Application + " - Home - Accept Terms of Use";
+}
+@using (Html.BeginForm("SaveAcceptTermsOfUse", "Home", FormMethod.Post, new { id = "frmSubmit", enctype = "multipart/form-data" }))
+{
+    @Html.HiddenFor(x=>x.Email, new {id="hdnEmail"})
+    <div>
+        <center>
+            <div class="myImage" style="display: none;">
+                <center>
+                    <img src="~/Images/loading.gif" alt="Loading" width="32" height="32" />
+                </center>
+            </div>
+            <div class="myControls">
+                <table cellpadding="0" cellspacing="0" border="0" width="95%">
+                    <tr>
+                        <td>
+                            <div style="margin-top: 15px; margin-bottom: 15px;">
+                                @Html.Raw(@Model.EULAText)
+                            </div>
+                        </td>    
+                    </tr>
+                    <tr>
+                        <td>
+                            <center><input id="btnAcceptTerms" value="Accept Terms" type="submit" class="btn btn-success BoldMe" /></center>
+                        </td>
+                    </tr>
+                </table>
+            </div>
+        </center>
+    </div>
+}

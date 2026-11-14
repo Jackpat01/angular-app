@@ -1,0 +1,216 @@
+﻿@using WebPortal_OH_FI.Web
+@using Syncfusion.JavaScript.Models;
+@model List<WebPortal_OH_FI.Models.LicenseAdminViewModel>
+@{ 
+    bool canEdit = ViewData["CanEdit"] != null ? (bool)ViewData["CanEdit"] : false;
+}
+
+<h1>Admin License</h1>
+
+<center>
+    <div id="adminLicenseTable">
+        @(Html.EJ().Grid<object>("tblAdminLicenseTable")
+            .CssClass("mslcTable")
+            .Datasource(ds => ds.Json(Model.ToList()))
+            .AllowPaging()
+            .Locale("en-US")
+            .EnableRowHover(true)
+            .AllowSelection(true)
+            .AllowSorting(true)
+            .AllowFiltering(true)
+            .AllowTextWrap(true)
+            .TextWrapSettings(wrap => { wrap.WrapMode(WrapMode.Both); })
+            .FilterSettings(filter =>
+            {
+                filter.FilterType(FilterType.Menu);
+                filter.ShowPredicate(false);
+            })
+            .PageSettings(p =>
+            {
+                p.PageSize(5);
+                p.PageSizeList(new List<int>() { 5, 10, 15, 20 });
+            })
+    .TextWrapSettings(wrap => { wrap.WrapMode(WrapMode.Both); })
+    .FilterSettings(filter =>
+    {
+        filter.FilterType(FilterType.Menu);
+        filter.ShowPredicate(false);
+    })
+    .SearchSettings(search => {
+        search.Fields(field => {
+            field.Add("AdminUserNumber");
+            field.Add("AdminLicenseNumber");
+            field.Add("AdminFirstName");
+            field.Add("AdminLastName");
+        });
+    })
+    .EditSettings(edit =>
+    {
+        if (canEdit)
+        {
+            edit.AllowEditing();
+            edit.AllowAdding();
+        }
+    })
+    .ToolbarSettings(toolbar =>
+    {
+        toolbar.ShowToolbar().ToolbarItems(items =>
+        {
+            items.AddTool(ToolBarItems.Search);
+            if(canEdit)
+            {
+                items.AddTool(ToolBarItems.Add);
+                items.AddTool(ToolBarItems.Edit);
+                items.AddTool(ToolBarItems.Update);
+                items.AddTool(ToolBarItems.Cancel);
+            }
+
+        });
+    })
+    .Columns(col =>
+    {
+        col.Field("LicenseAdminId").HeaderText("LicenseAdminId").IsPrimaryKey(true).Visible(false).TextAlign(TextAlign.Left).Width(25).Add();
+        if (@OHFISession.IsNF)
+        {
+            col.Field("AdminUserNumber")
+            .HeaderText("SSN")
+            .ValidationRules(v => v.AddRule("minlength", 9)
+            .AddRule("maxlength", 9))
+            .TextAlign(TextAlign.Left).Width(25)
+            .Add();
+        }
+        else
+        {
+            col.Field("AdminUserNumber").HeaderText("SSN")
+            .ValidationRules(v => v.AddRule("required", true)
+            .AddRule("minlength", 9)
+            .AddRule("maxlength", 9)
+            .AddRule("numericOnly", true)
+            .AddRule("customSSNValidation", 4))
+            .TextAlign(TextAlign.Left).Width(25).Add();
+        }
+        col.Field("AdminLicenseNumber").HeaderText("Lic Num").ValidationRules(v => v.AddRule("required", true).AddRule("customLicNumValidation", 4)).TextAlign(TextAlign.Left).Width(25).Add();
+        col.Field("AdminFirstName").HeaderText("Admin FirstName").ValidationRules(v => v.AddRule("required", true)).TextAlign(TextAlign.Left).Width(15).Add();
+        col.Field("AdminLastName").HeaderText("Admin LastName").ValidationRules(v => v.AddRule("required", true)).TextAlign(TextAlign.Left).Width(15).Add();
+        col.Field("History").HeaderText("History").Template("#historyAdminLicense").CssClass("icon").TextAlign(TextAlign.Center).Width(10).AllowEditing(false).AllowFiltering(false).Add();
+    }).ClientSideEvents(events =>
+    {
+        events.TemplateRefresh("loadIcons");
+        events.ActionBegin("actionBeginadminLicense");
+    }))
+</div>
+</center>
+
+<script id="historyAdminLicense" type="text/x-jsrender">
+    <div>
+        <a aria-label="History" data-toggle="modal" href="" data-target="#window_adminLicensehistory" onclick="LoadAdminLicenseHistory('{{:LicenseAdminId}}')">
+            <i data-feather='rotate-ccw' class='history-info' aria-label="History"></i>
+        </a>
+    </div>
+</script>
+
+<div id="SyncFusionScript">
+    <script src="@Url.AbsoluteContentUri("~/Scripts/ej/common/ej.unobtrusive.min.js")"></script>
+</div>
+<input type="hidden" id="IsNF" value="@OHFISession.IsNF" />
+<input type="hidden" id="IsICF" value="@OHFISession.IsICF" />
+<div id="divAdminLicenseHistory"></div>
+<input type="hidden" id="hdnLicenseAdminId" />
+
+@if(canEdit)
+{
+    <script>
+        $(function () {
+
+            $.validator.addMethod("customLicNumValidation", function (value, element, params) {
+                if (element.value.length == 4 || element.value.length == 9)
+                    return true;
+                return false;
+            }, "Admin License number must be only either four numbers or nine numbers");
+
+            $.validator.addMethod("numericOnly", function (value, element) {
+                return /^[0-9]+$/.test(value); // Regular expression for digits only
+            }, "SSN must be numeric");
+
+            if ($('#IsICF').val() == 'value') {
+                var ssnCheckArray = new Array(0, 1, 2, 3, 4, 5, 6, 7, 8, 9);
+                var inputValue;
+                $.validator.addMethod("customSSNValidation", function (value, element, params) {
+                    inputValue = element.value;
+                    let charArray = inputValue.split('');
+                    let distinctVal = [...new Set(charArray)];
+
+                    if (ssnCheckArray.includes(Number(distinctVal)))
+                        return false;
+                    return true;
+                }, `Invalid entry. SSN cannot have 9 identical digits`);
+            }
+        });
+
+        function actionBeginadminLicense(args) {
+            if (args.requestType == "save") {
+                //Update
+                LoadNotificationDialog("Saving Admin License Data...").then(() => {
+                    return new Promise((AdminLicenseResolve, AdminLicenseReject) => {
+                        $.ajax({
+                            async: true,
+                            url: "@Url.AbsoluteAction("SaveAdminLicense", "Rate")",
+                            data: JSON.stringify(args.data),
+                            dataType: 'json',
+                            type: "POST",
+                            contentType: "application/json;charset=utf-8",
+                            success: function (result) {
+                                $("#tblAdminLicenseTable").ejGrid("dataSource", result.AdminLicenseViewModel);
+                                AdminLicenseResolve();
+                            },
+                            error: function (errormessage) {
+                                StaticAlert({ content: "Admin License Error: " + errormessage.responseText}).then(() => {
+                                    AdminLicenseResolve();
+                                });
+                            }
+                        });
+                    });
+                }).then(() => {
+                    return ClearNotificationDialog();
+                });
+            }
+        }
+    </script>
+}
+else
+{
+    <script>
+        $(function () {
+            function actionBeginadminLicense(args) { }
+        });
+    </script>
+}
+
+<script>
+    function LoadAdminLicenseHistory(licenseAdminId) {
+        $("#divAdminLicenseHistory").empty();
+        $("#hdnLicenseAdminId").val(licenseAdminId);
+        LoadNotificationDialog("Loading Admin License History...").then(() => {
+            return new Promise((AdminLicenseResolve, AdminLicenseReject) => {
+                $.ajax({
+                    url: "@Url.AbsoluteAction("LoadAdminLicenseHistory", "Rate")",
+                    data: JSON.stringify({ "licenseAdminId": licenseAdminId }),
+                    cache: false,
+                    type: 'POST',
+                    success: function (result) {
+                        $("#divAdminLicenseHistory").html(result);
+                        $("#window_adminLicensehistory").modal('show');
+                        AdminLicenseResolve();
+                    },
+                    error: function (errormessage) {
+                        StaticAlert({ content: "Admin License Error: " + errormessage.responseText }).then(() => {
+                            AdminLicenseResolve();
+                        });
+                    }
+                });
+            });
+        }).then(() => {
+            return ClearNotificationDialog();
+        })
+    }
+</script>

@@ -1,0 +1,75 @@
+﻿<h1>Narrative Code Table</h1>
+<center>
+    <div id="narrativeCodeTable"></div>
+</center>
+
+<script>
+    $(function () {
+        const codeGrid = '#narrativeCodeTable';
+
+        //========== Logic that Fires when Page Loads ==========
+        LoadNotificationDialog('Loading').then(() => {
+            GetNarrativeCodes().then((data) => {
+                if (data !== undefined)
+                    RenderNarrativeTable(data);
+            });
+        }).then(() => {
+            return ClearNotificationDialog();
+        });
+        /** Ajax Request to the server for Narrative Codes in database */
+        function GetNarrativeCodes() {
+            return new Promise((resolve, reject) => {
+                $.ajax({
+                    async: true,
+                    url: '@Url.AbsoluteAction("GetNarrativeCodes", "Rate")',
+                    type: 'GET',
+                    cache: false,
+                    success: (response) => resolve(response.Data),
+                    error: function (errorMessage) {
+                        StaticAlert({ content: `Narrative Code Table Error: ${errorMessage.responseText}` }).then(() => {
+                            resolve();
+                        });
+                    }
+                });
+            });
+        }
+        /** Consumes Json data to create syncfusion table */
+        function RenderNarrativeTable(data) {
+            var cols = [];
+            for (const col of data.Columns) {
+                let column = {
+                    field: col.Field, headerText: col.HeaderText, isPrimaryKey: col.IsPrimaryKey, isIdentity: col.IsIdentity, visible: col.Visible,
+                    textAlign: col.TextAlign, allowEditing: col.AllowEditing, allowFiltering: col.AllowFiltering, allowSorting: col.AllowSorting,
+                    width: col.Width, template: col.Template
+                };
+
+                if (col.Field == 'Code') {
+                    column.headerText = 'Narrative Code';
+                }
+
+                cols.push(column);            }
+
+            const toolbarSettings = { showToolbar: true, toolbarItems: [ej.Grid.ToolBarItems.Search] };
+            const pageSettings = { pageSize: 5, pageSizeList: [5, 10, 15, 20] };
+            const textWrapSettings = { wrapMode: ej.Grid.WrapMode.Both };
+            const filterSettings = { filterType: 'menu', showPredicate: false };
+
+            $(codeGrid).ejGrid({
+                dataSource: data.Records,
+                columns: cols,
+                toolbarSettings: toolbarSettings,
+                pageSettings: pageSettings,
+                allowPaging: true,
+                enableRowHover: false,
+                allowSelection: true,
+                allowSorting: true,
+                allowTextWrap: true,
+                allowFiltering: true,
+                allowSearching: true,
+                textWrapSettings: textWrapSettings,
+                cssClass: 'mslcTable',
+                filterSettings: filterSettings
+            });
+        }
+    });
+</script>

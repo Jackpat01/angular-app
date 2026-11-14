@@ -1,0 +1,71 @@
+﻿@using MSLC.Portal.MVC.Utility
+@model List<WebPortal_OH_FI.Models.ViewModels.BulkProcessingViewModel>
+@{
+    ViewBag.Title = "Index";
+    Layout = "~/Views/Shared/_LayoutWithMenu.cshtml";
+}
+
+<h2>Index</h2>
+
+<div id="dialogDiv" class="modal fade" tabindex="-1" aria-labelledby="windowTitleLabel" aria-hidden="true" role="dialog">
+    <div id="modal-dialog" class="modal-dialog" role="document">
+        <div id="dialogContent" style="font-size: 14px; width:100%"></div>&nbsp;&nbsp;
+        <div id="dialogMessage" style="font-size: 14px; width:100%"></div>&nbsp;&nbsp;
+    </div>
+</div>
+
+@if (TempData["Message"] != null)
+{
+    <br />
+    <div class="errorLabel" style="text-align: center;">
+        @Html.Raw(TempData["Message"].ToString())
+    </div>
+}
+
+<div id="dvProviders" style="margin-left: 50px; margin-right: 50px;">
+    @if (RetrieveSession.CanAccessFeature("BulkProcessing:Upload"))
+    {
+        <div class="button-box">
+            <a href="@Url.AbsoluteAction("BulkUpload", "Upload")" class="btn btn-kyBlue BoldMe">Bulk Upload</a>
+        </div>
+    }
+
+    @(Html.EJ().Grid<object>("tblBulkProcessing")
+        .CssClass("mslcTable")
+        .Datasource(Model.ToList())
+        .AllowPaging()
+        .Locale("en-US")
+        .AllowSelection(false)
+        .AllowSorting(true)
+        .AllowFiltering(true)
+        .AllowTextWrap(true)
+        .MinWidth(100)
+        .TextWrapSettings(wrap => { wrap.WrapMode(WrapMode.Both); })
+        .FilterSettings(filter =>
+        {
+            filter.FilterType(FilterType.Menu);
+            filter.ShowPredicate(false);
+        })
+        .ToolbarSettings(toolbar =>
+        {
+            toolbar.ShowToolbar().ToolbarItems(items =>
+            {
+                items.AddTool(ToolBarItems.Search);
+            });
+        })
+        .Columns(col =>
+        {
+            col.Field("JobName").HeaderText("Job Name").TextAlign(TextAlign.Center).Width(40).Add();
+            col.Field("CreatedBy").HeaderText("Created By").TextAlign(TextAlign.Center).Width(20).Add();
+            col.Field("CreateDate").HeaderText("Create Date").Format("{0:MM/dd/yyyy}").TextAlign(TextAlign.Center).Width(20).Add();
+            col.Template("#viewStatus").HeaderText("View Status").CssClass("icon").TextAlign(TextAlign.Center).Width(10).Add();
+        }).ClientSideEvents(events =>
+        {
+            events.TemplateRefresh("loadIcons");
+        }))
+    <script id="viewStatus" type="text/x-template">
+        <a onclick="return modalButton(this, '9080')" href="@Url.AbsoluteAction("ViewStatus", "BulkProcessing")?jobID={{:ID}}&jobName={{:JobName}}">
+            <i data-feather="settings" aria-label="View Status"></i>
+        </a>
+    </script>
+</div>

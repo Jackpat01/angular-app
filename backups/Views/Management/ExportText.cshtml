@@ -1,0 +1,54 @@
+@model  WebPortal_OH_FI.Models.ManagementViewModel
+
+<div data-resize='100' style='border: solid thin black; overflow: auto; padding: 1rem;'>
+    <div style='width: 100%; font-weight: bold;'>
+    </div>
+    <table>
+        <tbody>
+            <tr>
+                <td>
+                    <button id="ExportToText" class="btn btn-success">Export to .txt</button>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+</div>
+<script>
+    $(document).ready(function () {
+        $("#ExportToText").click(function () {
+            LoadNotificationDialog("Export to .txt, please wait...").then(() => {
+                return new Promise((resolve, reject) => {
+                    $.ajax({
+                        async: true,
+                        url: '@Url.AbsoluteAction("ExportToText", "Management")',
+                        cache: false,
+                        type: "POST",
+                        dataType: "json",
+                        success: function (response) {
+                            if (response.Success) {
+                                //get the file name for download
+                                if (response.fileName != "") {
+                                    //use window.location.href for redirect to download action for download the file
+                                    window.location.href = "@Url.AbsoluteAction("Download", "Management")/?fileName=" + response.fileName;
+                                }
+                                resolve();
+                            }
+                            else {
+                                StaticAlert({ content: "Export To .txt Data: " + response.Message }).then(() => {
+                                    resolve();
+                                });
+                            }
+                        },
+                        error: function (a, b, c) {
+                            StaticAlert({ content: "AJAX callback error, Export To .txt Data: " + a.responseText }).then(() => {
+                                resolve();
+                            });
+                        }
+                    });
+                });
+            }).then(() => {
+                return ClearNotificationDialog();
+            });
+        });
+    });
+</script>

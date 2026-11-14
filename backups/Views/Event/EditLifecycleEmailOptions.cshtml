@@ -1,0 +1,366 @@
+﻿@using MSLC.Portal.MVC.Utility
+@using MSLC.StatLog.MVC.MVC
+@using MSLC.StatLog.Configuration
+@using MSLC.StatLog.Domain
+@using MSLC.StatLog.BL.Email
+@using MSLC.StatLog.Enumerations@*
+    DO NOT MODIFY OUTSIDE OF MSLC.STATLOG
+    This file comes from MSLC.Statlog, any changes to it will be wiped out when the nuget package is updated.
+    Please make the appropriate enhancements to MSLC.Statlog instead of here.
+*@
+
+
+@using EnumHelper = MSLC.StatLog.Enumerations.EnumHelper
+@model MSLC.StatLog.MVC.ViewModels.EventViewModel.Emails
+@{
+    Layout = null;
+}
+
+<script src="~/Scripts/jquery.validate.js" type="text/javascript"></script>
+<script src="~/Scripts/jquery.validate.unobtrusive.js" type="text/javascript"></script>
+<link href="~/Content/south-street/jquery-ui-1.9.2.custom.min.css" rel="stylesheet" />
+
+
+<script src="~/Scripts/jHtmlArea-0.8.js" type="text/javascript"></script> @*Used for editing bulletin boards*@
+<script src="~/Scripts/jHtmlArea.ColorPickerMenu-0.8.js" type="text/javascript"></script> @*Used for editing bulletin boards*@
+
+<link href="~/Content/jHtmlArea/jHtmlArea.ColorPickerMenu.css" rel="stylesheet" type="text/css" />
+<link href="~/Content/jHtmlArea/jHtmlArea.css" rel="stylesheet" type="text/css" />
+<link href="~/Content/jHtmlArea/jHtmlArea.Editor.css" rel="stylesheet" type="text/css" />
+@Html.Script("~/Scripts/Pages/Event/Edit.js", "jquery")
+@using (Html.BeginForm("SaveLifecycleEmailOptions", "Event", FormMethod.Post, new { id = "frmSubmit", enctype = "multipart/form-data", @class = "modal-form", defaultbutton = "btnSave" }))
+{
+    @Html.AntiForgeryToken()
+    @Html.HiddenFor(m => m.sEventID)
+    @Html.HiddenFor(m => m.LifeCycle)
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3 id="myModalLabel" style="text-align: left;">
+                Edit Email Options
+            </h3>
+            <button href="#" class="close" data-dismiss="modal">&times;</button>
+        </div>
+        <div class="modal-body">
+            <div>
+                <div class="row m-2">
+                    <div class="col-2">
+                        <div>
+                            @Html.CheckBoxFor(m => m.SendEmail, new { id = "chkSendEmail", @class = "sendEmailCheck", aria_label = "Send Email" })
+                            @Html.LabelFor(m => m.SendEmail, "Send Email")
+                            @Html.ValidationMessageFor(m => m.SendEmail)
+                        </div>
+                    </div>
+                    <div class="col-9">
+                        Send an email
+                        @{
+                            switch (Model.LifeCycle)
+                            {
+                                case LifeCycleEnum.DUE_DATE_HIT:
+                                    <text> when the due date is hit.</text>
+                                    break;
+                                case LifeCycleEnum.DUE_DATE_REMINDER:
+                                    <text> when the due date is approaching.</text>
+                                    break;
+                                case LifeCycleEnum.EVENT_ADDED:
+                                    <text> when this event is added to the stat log.</text>
+                                    break;
+                                case LifeCycleEnum.FILE_UPLOADED:
+                                    <text> when a file is uploaded to this event.</text>
+                                    break;
+                                case LifeCycleEnum.REVIEW_APPROVED:
+                                    <text> when this event has a review approved.</text>
+                                    break;
+                                case LifeCycleEnum.REVIEW_REJECTED:
+                                    <text> when this event has a review rejected.</text>
+                                    break;
+                                case LifeCycleEnum.REVIEW_RELEASED:
+                                    <text> when the review on this event is released.</text>
+                                    break;
+                                case LifeCycleEnum.USER_ASSIGNED:
+                                    <text> when a user is assigned to this event.</text>
+                                    break;
+                                case LifeCycleEnum.USER_REMOVED:
+                                    <text> when a user is removed from this event. (When a new user is assigned, the old user is removed.)</text>
+                                    break;
+                            }}
+                    </div>
+                </div>
+                @if (Model.LifeCycle == LifeCycleEnum.DUE_DATE_HIT || Model.LifeCycle == LifeCycleEnum.DUE_DATE_REMINDER)
+                {
+                    <div id="divAutomationSchedule" class="row m-2">
+                        <div class="col">
+                            @Html.RadioButtonFor(m => m.AutomatedEmailScheduleProcedure, "Schedule", new { id = "radEmailProcedure", @class = "radEmailProcedure" }) Send emails on calculated schedule
+                        </div>
+                        <div class="col">
+                            @Html.RadioButtonFor(m => m.AutomatedEmailScheduleProcedure, "List", new { id = "radEmailProcedure", @class = "radEmailProcedure" }) Send emails based on list of days
+                        </div>
+                    </div>
+                    <div id="divAutomationValues" class="row m-2">
+                        <div class="col">
+                            <div>
+                                @switch (Model.LifeCycle)
+                                {
+                                    case LifeCycleEnum.DUE_DATE_HIT:
+                                        <text>Maximum number of emails to send after due date</text>
+                                        break;
+                                    case LifeCycleEnum.DUE_DATE_REMINDER:
+                                        <text>Maximum number of emails to send before due date</text>
+                                        break;
+                                }
+
+                                <br />
+                                @Html.TextBoxFor(m => m.AutomatedEmailMaximum, new { id = "txtEmailMaximum" })
+                                @Html.ValidationMessageFor(m => m.AutomatedEmailMaximum)
+                            </div>
+                        </div>
+                        <div class="col">
+                            <div>
+                                @switch (Model.LifeCycle)
+                                {
+                                    case LifeCycleEnum.DUE_DATE_HIT:
+                                        <text>Days before sending first email</text>
+                                        break;
+                                    case LifeCycleEnum.DUE_DATE_REMINDER:
+                                        <text>Send first email x days before due date</text>
+                                        break;
+                                }
+                                <br />
+                                @Html.TextBoxFor(m => m.AutomatedEmailDelay, new { id = "txtEmailDelay" })
+                                @Html.ValidationMessageFor(m => m.AutomatedEmailDelay)
+                            </div>
+                        </div>
+                        <div class="col">
+                            <div>
+                                @switch (Model.LifeCycle)
+                                {
+                                    case LifeCycleEnum.DUE_DATE_HIT:
+                                        <text>Days between emails</text>
+                                        break;
+                                    case LifeCycleEnum.DUE_DATE_REMINDER:
+                                        <text>Send subsequent emails after x days</text>
+                                        break;
+                                }
+                                <br />
+                                @Html.TextBoxFor(m => m.AutomatedEmailInterval, new { id = "txtEmailInterval" })
+                                @Html.ValidationMessageFor(m => m.SendEmail)
+                            </div>
+                        </div>
+                    </div>
+                    <div id="divAutomationList" class="row m-2">
+                        <div class="col">
+                            @switch (Model.LifeCycle)
+                            {
+                                case LifeCycleEnum.DUE_DATE_HIT:
+                                    <text>Enter a list of days after the due date you wish to send emails on. Separate by comma.</text>
+                                    break;
+                                case LifeCycleEnum.DUE_DATE_REMINDER:
+                                    <text>Enter a list of days before the due date you wish to send emails on. Separate by comma.</text>
+                                    break;
+                            }
+                            <br />
+                            @Html.TextBoxFor(m => m.AutomatedEmailDayList, new { id = "txtEmailDayList", @class = "emailListText" })
+                        </div>
+                    </div>
+                }
+                <div class="row m-2">
+                    <div class="col-2">
+                        @Html.LabelFor(m => m.RecipientRoles, "User Role Recipients", new { @class = "pb-0" })
+                        @Html.ValidationMessageFor(m => m.RecipientRoles)
+                    </div>
+                    <div class="col-9">
+                        This allows you to select the user types the email will be sent to.
+                    </div>
+                    <div class="col-11">
+                        @Html.HiddenFor(m => m.RecipientRoles, new { @id = "hdnRecipients", @class = "hdnRecipients" })
+                        <div class="role-input" style="width: 50%; padding: 5px;">
+                            <table>
+                                @foreach (var role in Model.ApplicationRoles)
+                                {
+                                    <tr>
+                                        <td>
+                                            <input type="checkbox" id="chkEmail_@role.ID" class="roleCheckbox" value="@role.ID" />
+                                        </td>
+                                        <td>
+                                            <label for="chkEmail_@role.ID">@role.Name</label>
+                                        </td>
+                                    </tr>
+                                }
+                            </table>
+                        </div>
+                    </div>
+                </div>
+                <div class="row m-2">
+                    <div class="col-2">
+                        @Html.LabelFor(m => m.RecipientContacts, "Provider Contact Recipients", new { @class = "pb-0" })
+                        @Html.ValidationMessageFor(m => m.RecipientContacts)
+                    </div>
+                    <div class="col-9">
+                        This allows you to select the provider contacts the email will be sent to.
+                    </div>
+                    <div class="col-11">
+                        @Html.HiddenFor(m => m.RecipientContacts, new { @id = "hdnRecipientContacts", @class = "hdnRecipientContacts" })
+                        <div class="role-input" style="width: 50%; padding: 5px;">
+                            <table>
+                                @foreach (var contact in Model.ContactTypes)
+                                {
+                                    <tr>
+                                        <td>
+                                            <input type="checkbox" id="chkContact__@contact.Value" class="contactCheckbox" value="@contact.Value" />
+                                        </td>
+                                        <td>
+                                            <label for="chkContact__@contact.Value">@contact.Name</label>
+                                        </td>
+                                    </tr>
+                                }
+                            </table>
+                        </div>
+                    </div>
+                </div>
+                <div class="row m-2">
+                    <div class="col-2">
+                        Additional Recipients
+                    </div>
+                    <div class="col-9">
+                        This allows you to list email addresses included in the CC/BCC fields of sent emails. For multiple emails, separate with ";"
+                    </div>
+                    <div class="col-11">
+                        <table style="width: 100%; margin: 0px;">
+                            <tr>
+                                <td style="padding: 5px;">
+                                    <label for="EmailCC">CC: </label>
+                                    @Html.TextBoxFor(m => m.EmailCC, new { @class = "w-100" })
+                                </td>
+                                <td style="padding: 5px;">
+                                    <label for="EmailBCC">BCC: </label>
+                                    @Html.TextBoxFor(m => m.EmailBCC, new { @class = "w-100" })
+                                </td>
+                            </tr>
+                        </table>
+                    </div>
+                </div>
+                <div class="row m-2">
+                    <div class="col-2">
+                        <div>
+                            @Html.CheckBoxFor(m => m.SendEmailIndividually)
+                            @Html.LabelFor(m => m.SendEmailIndividually, "Send Individually")
+                            @Html.ValidationMessageFor(m => m.SendEmailIndividually)
+                        </div>
+                    </div>
+                    <div class="col-9">
+                        Check to send individual emails to each recipient
+                    </div>
+                </div>
+                <div class="row m-2">
+                    <div class="col-2">
+                        @Html.LabelFor(m => m.EmailSubject, "Email Subject", new { @class = "pb-0" })
+                        @Html.ValidationMessageFor(m => m.EmailSubject)
+                    </div>
+                    <div class="col-9">
+                        <label for="EmailBody">This allows you to customize what the subject of the email will be.</label>
+                    </div>
+                    <div class="col-11">
+                        @Html.TextBoxFor(m => m.EmailSubject, new { maxlength = 200, @class = "w-100" })
+                    </div>
+                </div>
+
+                <div class="row m-2">
+                    <div class="col-12">
+                        <div class="customHtmlArea">
+                            @Html.TextAreaFor(m => m.EmailBody, new { @style = "height: 300px;", @class = "w-100" })
+                            @Html.ValidationMessageFor(m => m.EmailBody)
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row m-2 border">
+                    @foreach (EmailReplacementTypes replacementType in Enum.GetValues(typeof(EmailReplacementTypes)))
+                    {
+                        if (!string.IsNullOrWhiteSpace(replacementType.Description()))
+                        {
+
+                            <div class="d-flex p-1 border-bottom w-100">
+                                <div class="col-4 p-0" style="word-break: break-word;">
+                                    @(replacementType.ReplacementValue())
+                                </div>
+                                <div class="col-8 p-0" style="word-break: break-word;">
+                                    @(replacementType.Description())
+                                </div>
+                            </div>
+                        }
+
+                    }
+                </div>
+            </div>
+        </div>
+
+        <div class="modal-footer mslcModalFooter" id="dvFooter" style="text-align: left !important;">
+            <div class="myImage" style="display: none; text-align: center;">
+                <img src="~/Images/loading.gif" alt="Loading" width="32" height="32" />
+            </div>
+            <div class="myControls">
+                <button id="btnClose" class="btn btn-basic BoldMe" data-dismiss="modal" aria-hidden="true">Close</button>&nbsp;&nbsp;
+                <button id="btnSave" type="submit" class="btn btn-success BoldMe" name="Command" value="Save">Save</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        $('.sendEmailCheck').each(function () {
+            var checkID = "#" + this.id;
+            var automationDiv = $("#divAutomationSchedule");
+            var automationSchedDiv = $("#divAutomationValues");
+            var automationListDiv = $("#divAutomationList");
+            if ($(checkID).prop("checked")) {
+                automationDiv.show();
+                var radElement = $("#radEmailProcedure");
+                var radValue = $('[name="' + radElement.attr('name') + '"]:checked').val();
+                switch (radValue) {
+                    case "Schedule":
+                        automationSchedDiv.show();
+                        automationListDiv.hide();
+                        break;
+                    case "List":
+                        automationSchedDiv.hide();
+                        automationListDiv.show();
+                        break;
+                    default:
+                        automationSchedDiv.hide();
+                        automationListDiv.hide();
+                }
+            }
+            else {
+                automationSchedDiv.hide();
+                automationDiv.hide();
+                automationListDiv.hide();
+            }
+        });
+
+        var oldRecipientsArray = $(".hdnRecipients");
+        $.each(oldRecipientsArray, function () {
+            var hiddenField = $("#" + this.id);
+            var hiddenFieldID = $(this).attr("id");
+            var recipientArray = hiddenField.val().split(";");
+            $.each(recipientArray, function (index, value) {
+                if (value !== "") {
+                    var checkRoleID = "#chkEmail" + "_" + value;
+                    if ($(checkRoleID).length)
+                        $(checkRoleID).prop("checked", true);
+                }
+            });
+        });
+
+        var oldContactsArray = $(".hdnRecipientContacts");
+        $.each(oldContactsArray, function () {
+            var hiddenCField = $("#" + this.id);
+            var hiddenCFieldID = $(this).attr("id");
+            var contactArray = hiddenCField.val().split(";");
+            $.each(contactArray, function (index, value) {
+                if (value !== "") {
+                    var checkContactID = "#chkContact" + "__" + value;
+                    if ($(checkContactID).length)
+                        $(checkContactID).prop("checked", true);
+                }
+            });
+        });
+    </script>
+}

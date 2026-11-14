@@ -1,0 +1,179 @@
+﻿@using MSLC.Portal.MVC.Utility
+@model WebPortal_OH_FI.Models.ViewModels.ProviderAddressListReportViewModel
+
+<style type="text/css">
+    .nav-tabs .nav-item.show .nav-link, .nav-tabs .nav-link.active {
+        background: moccasin;
+        border-bottom: 2px solid green;
+    }
+
+    th, td {
+        padding: 10px;
+    }
+
+    span.e-input-group-icon.e-date-icon.e-icons {
+        display: block;
+    }
+
+</style>
+<script>
+    $(document).ready(function () {
+        $("#reportButton").on("click", function () {
+            $("#ratesetting-reports").show();
+            $("#report-details").hide();
+        });
+    });
+</script>
+<div id="providerAddressListReport">
+    <table>
+        <tr>
+            <td>
+                <button class="btn btn-success" id="reportButton">Back to Reports</button>
+            </td>
+        </tr>
+        <tr>
+            <td>Provider Address List Report</td>
+        </tr>
+        <tr>
+            <td>Address Type:</td>
+            <td>
+                @Html.DropDownListFor(model => model.AddressTypeSelected, (IEnumerable<SelectListItem>)Model.AddressTypes, "Select Address Type",
+                    new { ID = "addressTypeList", @style = "width: 200px;margin: 4px 6px;", aria_label="Address Type" })
+            </td>
+        </tr>
+        <tr id="StartDateRow">
+            <td>
+                <div>
+                    @Html.CheckBoxFor(m => m.IncludeInactive, new { @id = "chkIncludeInactive", onclick="setEnabled()", aria_label="Include Inactive" }) Include Inactive
+                </div>
+            </td>
+            <td>
+                Starting from:
+                @Html.TextBoxFor(x => x.StartDate, new { @placeholder = "Start Date", id = "startDate", maxlength = 10, autocomplete = "off", @class = "datefield", @style = "width: 125px; margin: 4px 6px;", aria_label="Start Date" })
+            </td>
+
+        </tr>
+
+        <tr>
+            <td><input id="btnGenerateReport" value="Generate Report" type="submit" class="btn btn-success" onclick="ProcessAddressReport()" /></td>
+        </tr>
+    </table>
+</div>
+<div id="SyncFusionScript">
+    <script src="@Url.AbsoluteContent("~/Scripts/ej/common/ej.unobtrusive.min.js")"></script>
+</div>
+<script type="text/javascript">
+    $(document).ready(function() {
+        ClearNotificationDialog();
+
+        $("#btnGenerateReport").prop("disabled", true);
+
+        $("#addressTypeList").change(function () { setEnabled() });
+        $("#startDate").change(function () { setEnabled() });
+        $('#chkIncludeInactive').change(function () { setEnabled () });
+        $("#startDate").val(undefined);
+        $("#startDate").prop("disabled", true);
+        $("#addressTypeList").text(undefined);
+    });
+
+    $('.datefield').datepicker(
+        {
+            format: 'mm/dd/yyyy',
+            todayHighlight: true,
+            autoclose: true,
+            clearBtn: true
+        });
+
+
+    function setEnabled2() {
+        var addressTypeList = $("#addressTypeList option:selected").text();
+        if (addressTypeList === '' ||
+            addressTypeList === 'Select Address Type') {
+            $('#btnGenerateReport').prop("disabled", true);
+            return;
+        }
+        else {
+
+            $('#btnGenerateReport').prop("disabled", false);
+        }
+    }
+
+    function setEnabled() {
+        var startDate = $("#startDate");
+        var chkIncludeInactive = $('#chkIncludeInactive');
+        var btnGenerateReport = $('#btnGenerateReport');
+        if (chkIncludeInactive.is(':checked')) {
+            startDate.prop("disabled", false);
+            if (startDate.val() == undefined || startDate.val() == '') {
+                btnGenerateReport.prop("disabled", true);
+                return;
+            }
+        } else {
+            startDate.prop("disabled", true);
+            startDate.val(undefined);
+        }
+
+        setEnabled2();
+
+    }
+
+
+
+    function ProcessAddressReport() {
+        var startDate = $("#startDate").data('datepicker').getFormattedDate('yyyy-mm-dd');
+        var providerAddressType = $("#addressTypeList option:selected").val();
+        var includeInactive = $("#chkIncludeInactive:checked").val();
+        if (includeInactive === undefined) {
+            includeInactive = false;
+        }
+        return LoadNotificationDialog("Generating Provider Address List Report...").then(() => {
+            return new Promise((resolve, reject) => {
+                $.ajax({
+                    async: true,
+                    url: "@Url.AbsoluteAction("GenerateProviderAddressReport", "Rate")",
+                    data: JSON.stringify({ "addressType": providerAddressType, "startDate": startDate, "includeInactive": includeInactive }),
+                    type: "POST",
+                    contentType: "application/json;charset=utf-8",
+                    dataType: "json",
+                    success: function(result) {
+                        if (result.Success) {
+                            //get the file name for download
+                            if (result.FileName !== undefined) {
+                                //use window.location.href for redirect to download action for download the file
+                                window.location.href = "@Url.AbsoluteAction("Download", "Rate")/?fileName=" + result.FileName;
+                                ClearNotificationDialog();
+                            }
+                        } else {
+                            StaticAlert({ content: result.Message }).then(() => {
+                                ClearNotificationDialog();
+                                resolve();
+                            });
+                        }
+
+                        resolve();
+                    },
+                    error: function (result) {
+                        if (result.Message === '') {
+                            result.Message = 'Unable to connect to Server.';
+                        }
+                        StaticAlert({ content: result.Message }).then(() => {
+                            resolve();
+                        });
+                    }
+                });
+                function error(result) {
+                    if (result.Message === '') {
+                        result.Message = 'Unable to connect to Server.';
+                    }
+                    StaticAlert({ content: result.Message }).then(() => {
+                    resolve();
+                });
+                }
+            });
+        }).then(() => {
+            return ClearNotificationDialog();
+
+        });
+    }
+
+</script>

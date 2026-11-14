@@ -1,0 +1,233 @@
+﻿@*
+    DO NOT MODIFY OUTSIDE OF MSLC.STATLOG
+    This file comes from MSLC.Statlog, any changes to it will be wiped out when the nuget package is updated.
+    Please make the appropriate enhancements to MSLC.Statlog instead of here.
+*@
+
+@using MSLC.Portal.MVC.Utility
+@using MSLC.StatLog.MVC.MVC
+@using MSLC.StatLog.Configuration
+@using MSLC.StatLog.Domain
+@using MSLC.StatLog.BL.Email
+@model MSLC.StatLog.MVC.ViewModels.EventViewModel.RolePermissionsModel
+@{
+    Layout = null;
+    var hideMetadata = StatlogARUMConfiguration.HideMetaDataManagement(RetrieveSession.Classification);
+}
+
+<script src="~/Scripts/jquery.validate.js" type="text/javascript"></script>
+<script src="~/Scripts/jquery.validate.unobtrusive.js" type="text/javascript"></script>
+<link href="~/Content/south-street/jquery-ui-1.9.2.custom.min.css" rel="stylesheet" />
+
+
+<script src="~/Scripts/jHtmlArea-0.8.js" type="text/javascript"></script> @*Used for editing bulletin boards*@
+<script src="~/Scripts/jHtmlArea.ColorPickerMenu-0.8.js" type="text/javascript"></script> @*Used for editing bulletin boards*@
+
+<link href="~/Content/jHtmlArea/jHtmlArea.ColorPickerMenu.css" rel="stylesheet" type="text/css" />
+<link href="~/Content/jHtmlArea/jHtmlArea.css" rel="stylesheet" type="text/css" />
+<link href="~/Content/jHtmlArea/jHtmlArea.Editor.css" rel="stylesheet" type="text/css" />
+@Html.Script("~/Scripts/Pages/Event/Edit.js", "jquery")
+@using (Html.BeginForm("SaveRolePermissions", "Event", FormMethod.Post, new { id = "frmSubmit", enctype = "multipart/form-data", @class = "modal-form", defaultbutton = "btnSave" }))
+{
+    @Html.AntiForgeryToken()
+    @Html.HiddenFor(m => m.sEventID)
+    @Html.HiddenFor(m => m.RoleName)
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3 id="myModalLabel" style="text-align: left;">
+                Edit Role Permissions for Event
+            </h3>
+            <button href="#" class="close" data-dismiss="modal">&times;</button>
+        </div>
+        <div class="modal-body">
+            <div>
+                <div class="row m-2">
+                    <div class="col-9">
+                        Permissions for the ARUM Role '@(Model.RoleName.Replace('_', ' '))'
+                    </div>
+                </div>
+                <hr class="m-0" />
+                <div class="row m-2">
+                    <div class="col-12">
+                        <div>
+                            <b>Display</b> on the web.
+                        </div>
+                        <div>
+                            Checking this option allows other options within the “Web Controls” section to be enabled.
+                        </div>
+                    </div>
+                    <div class="col-3">
+                        @Html.CheckBoxFor(m => m.CanView)
+                        @Html.LabelFor(m => m.CanView, "Can View")
+                        @Html.ValidationMessageFor(m => m.CanView)
+                    </div>
+                </div>
+                <hr class="m-0" />
+                <div class="row m-2">
+                    <div class="col-12">
+                        <div>
+                            <b>Manually add</b> this event via the drop down at the bottom of the StatLog page.
+                        </div>
+                    </div>
+                    <div class="col-3">
+                        @Html.CheckBoxFor(m => m.CanAdd)
+                        @Html.LabelFor(m => m.CanAdd, "Can Add")
+                        @Html.ValidationMessageFor(m => m.CanAdd)
+                    </div>
+                </div>
+                <hr class="m-0" />
+                <div class="row m-2">
+                    <div class="col-12">
+                        <b>Allow Upload</b> of a file to the event.
+                    </div>
+                    <div class="col-3">
+                        @Html.CheckBoxFor(m => m.CanUpload)
+                        @Html.LabelFor(m => m.CanUpload, "Can Upload")
+                        @Html.ValidationMessageFor(m => m.CanUpload)
+                    </div>
+                </div>
+                <hr class="m-0" />
+                <div class="row m-2">
+                    <div class="col-12">
+                        <b>Allow Download</b> of a file from the event.
+                    </div>
+                    <div class="col-3">
+                        @Html.CheckBoxFor(m => m.CanDownload)
+                        @Html.LabelFor(m => m.CanDownload, "Can Download")
+                        @Html.ValidationMessageFor(m => m.CanDownload)
+                    </div>
+                </div>
+                <hr class="m-0" />
+                <div class="row m-2">
+                    <div class="col-12">
+                        <b>Accept Review</b> for both events and uploaded files.
+                    </div>
+                    <div class="col-3">
+                        @Html.CheckBoxFor(m => m.CanAcceptReview)
+                        @Html.LabelFor(m => m.CanAcceptReview, "Can Accept Review")
+                        @Html.ValidationMessageFor(m => m.CanAcceptReview)
+                    </div>
+                </div>
+                <hr class="m-0" />
+                <div class="row m-2">
+                    <div class="col-12">
+                        <b>Reject Review</b> for both events and uploaded files.
+                    </div>
+                    <div class="col-3">
+                        @Html.CheckBoxFor(m => m.CanRejectReview)
+                        @Html.LabelFor(m => m.CanRejectReview, "Can Reject Review")
+                        @Html.ValidationMessageFor(m => m.CanRejectReview)
+                    </div>
+                </div>
+                <hr class="m-0" />
+                <div class="row m-2">
+                    <div class="col-12">
+                        <b>Release Review</b> that was made.
+                        Gives the option to undo a review that was made on this event.
+                    </div>
+                    <div class="col-3">
+                        @Html.CheckBoxFor(m => m.CanReleaseReview)
+                        @Html.LabelFor(m => m.CanReleaseReview, "Can Release Review")
+                        @Html.ValidationMessageFor(m => m.CanReleaseReview)
+                    </div>
+                </div>
+                <hr class="m-0" />
+                <div class="row m-2">
+                    <div class="col-12">
+                        <b>Assign User</b> to this event.
+                        Gives the option to assign a user to this event.
+                    </div>
+                    <div class="col-3">
+                        @Html.CheckBoxFor(m => m.CanAssignUser)
+                        @Html.LabelFor(m => m.CanAssignUser, "Assign User")
+                        @Html.ValidationMessageFor(m => m.CanAssignUser)
+                    </div>
+                </div>
+                <hr class="m-0" />
+                <div class="row m-2">
+                    <div class="col-12">
+                        <b>Hide Event</b> from other users.
+                    </div>
+                    <div class="col-3">
+                        @Html.CheckBoxFor(m => m.CanHide)
+                        @Html.LabelFor(m => m.CanHide, "Hide Event")
+                        @Html.ValidationMessageFor(m => m.CanHide)
+                    </div>
+                </div>
+                <hr class="m-0" />
+                <div class="row m-2">
+                    <div class="col-12">
+                        <b>Edit Due Date</b> for this event.
+                    </div>
+                    <div class="col-3">
+                        @Html.CheckBoxFor(m => m.CanEditDueDate)
+                        @Html.LabelFor(m => m.CanEditDueDate, "Edit Due Date")
+                        @Html.ValidationMessageFor(m => m.CanEditDueDate)
+                    </div>
+                </div>
+                <hr class="m-0" />
+                <div class="row m-2">
+                    <div class="col-12">
+                        <b>Edit Response Date</b> for this event.
+                    </div>
+                    <div class="col-3">
+                        @Html.CheckBoxFor(m => m.CanEditResponseDate)
+                        @Html.LabelFor(m => m.CanEditResponseDate, "Edit Response Date")
+                        @*@Html.ValidationMessageFor(m => m.CanEditResponseDate)*@
+                    </div>
+                </div>
+                <hr class="m-0" />
+                <div class="row m-2">
+                    <div class="col-12">
+                        <b>Edit Event Date</b> for this event.
+                    </div>
+                    <div class="col-3">
+                        @Html.CheckBoxFor(m => m.CanEditEventDate)
+                        @Html.LabelFor(m => m.CanEditEventDate, "Edit Event Date")
+                        @*@Html.ValidationMessageFor(m => m.CanEditEventDate)*@
+                    </div>
+                </div>
+                @if (!hideMetadata)
+                {
+                    <hr class="m-0" />
+                    <div class="row m-2">
+                        <div class="col-12">
+                            <b>View Metadata</b> for this event.
+                        </div>
+                        <div class="col-3">
+                            @Html.CheckBoxFor(m => m.CanViewMetadata)
+                            @Html.LabelFor(m => m.CanViewMetadata, "View Metadata")
+                            @Html.ValidationMessageFor(m => m.CanViewMetadata)
+                        </div>
+                    </div>
+                    <hr class="m-0" />
+                    <div class="row m-2">
+                        <div class="col-12">
+                            <b>Add Metadata</b> for this event.
+                        </div>
+                        <div class="col-3">
+                            @Html.CheckBoxFor(m => m.CanAddMetadata)
+                            @Html.LabelFor(m => m.CanAddMetadata, "Add Metadata")
+                            @Html.ValidationMessageFor(m => m.CanAddMetadata)
+                        </div>
+                    </div>
+                    <hr class="m-0" />
+                }
+            </div>
+        </div>
+
+        <div class="modal-footer mslcModalFooter" id="dvFooter" style="text-align: left !important;">
+            <div class="myImage" style="display: none; text-align: center;">
+                <img src="~/Images/loading.gif" alt="Loading" width="32" height="32" />
+            </div>
+            <div class="myControls">
+                <button id="btnClose" class="btn btn-basic BoldMe" data-dismiss="modal" aria-hidden="true">Close</button>&nbsp;&nbsp;
+                <button id="btnSave" type="submit" class="btn btn-success BoldMe" name="Command" value="Save">Save</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+
+    </script>
+}

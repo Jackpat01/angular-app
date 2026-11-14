@@ -1,0 +1,566 @@
+﻿@*<script src="~/Content/feather-icons/dist/feather.min.js"></script>*@
+@model WebPortal_OH_FI.Models.ProviderAddressViewModel
+<style>
+    table.center {
+        margin-left: auto;
+        margin-right: auto;
+    }
+
+    #container {
+        height: 100%;
+        width: 100%;
+        display: flex;
+    }
+
+    #sideDiv {
+        width: 20%;
+    }
+
+    #centerDiv {
+        width: 40%;
+    }
+
+    .flexBox {
+        display: flex;
+        flex-flow: row;
+    }
+
+    .prefix:before {
+        content: ", ";
+    }
+
+    label {
+        padding: 0px;
+    }  	
+</style>
+
+@*// ********************CH 119 Notice Address - Model ***********************@
+<div id="window_NoticeAddress" class="modal fade" data-backdrop="static" role="dialog">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>CH 119 Notice Address</h3>
+                <button type="button" class="close" data-dismiss="modal" onclick="closeAddressWindow()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <table width="100%">
+                    <tbody>
+                        <tr style="visibility:collapse">
+                            <td>
+                                <label for="txtNoticeAddressId">NoticeAddress ID</label>
+                            </td>
+                            <td colspan="2">
+                                @Html.TextBoxFor(model => model.CH119Address.AddressId, new { id = "txtNoticeAddressId", @class = "form-control", style = "width: 85%;" })
+                            </td>
+                        </tr>
+                        <tr>
+                            <td width="30%" style="text-align:right">
+                                <label for="txtOrganizationName">Organization Name</label>
+                            </td>
+                            <td colspan="2" width="70%">
+                                @Html.TextBoxFor(model => model.CH119Address.AddressName, new { id = "txtOrganizationName", @class = "form-control", style = "width: 85%;" })
+                            </td>
+
+                        </tr>
+                        <tr>
+                            <td style="text-align:right">
+                                <label for="txtAddressLineOne">Address</label>
+                            </td>
+                            <td colspan="2">
+                                @Html.TextBoxFor(model => model.CH119Address.AddressLineOne, new { id = "txtAddressLineOne", @class = "form-control", style = "width: 85%;" })
+                            </td>
+
+                        </tr>
+                        <tr>
+                            <td>
+                            </td>
+                            <td colspan="2">
+                                @Html.TextBoxFor(model => model.CH119Address.AddressLineTwo, new { id = "txtAddressLineTwo", @class = "form-control", style = "width: 85%;", aria_label = "Address Line 2" })
+                            </td>
+
+                        </tr>
+                        <tr>
+                            <td style="text-align:right">
+                                City, State
+                            </td>
+                            <td colspan="2">
+                                @Html.TextBoxFor(model => model.CH119Address.AddressCity, new { id = "txtCity", @class = "form-control", style = "width: 45%;", aria_label="City" })
+                                @Html.TextBoxFor(model => model.CH119Address.AddressState, new { id = "txtState", @class = "form-control", style = "width: 45%;", aria_label="State" })
+                            </td>
+
+                        </tr>
+                        <tr>
+                            <td style="text-align:right">
+                                Zip, County
+                            </td>
+                            <td colspan="2">
+                                @Html.TextBoxFor(model => model.CH119Address.AddressZipCode, new { id = "txtZipCode", @class = "form-control", style = "width: 45%;", aria_label = "Zip" })
+                                @Html.TextBoxFor(model => model.CH119Address.AddressCounty, new { id = "txtCounty", @class = "form-control", style = "width: 45%;", aria_label="County" })
+                            </td>
+
+                        </tr>
+                        <tr>
+                            <td style="text-align:right">
+                                Phone, Fax
+                            </td>
+                            <td colspan="2">
+                                @Html.TextBoxFor(model => model.CH119Address.AddressPhone, new { id = "txtPhone", @class = "form-control", style = "width: 45%;", aria_label="Phone" })
+                                @Html.TextBoxFor(model => model.CH119Address.AddressFax, new { id = "txtFax", @class = "form-control", style = "width: 45%;", aria_label="Fax" })
+                            </td>
+
+                        </tr>
+                        <tr>
+                            <td style="text-align:right">
+                                <label for="txtEmail">Email</label>
+                            </td>
+                            <td colspan="2">
+                                @Html.TextBoxFor(model => model.CH119Address.AddressEmail, new { id = "txtEmail", @class = "form-control", style = "width: 45%;" })
+                            </td>
+
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <div class="modal-footer">
+                <button type="submit" name="Command" id="btnSubmit" class="btn btn-success" onclick="return AddNoticeAddress();">Save</button>
+                <button type="button" class="btn btn-success" data-dismiss="modal" onclick="closeAddressWindow()">Cancel</button>
+            </div>
+        </div>
+    </div>
+</div>
+@*// ************************  ***************************@
+
+<div>
+    <table class="table table-borderless bold-every-other-column" style="table-layout: fixed;" align="center">
+        <tr>
+            <td align="right">Address Type:</td>
+            <td>
+                @Html.DropDownListFor(x => x.AddressTypes, (IEnumerable<SelectListItem>)Model.AddressTypes, "Select Address Type", new { ID = "drpProviderAddressType", aria_label="Address Type" })
+            </td>
+        </tr>
+    </table>
+    <div id="divAddress" style="visibility:collapse">
+        <table border="1" width="100%" class="table table-borderless bold-every-other-column" style="table-layout: fixed;">
+            <tr>
+                <td align="right">Address Type:</td>
+                <td><label id="lblProviderAddressType" /></td>
+            </tr>
+            <tr>
+                <td align="right">Organization Name:</td>
+                <td><label id="lblProviderAddressName" /></td>
+            </tr>
+            <tr>
+                <td align="right">Contact Person:</td>
+                <td><label id="lblProviderAddressContactPerson" /></td>
+            </tr>
+            <tr>
+                <td align="right">Address:</td>
+                <td> <label id="lblProviderAddressLineOne" /></td>
+            </tr>
+            <tr id="rowProviderAddressLineTwo">
+                <td></td>
+                <td> <label id="lblProviderAddressLineTwo" /></td>
+            </tr>
+            <tr>
+                <td align="right">City, State:</td>
+                <td><label id="lblProviderAddressCity" />&nbsp; <label id="lblProviderAddressState" /></td>
+            </tr>
+            <tr>
+                <td align="right">Zip, County:</td>
+                <td><label id="lblProviderAddressZipCode" />&nbsp; <label id="lblProviderAddressZipCounty" /></td>
+            </tr>
+            <tr>
+                <td align="right">Phone, Fax:</td>
+                <td><label id="lblProviderAddressPhone" />&nbsp; <label id="lblProviderAddressFax" /></td>
+            </tr>
+            <tr>
+                <td align="right">Email:</td>
+                <td> <label id="lblProviderAddressEmail" /></td>
+            </tr>
+        </table>
+    </div>
+
+    <table border="1" width="100%" align="center">
+        <tr>
+            <td align="center">
+                <div style="float:right; margin:0px 475px 0px 0px">
+                    <input id="btnNoticeAddress" value="Edit Notice Address" data-feather="edit" data-toggle="modal" data-target="#window_NoticeAddress" type="submit" />
+                    <b>CH 119 Notice Address</b><br>
+                    <div id="divAddressName" class="flexBox">
+                        @if (Model.CH119Address != null && Model.CH119Address.AddressName != null)
+                        {
+                            @Html.LabelFor(model => model.CH119Address.AddressName, Convert.ToString(Html.DisplayFor(m => m.CH119Address.AddressName)) != String.Empty ? Convert.ToString(Html.DisplayFor(m => m.CH119Address.AddressName)) : " ", new { id = "labelNoticeOrganizationName" })
+                        }
+                    </div>
+                    <div id="divAddressLineOne" class="flexBox">
+                        @if (Model.CH119Address != null && Model.CH119Address.AddressLineOne != null)
+                        {
+                            @Html.LabelFor(model => model.CH119Address.AddressLineOne, Convert.ToString(Html.DisplayFor(m => m.CH119Address.AddressLineOne)), new { id = "labelAddressLineOne" })
+                        }
+                    </div>
+                    <div id="divAddressLineTwo" class="flexBox">
+                        @if (Model.CH119Address != null && Model.CH119Address.AddressLineTwo != null)
+                        {
+                            @Html.LabelFor(model => model.CH119Address.AddressLineTwo, Convert.ToString(Html.DisplayFor(m => m.CH119Address.AddressLineTwo)) != String.Empty ? Convert.ToString(Html.DisplayFor(m => m.CH119Address.AddressLineTwo)) : " ", new { id = "labelAddressLineTwo" })
+                        }
+
+                    </div>
+                    <div id="divAddressCityState" class="flexBox">
+                        @if (Model.CH119Address != null && (Model.CH119Address.AddressCity != null || Model.CH119Address.AddressState != null))
+                        {
+                            if (Model.CH119Address != null && Model.CH119Address.AddressCity != null)
+                            {
+                                @Html.LabelFor(model => model.CH119Address.AddressCity, Convert.ToString(Html.DisplayFor(m => m.CH119Address.AddressCity)), new { id = "labelCity" })
+                            }
+
+                            if (Model.CH119Address != null && Model.CH119Address.AddressState != null)
+                            {
+                                if (Model.CH119Address != null && Model.CH119Address.AddressCity != null)
+                                {
+                                    @Html.LabelFor(model => model.CH119Address.AddressState, Convert.ToString(Html.DisplayFor(m => m.CH119Address.AddressState)), new { id = "labelState", @class = "prefix" })
+                                }
+                                else
+                                {
+                                    @Html.LabelFor(model => model.CH119Address.AddressState, Convert.ToString(Html.DisplayFor(m => m.CH119Address.AddressState)), new { id = "labelState" })
+                                }
+                            }
+
+                        }
+                    </div>
+                    <div id="divAddressZipCounty" class="flexBox">
+                        @if (Model.CH119Address != null && (Model.CH119Address.AddressZipCode != null || Model.CH119Address.AddressCounty != null))
+                        {
+                            if (Model.CH119Address != null && Model.CH119Address.AddressZipCode != null)
+                            {
+                                @Html.LabelFor(model => model.CH119Address.AddressZipCode, Convert.ToString(Html.DisplayFor(m => m.CH119Address.AddressZipCode)), new { id = "labelZipCode" })
+                            }
+
+                            if (Model.CH119Address != null && Model.CH119Address.AddressCounty != null)
+                            {
+                                @Html.LabelFor(model => model.CH119Address.AddressCounty, Convert.ToString(Html.DisplayFor(m => m.CH119Address.AddressCounty)), new { id = "labelCounty", @class = "prefix" })
+                            }
+                        }
+                    </div>
+                    <div id="divAddressPhoneFax" class="flexBox">
+                        @if (Model.CH119Address != null && (Model.CH119Address.AddressPhone != null || Model.CH119Address.AddressFax != null))
+                        {
+                            if (Model.CH119Address != null && Model.CH119Address.AddressPhone != null)
+                            {
+                                @Html.LabelFor(model => model.CH119Address.AddressPhone, Convert.ToString(Html.DisplayFor(m => m.CH119Address.AddressPhone)), new { id = "labelPhone" })
+                            }
+                            if (Model.CH119Address != null && Model.CH119Address.AddressFax != null)
+                            {
+                                @Html.LabelFor(model => model.CH119Address.AddressFax, Convert.ToString(Html.DisplayFor(m => m.CH119Address.AddressFax)), new { id = "labelFax", @class = "prefix" })
+
+                            }
+                        }
+                    </div>
+                    <div id="divAddressEmail" class="flexBox">
+                        @if (Model.CH119Address != null && Model.CH119Address.AddressEmail != null)
+                        {
+                            @Html.LabelFor(model => model.CH119Address.AddressEmail, Convert.ToString(Html.DisplayFor(m => m.CH119Address.AddressEmail)) != String.Empty ? Convert.ToString(Html.DisplayFor(m => m.CH119Address.AddressEmail)) : " ", new { id = "labelEmail" })
+                        }
+                        else
+                        {
+                            @Html.LabelFor(model => model.CH119Address.AddressEmail, " ", new { id = "labelEmail" })
+                        }
+                    </div>
+                </div>
+            </td>
+        </tr>
+    </table>
+</div>
+<script>
+    feather.replace()
+</script>
+<div id="SyncFusionScript">
+    <script src="@Url.AbsoluteContentUri("~/Scripts/ej/common/ej.unobtrusive.min.js")"></script>
+</div>
+
+<script type="text/javascript">
+    $(document).ready(function () {
+        $("#drpProviderAddressType").change(function () {
+            var addressTypeValue = $('#drpProviderAddressType option:selected').val();
+            var addressTypeText = $('#drpProviderAddressType option:selected').text();
+            if (addressTypeText == "Select Address Type") {
+                $('#divAddress').css("visibility", "collapse");
+                return;
+            }
+
+            return LoadNotificationDialog("Loading Address...").then(() => {
+                return new Promise((resolve, reject) => {
+                    $.ajax({
+                        url: "@Url.AbsoluteAction("GetProviderAddressByType", "Rate")",
+                        data: JSON.stringify({ "addressType": addressTypeValue }),
+                        type: "POST",
+                        contentType: "application/json;charset=UTF-8",
+                        dataType: "json",
+                        success: function (result) {
+                            var letterAddress = result.AddressFullViewModel;
+                            if (letterAddress != null) {
+                                $('#divAddress').css("visibility", "visible");
+                                $('#lblProviderAddressType').text(letterAddress.AddressType);
+                                $('#lblProviderAddressName').text(letterAddress.AddressName);
+                                $('#lblProviderAddressContactPerson').text(letterAddress.AddressContactPerson);
+
+                                $('#lblProviderAddressLineOne').text(letterAddress.AddressLineOne);
+                                if (letterAddress.AddressLineTwo != null && letterAddress.AddressLineTwo != "") {
+                                    $('#lblProviderAddressLineTwo').text(letterAddress.AddressLineTwo);
+                                }
+                                else {
+                                    $("#rowProviderAddressLineTwo").remove();
+                                }
+
+                                $('#lblProviderAddressCity').text(letterAddress.AddressCity);
+                                $('#lblProviderAddressState').text(letterAddress.AddressState);
+
+                                $('#lblProviderAddressZipCode').text(letterAddress.AddressZipCode);
+                                $('#lblProviderAddressZipCounty').text(letterAddress.AddressCounty);
+
+                                $('#lblProviderAddressPhone').text(letterAddress.AddressPhone);
+                                $('#lblProviderAddressFax').text(letterAddress.AddressFax);
+                                $('#lblProviderAddressEmail').text(letterAddress.AddressEmail);
+                            }
+                            resolve();
+                        },
+                        error: function (errormessage) {
+                            StaticAlert({ content: errormessage.responseText });
+                            resolve();
+                        }
+                    });
+                });
+            }).then(() => {
+                return ClearNotificationDialog();
+            });
+        });
+    });
+
+    function AddNoticeAddress() {
+        return LoadNotificationDialog("Saving Notice Address...").then(() => {
+            return new Promise((resolve, reject) => {
+                var noticeAddressObj = {
+                    AddressId: $('#txtNoticeAddressId').val(),
+                    AddressName: $('#txtOrganizationName').val(),
+                    AddressLineOne: $('#txtAddressLineOne').val(),
+                    AddressLineTwo: $('#txtAddressLineTwo').val(),
+                    AddressCity: $('#txtCity').val(),
+                    AddressState: $('#txtState').val(),
+                    AddressZipCode: $('#txtZipCode').val(),
+                    AddressCounty: $('#txtCounty').val(),
+                    AddressPhone: $('#txtPhone').val(),
+                    AddressFax: $('#txtFax').val(),
+                    AddressEmail: $('#txtEmail').val()
+                };
+
+                $.ajax({
+                    url: "@Url.AbsoluteAction("SaveNoticeAddress", "Rate")",
+                    data: JSON.stringify({ noticeAddressViewModel: noticeAddressObj }),
+                    type: "POST",
+                    contentType: "application/json;charset=utf-8",
+                    dataType: "json",
+                    success: function (response) {
+                        if (response.Success) {
+                            var providerAddressModel = response.ProviderAddressViewModel.CH119Address;
+                            var letterAddressesViewModel = response.ProviderAddressViewModel.LetterAddressesViewModel;
+
+                            //**** AddressName ****//
+                            if (providerAddressModel.AddressName != null) {
+                                if ($('#labelNoticeOrganizationName').length == 0) {
+                                    $('#divAddressName').append($('<label/>').attr('id', 'labelNoticeOrganizationName'));
+                                    $('#labelNoticeOrganizationName').text(providerAddressModel.AddressName);
+                                }
+                                else {
+                                    $('#labelNoticeOrganizationName').text(providerAddressModel.AddressName);
+                                }
+                            }
+                            else {
+                                $("#labelNoticeOrganizationName").remove();
+                            }
+                            //**** AddressLineOne ****//
+                            if (providerAddressModel.AddressLineOne != null) {
+                                if ($('#labelAddressLineOne').length == 0) {
+                                    $('#divAddressLineOne').append($('<label/>').attr('id', 'labelAddressLineOne'));
+                                    $('#labelAddressLineOne').text(providerAddressModel.AddressLineOne);
+                                }
+                                else {
+                                    $('#labelAddressLineOne').text(providerAddressModel.AddressLineOne);
+                                }
+                            }
+                            else {
+                                $("#labelAddressLineOne").remove();
+                            }
+                            //**** AddressLineTwo ****//
+                            if (providerAddressModel.AddressLineTwo != null) {
+                                if ($('#labelAddressLineTwo').length == 0) {
+                                    $('#divAddressLineTwo').append($('<label/>').attr('id', 'labelAddressLineTwo'));
+                                    $('#labelAddressLineTwo').text(providerAddressModel.AddressLineTwo);
+                                }
+                                else {
+                                    $('#labelAddressLineTwo').text(providerAddressModel.AddressLineTwo);
+                                }
+                            }
+                            else {
+                                $("#labelAddressLineTwo").remove();
+                            }
+                            //**** City, State ****//
+                            if (providerAddressModel.AddressCity != null || providerAddressModel.AddressState != null) {
+                                if (providerAddressModel.AddressCity != null) {
+                                    if ($('#labelCity').length == 0) {
+                                        $('#divAddressCityState').prepend($('<label/>').attr('id', 'labelCity'));
+                                        $('#labelCity').text(providerAddressModel.AddressCity);
+                                    }
+                                    else {
+                                        $('#labelCity').text(providerAddressModel.AddressCity);
+                                    }
+                                }
+                                else {
+                                    $('#labelCity').remove();
+                                }
+
+                                if (providerAddressModel.AddressState != null) {
+                                    if ($('#labelState').length == 0) {
+                                        $('#divAddressCityState').append($('<label/>').attr('id', 'labelState'));
+                                        $('#labelState').text(providerAddressModel.AddressState);
+                                    }
+                                    else {
+                                        $('#labelState').text(providerAddressModel.AddressState);
+                                    }
+                                    if (providerAddressModel.AddressCity !== null) {
+                                        $('#labelState').addClass("prefix");
+                                    }
+                                    else {
+                                        $('#labelState').removeClass("prefix");
+                                    }
+                                }
+                                else {
+                                    $("#labelState").remove();
+                                }
+                            }
+                            else {
+                                $('#labelCity').remove();
+                                $("#labelState").remove();
+                            }
+
+                            //**** Zip, County ****//
+
+                            if (providerAddressModel.AddressZipCode != null || providerAddressModel.AddressCounty != null) {
+                                if (providerAddressModel.AddressZipCode != null) {
+                                    if ($('#labelZipCode').length == 0) {
+                                        $('#divAddressZipCounty').prepend($('<label/>').attr('id', 'labelZipCode'));
+                                        $('#labelZipCode').text(providerAddressModel.AddressZipCode);
+                                    }
+                                    else {
+                                        $('#labelZipCode').text(providerAddressModel.AddressZipCode);
+                                    }
+                                }
+                                else {
+                                    $("#labelZipCode").remove();
+                                }
+
+                                if (providerAddressModel.AddressCounty != null) {
+                                    if ($('#labelCounty').length == 0) {
+                                        $('#divAddressZipCounty').append($('<label/>').attr('id', 'labelCounty'));
+                                        $('#labelCounty').text(providerAddressModel.AddressCounty);
+                                    }
+                                    else {
+                                        $('#labelCounty').text(providerAddressModel.AddressCounty);
+                                    }
+                                    if (providerAddressModel.AddressZipCode !== null) {
+                                        $('#labelCounty').addClass("prefix");
+                                    }
+                                    else {
+                                        $('#labelCounty').removeClass("prefix");
+                                    }
+                                }
+                                else {
+                                    $("#labelCounty").remove();
+                                }
+                            }
+                            else {
+                                $("#labelZipCode").remove();
+                                $("#labelCounty").remove();
+                            }
+
+                            //**** Phone, Fax ****//
+                            if (providerAddressModel.AddressPhone != null || providerAddressModel.AddressFax != null) {
+                                if (providerAddressModel.AddressPhone != null) {
+                                    if ($('#labelPhone').length == 0) {
+                                        $('#divAddressPhoneFax').prepend($('<label/>').attr('id', 'labelPhone'));
+                                        $('#labelPhone').text(providerAddressModel.AddressPhone);
+                                    }
+                                    else {
+                                        $('#labelPhone').text(providerAddressModel.AddressPhone);
+                                    }
+                                }
+                                else {
+                                    $("#labelPhone").remove();
+                                }
+
+                                if (providerAddressModel.AddressFax != null) {
+                                    if ($('#labelFax').length == 0) {
+                                        $('#divAddressPhoneFax').append($('<label/>').attr('id', 'labelFax'));
+                                        $('#labelFax').text(providerAddressModel.AddressFax);
+                                    }
+                                    else {
+                                        $('#labelFax').text(providerAddressModel.AddressFax);
+                                    }
+                                    if (providerAddressModel.AddressPhone !== null) {
+                                        $('#labelFax').addClass("prefix");
+                                    }
+                                    else {
+                                        $('#labelFax').removeClass("prefix");
+                                    }
+                                }
+                                else {
+                                    $("#labelFax").remove();
+                                }
+                            }
+                            else {
+                                $('#labelPhone').remove();
+                                $("#labelFax").remove();
+                            }
+
+                            // ******** Email ***********//
+                            if (providerAddressModel.AddressEmail != null) {
+                                if ($('#labelEmail').length == 0) {
+                                    $('#divAddressEmail').append($('<label/>').attr('id', 'labelEmail'));
+                                    $('#labelEmail').text(providerAddressModel.AddressEmail);
+                                }
+                                else {
+                                    $('#labelEmail').text(providerAddressModel.AddressEmail);
+                                }
+                            }
+                            else {
+                                $("#labelEmail").remove();
+                            }
+                            // *******************
+                            $('#txtNoticeAddressId').val(providerAddressModel.AddressId);
+                            $('#window_NoticeAddress').modal('hide');
+                            //Re-bind Grid
+                            if (noticeAddressObj.AddressId !== null) {
+                                $("#tblLetter").ejGrid("dataSource", letterAddressesViewModel);
+                            }
+                        }
+                        resolve();
+                    },
+                    error: function (errormessage) {
+                        StaticAlert({ content: errormessage.responseText }).then(() => {
+                            resolve();
+                        });
+                    }
+                });
+            });
+        }).then(() => {
+            return ClearNotificationDialog();
+        });
+    }
+
+    function closeAddressWindow() {
+        LoadNotificationDialog("Cancelling Address Save...").then(() => {
+            $("#window_NoticeAddress").hide();
+        }).then(() => {
+            return ClearNotificationDialog();
+        });
+    }
+
+</script>

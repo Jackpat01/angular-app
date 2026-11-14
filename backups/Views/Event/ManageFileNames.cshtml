@@ -1,0 +1,75 @@
+﻿@*
+	DO NOT MODIFY OUTSIDE OF MSLC.STATLOG
+	This file comes from MSLC.Statlog, any changes to it will be wiped out when the nuget package is updated.
+	Please make the appropriate enhancements to MSLC.Statlog instead of here.
+*@
+
+@Styles.Render("~/Content/StatLog.css")
+@using MSLC.Portal.Configuration
+@using MSLC.Portal.MVC.Utility
+@using MSLC.StatLog.DTO
+@using MSLC.StatLog.MVC.ViewModels
+@model MSLC.StatLog.MVC.ViewModels.ManageFileNamesViewModel.View
+@* @Html.Script("~/Scripts/Pages/Event/ManageFileNames.js", "jquery") *@
+@{
+    Layout = PortalConfiguration.DetermineLayout("Menu");
+	ViewBag.Title = "Provider Type Management";
+}
+
+<h2>File Name Template Management</h2>
+
+<div id="dialogDiv" class="modal fade" tabindex="-1" aria-labelledby="windowTitleLabel" aria-hidden="true" role="dialog">
+	<div id="modal-dialog" class="modal-dialog" role="document">
+		<div id="dialogContent" style="font-size: 14px; width:100%"></div>
+		<div id="dialogMessage" style="font-size: 14px; width:100%"></div>
+	</div>
+</div>
+
+@if (TempData["Message"] != null)
+{
+	<br />
+	<br />
+	<div class="errorLabel" style="text-align: center;">
+		@Html.Raw(TempData["Message"].ToString())
+	</div>
+}
+<div class="button-box">
+	<a onclick="return modalButton(this, 'tallerWider')" href="@Url.AbsoluteAction("EditFileName", "Event")" class="btn btn-kyBlue BoldMe">Add File Name Template</a>
+</div>
+@(Html.EJ().Grid<ManageFileNamesViewModel.FileNameTemplate>("tblFileNameTemplates")
+    .Locale("en-US")
+    .CssClass("mslcTable")
+    .Datasource(Model.FileNames)
+    .AllowPaging()
+    .EnableRowHover(true)
+    .AllowSelection(false)
+    .AllowSorting(true)
+    .AllowFiltering(true)
+    .AllowTextWrap(true)
+    .TextWrapSettings(wrap => { wrap.WrapMode(WrapMode.Both); })
+    .FilterSettings(filter => { filter.FilterType(FilterType.Menu); filter.ShowPredicate(false); })
+
+    .ToolbarSettings(toolbar =>
+    {
+        toolbar.ShowToolbar().ToolbarItems(items =>
+        {
+            items.AddTool(ToolBarItems.Search);
+        });
+    })
+    .Columns(col =>
+    {
+        col.Template("#editFileNameTemplate").HeaderText("Edit").CssClass("icon").TextAlign(TextAlign.Center).Width(10).Add();
+        col.Field(fnt => fnt.FileName).HeaderText("Display Name").TextAlign(TextAlign.Center).Width(30).Add();
+        col.Field(fnt => fnt.Template).HeaderText("File Template").TextAlign(TextAlign.Center).Width(30).Add();
+        // col.Field(pt => pt.IsActive).HeaderText("Is Active").TextAlign(TextAlign.Center).DisplayAsCheckbox(false).Width(30).Add();
+
+    })
+    .ClientSideEvents(events =>
+    {
+        events.TemplateRefresh("loadIcons");
+    }))
+<script id="editFileNameTemplate" type="text/x-template">
+	<a onclick="return modalButton(this, 'tallerWider')" href="@Url.AbsoluteAction("EditFileName", "Event")?fileName={{:FileName}}">
+		<i data-feather="edit" aria-label="Edit"></i>
+	</a>
+</script>

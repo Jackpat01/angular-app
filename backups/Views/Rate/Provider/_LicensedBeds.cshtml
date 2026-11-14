@@ -1,0 +1,284 @@
+﻿﻿﻿@Styles.Render("~/Content/StatLog.css")
+@using MSLC.Portal.MVC.Utility
+@model string[]
+
+<style type="text/css">
+    .e-grid .e-pager .e-pagercontainer {
+        float: left;
+    }
+
+    .e-grid .e-pager .e-pager-itemsinterval {
+        float: left;
+    }
+
+    .e-pager-itemsinterval {
+        direction: rtl;
+        float: left;
+    }
+    .modal-xl {
+        max-width: 1400px;
+    }
+    .e-pager .e-pager-itemsinterval span.e-text {
+        position: inherit !important;
+    }
+</style>
+
+<div id="window_LicensedBeds" class="modal fade" data-backdrop="static" role="dialog">
+    <div class="modal-dialog modal-xl" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Licensed Beds</h3>
+                <button type="button" class="close" data-dismiss="modal" onclick="closeLicensedBedsWindow()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <table style="width: 100%;">
+                    <colgroup>
+                        <col />
+                    </colgroup>
+                    <tbody>
+                        <tr>
+                            <td>
+                                <div id="tblLicensedBeds"></div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+<div id="SyncFusionScript">
+    <script src="@Url.AbsoluteContent("~/Scripts/ej/common/ej.unobtrusive.min.js")"></script>
+</div>
+<script>
+    $(document).ready(function () {
+        ej.parseDateInUTC = true;
+        var clientSideTimeZoneDiff = new Date().getTimezoneOffset() / 60;
+
+        LoadNotificationDialog("Loading").then(() => {
+            return new Promise((resolve, reject) => {
+                $.ajax({
+                    async: true,
+                    url: "@Url.AbsoluteAction("GetLicensedBeds", "Rate")",
+                    type: "POST",
+                    cache: false,
+                    contentType: "application/json;charset=utf-8",
+                    success: function (result) {
+                        if (!result.Success) {
+                            resolve();
+                            return;
+                        }
+
+                        var cols = [];
+                        cols.push({ field: 'LicensedBedsId', headerText: 'PrimaryKeyID', isPrimaryKey: true, isIdentity: true, visible: false });
+                        cols.push({
+                            field: 'EffectiveDate',
+                            headerText: 'Effective',
+                            width: "110px",
+                            placeHolder: 'Select Date',
+                            editType: ej.Grid.EditingType.DatePicker,
+                            type: "date",
+                            format: "{0:MM/dd/yyyy}",   // handle the formatting of the field.
+                            validationRules: { required: true }
+                        });
+
+                        //    [{ key: "Actual" }];
+                        const sourceDropdown = [@Html.Raw(string.Join(",", Model.Select(sourceName => "{ key: \"" + sourceName + "\" }").ToArray()))];
+                        cols.push({ field: 'Status', headerText: 'Status', width: "100px", defaultValue: "Active", editType: ej.Grid.EditingType.DropDownList, foreignKeyField: "key", foreignKeyValue: "key", dataSource: sourceDropdown });
+
+						cols.push({ field: 'BedCountNF', headerText: 'NF', width: "100px", validationRules: { maxlength: '10' } });
+						cols.push({ field: 'BedCountRegisteredHospital', headerText: 'Registered Hospital', width: "100px", validationRules: { maxlength: '10' } });
+                        cols.push({ field: 'BedCountOther', headerText: 'Other', width: "100px", validationRules: { maxlength: '10' } });
+						// NF inserts bed total here
+						cols.push({ field: 'BedCountICF', headerText: 'ICF-IID', width: "100px", validationRules: { maxlength: '10' } });
+						cols.push({ field: 'TotalLicBeds', headerText: 'Total Lic Beds', width: "100px", validationRules: { maxlength: '10' }, allowEditing: false});
+                        // ICF inserts bed total here
+						cols.push({ field: 'ResidentialCare', headerText: 'Residential Care', width: "110px", validationRules: { maxlength: '10' } });
+						cols.push({ field: 'OutOfService', headerText: 'Out of Service', width: "100px", validationRules: { maxlength: '10' } });
+						cols.push({ field: 'OnHold', headerText: 'On Hold', width: "100px", validationRules: { maxlength: '10' } });
+                        cols.push({ field: 'Comments', headerText: 'Comments', width: "250px", validationRules: { maxlength: '50' } });
+
+
+						if ($('#IsNF').val() == 'value') { // 6
+							cols.splice(6, 0, { field: 'TotalProjBeds', headerText: 'Total NF Lic Beds', width: "100px", validationRules: { maxlength: '10' }, allowEditing: false });
+						} else if ($('#IsICF').val() == 'value') { // 8
+							cols.splice(8, 0, { field: 'TotalProjBeds', headerText: 'Total ICF-IID Lic Beds', width: "100px", validationRules: { maxlength: '10' }, allowEditing: false });
+						}
+
+                        $("#tblLicensedBeds").ejGrid({
+                            dataSource: result.LicensedBedsViewModel,
+                            columns: cols,
+                            toolbarSettings: {
+                                showToolbar: true,
+                                toolbarItems: [ej.Grid.ToolBarItems.Add, ej.Grid.ToolBarItems.Edit, ej.Grid.ToolBarItems.Delete, ej.Grid.ToolBarItems.Update, ej.Grid.ToolBarItems.Cancel]
+                            },
+                            pageSettings: { pageSize: 5, pageSizeList: [5, 10, 15, 20] },
+                            allowPaging: true,
+                            enableRowHover: true,
+                            allowSelection: true,
+                            allowSorting: true,
+							allowTextWrap: true,
+                            //allowScrolling: true,
+                            editSettings: { allowEditing: true, allowAdding: true, allowDeleting: true, showDeleteConfirmDialog: true },
+                            actionBegin: function (args) {
+                                if (args.requestType == "save") {
+                                    //Add or Update
+                                    //********************** Local Store ************
+                                    // Use Localstorage to save the grid's "CurrentPageIndex" to reset it after Postback.
+                                    // Syncfusion Forum link for future reference:
+                                    // --https://www.syncfusion.com/forums/144600/retain-last-selected-row-and-page-in-grid-after-postback--
+                                    window.localStorage.removeItem("currentPageIndexLB");
+                                    window.localStorage.setItem("currentPageIndexLB", args.model.pageSettings.currentPage);
+                                    //********************** Local Store ************
+                                    var data = result.LicensedBedsViewModel;
+                                    var hasDuplicates = false;
+                                    for (var i = 0; i < data.length; i++) {
+                                        //check if the entered data is already present in the grid
+                                        if ((args.data['LicensedBedsId'] == data[i]['LicensedBedsId']) && ((args.data['EffectiveDate'] == 'undefined') || (args.data['EffectiveDate'] == data[i]['EffectiveDate']))) {
+                                            args.cancel = true;
+                                            hasDuplicates = true;
+                                            break;
+                                        }
+                                    }
+                                    if (hasDuplicates) {
+                                        StaticAlert({ content: "Duplicate Licensed Beds have been entered, please correct" });
+                                    }
+                                    else if (!hasDuplicates) {
+                                        new Promise((res, rej) => {
+                                            $.ajax({
+                                                async: true,
+                                                url: "@Url.AbsoluteAction("SaveLicensedBeds", "Rate")",
+                                                data: JSON.stringify({ licensedBedsInput: args.data }),
+                                                type: "POST",
+                                                contentType: "application/json;charset=utf-8",
+                                                dataType: "json",
+                                                success: function (response) {
+                                                    if (!response.Success) {
+                                                        window.localStorage.removeItem("currentPageIndexLB");
+                                                        StaticAlert({ content: "Error Saving Data" }).then(() => {
+                                                            res();
+                                                        });
+                                                    }
+                                                    else {
+                                                        //Re-bind Grid Data
+                                                        var currentPageIndex = parseInt(window.localStorage.getItem("currentPageIndexLB"), 10);
+														$("#tblLicensedBeds").ejGrid({
+															dataSource: response.LicensedBedsViewModel
+                                                        });
+                                                        $("#tblLicensedBeds").ejGrid({
+                                                            pageSettings: { currentPage: currentPageIndex },
+                                                        });
+
+                                                        res();
+                                                    }
+                                                },
+                                                error: function (errormessage) {
+                                                    StaticAlert({ content: errormessage.responseText }).then(() => {
+                                                        res();
+                                                    });
+                                                }
+                                            });
+                                        });
+                                    }
+                                    else {
+                                        StaticAlert({ content: 'Please format Effective Date as "MM/DD/YYYY"' });
+                                    }
+                                }
+                                else if (args.requestType == "delete") {
+                                    new Promise((res, rej) => {
+                                        $.ajax({
+                                            async: true,
+                                            url: "@Url.AbsoluteAction("DeleteLicensedBeds", "Rate")",
+                                            data: JSON.stringify({ licensedBedsInput: args.data }),
+                                            type: "POST",
+                                            contentType: "application/json;charset=utf-8",
+                                            dataType: "json",
+                                            success: function (response) {
+                                                if (!response.Success) {
+                                                    StaticAlert({ content: "Error Deleting Data" }).then(() => {
+                                                        res();
+                                                    });
+                                                } else {
+                                                    //Re-bind Grid Data
+                                                    $("#tblLicensedBeds").ejGrid("dataSource", response.LicensedBedsViewModel);
+
+                                                    res();
+                                                }
+                                            },
+                                            error: function (errormessage) {
+                                                StaticAlert({ content: errormessage.responseText }).then(() => {
+                                                    res();
+                                                });
+                                            }
+                                        });
+                                    });
+                                } else {
+                                    var limit = args.model.dataSource.length;
+                                    for (let i = 0; i < limit; i++) {
+                                        let v = args.model.dataSource[i];
+                                        if (v.EffectiveDate != null && v.EffectiveDate.length > 10) {
+                                            v.EffectiveDate = new Date(Number(v.EffectiveDate.match(/\d+/)[0]));
+                                        }
+                                        if (v.EffectiveDate != null) {
+                                            v.EffectiveDate = new Date(v.EffectiveDate).addHours(ej.serverTimezoneOffset + clientSideTimeZoneDiff);
+                                        }
+                                    }
+                                }
+                            }
+                        });
+
+                        resolve();
+                    },
+                    error: function (errormessage) {
+                        StaticAlert({ content: errormessage.responseText }).then(() => {
+                            resolve();
+                        });
+                    }
+                });
+            });
+
+        }).then(() => {
+            return ClearNotificationDialog();
+        });
+    });
+
+    function closeLicensedBedsWindow() {
+        LoadNotificationDialog("Reloading Provider Data...").then(() => {
+            $("#window_LicensedBeds").hide();
+        }).then(() => {
+            return new Promise((resolve, reject) => {
+                $.ajax({
+                    url: "@Url.AbsoluteAction("ProviderGeneralInformation", "Rate")",
+                    success: function (response) {
+                        $('#nav-general').html(response);
+                        resolve();
+                    }
+                });
+            });
+        }).then(() => {
+            return ClearNotificationDialog();
+        });
+    }
+
+
+    // reference:   number | Date | string
+    // comparer:    number | Date | string
+    // sortOrder:   'Ascending' | 'Descending'
+    function sortComparer (reference, comparer, sortOrder) {
+        let referenceDate = new Date(reference);
+        let comparerDate = new Date(comparer);
+        if (typeof reference === 'number' && typeof comparer === 'number') {
+            // Numeric column sorting
+            return sortOrder === 'Ascending' ? comparer - reference : reference - comparer;
+        } else if (!isNaN(referenceDate.getTime()) && !isNaN(comparerDate.getTime())) {
+            // Date column sorting
+            return sortOrder === 'Ascending' ? comparerDate.getTime() - referenceDate.getTime() : referenceDate.getTime() - comparerDate.getTime();
+        }
+        else {
+            // Default sorting for other types
+            let intlCollator = new Intl.Collator(undefined, { sensitivity: 'variant', usage: 'sort' });
+            let comparisonResult = intlCollator.compare(String(reference), String(comparer));
+            return sortOrder === 'Ascending' ? -comparisonResult : comparisonResult;
+        }
+    };
+</script> 

@@ -1,0 +1,115 @@
+﻿@*
+    DO NOT MODIFY OUTSIDE OF MSLC.STATLOG
+    This file comes from MSLC.Statlog, any changes to it will be wiped out when the nuget package is updated.
+    Please make the appropriate enhancements to MSLC.Statlog instead of here.
+*@
+
+@model MSLC.StatLog.MVC.ViewModels.ProvTypeViewModel.Edit
+@{
+    Layout = null;
+}
+<link href="~/Content/south-street/jquery-ui-1.9.2.custom.min.css" rel="stylesheet" />
+@using (Html.BeginForm("Save", "ProvType", FormMethod.Post, new { id = "frmSubmit", enctype = "multipart/form-data", @class = "modal-form", defaultbutton = "btnSave" }))
+{
+    @Html.AntiForgeryToken()
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3 id="myModalLabel" style="text-align: left;">
+                @if (!String.IsNullOrEmpty(Model.ProvType))
+                {
+                    <text>Edit</text>
+                }
+                else
+                {
+                    <text>Add</text>
+                }
+                Provider Type
+            </h3>
+            <button href="#" class="close" data-dismiss="modal">&times;</button>
+        </div>
+        @Html.HiddenFor(x => x.IsActive, new { id = "hdnIsActive" })
+        <div class="modal-body">
+            <div style="margin: 8px;">
+                <table>
+                    <tr><td colspan="2" style="height: 5px;"></td></tr>
+                    <tr>
+                        <td>
+                            <label class="FormLabel" for="txtType">Provider Type Key:</label>
+                        </td>
+                        <td>
+                            @if (!String.IsNullOrEmpty(Model.ProvType))
+                            {
+                                @Html.TextBoxFor(x => x.ProvType, new { id = "txtType", @readonly = "readonly" })
+                            }
+                            else
+                            {
+                                @Html.TextBoxFor(x => x.ProvType, new { id = "txtType", maxlength = 3 })
+                            }
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <label class="FormLabel" for="txtName">Name:</label>
+                        </td>
+                        <td>
+                            @Html.TextBoxFor(x => x.Name, new { id = "txtName", maxlength = 20 })
+                        </td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+        <div id="dvFooter" class="modal-footer mslcModalFooter" style="text-align: left !important;">
+            <div class="myImage" style="display: none; text-align: center;">
+                <img src="~/Images/loading.gif" alt="Loading" width="32" height="32" />
+            </div>
+            <div class="myControls">
+                <button class="btn btn-basic BoldMe" data-dismiss="modal" aria-hidden="true">Close</button>&nbsp;&nbsp;
+                <button id="btnSave" type="submit" class="btn btn-success BoldMe" name="Command" value="Save">Save</button><text>&nbsp;&nbsp;</text>
+                @if ((Model.IsActive == true || Model.IsActive == null) && !String.IsNullOrEmpty(Model.ProvType))
+                {
+                    <button type="submit" class="btn btn-danger BoldMe" name="Command" value="Deactivate">Deactivate</button>
+                    <text>&nbsp; &nbsp;</text>
+                }
+                else if (Model.IsActive == false && !String.IsNullOrEmpty(Model.ProvType))
+                {
+                    <button type="submit" class="btn btn-success BoldMe" name="Command" value="Activate">Activate</button>
+                    <text>&nbsp; &nbsp;</text>
+                }
+            </div>
+        </div>
+    </div>
+}
+<script type="text/javascript">
+    $(document).ready(function () {
+        var buttonKeys = { "EnterKey": 13 };
+        $("#frmSubmit").keypress(function (e) {
+            if (e.which === buttonKeys.EnterKey) {
+                var defaultButtonId = $(this).attr("defaultbutton");
+                $("#" + defaultButtonId).click();
+                return false;
+            }
+            return true;
+        });
+
+        $("#frmSubmit").on('submit', function () {
+            var message = ValidateForm();
+            if (message.length > 1) {
+                alert(message);
+                return false;
+            }
+
+            return true;
+        });
+    });
+
+    function ValidateForm() {
+        var messages = [];
+        if ($('#txtType').val() === '') {
+            messages.push("Please Enter Provider Type Key...");
+        }
+        if ($('#txtName').val() === '') {
+            messages.push("Please Enter Name...");
+        }
+        return messages.join("\r\n");
+    }
+</script>

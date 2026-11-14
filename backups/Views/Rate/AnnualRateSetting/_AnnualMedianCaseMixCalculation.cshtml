@@ -1,0 +1,397 @@
+﻿@model WebPortal_OH_FI.Models.QualityCalculationListViewModel
+@{
+    string qualityCalculationTypeMedian = Model.QualityCalculationTypeEnum;
+}
+<style type="text/css">
+    .e-grid .e-pager .e-pagercontainer {
+        float: left;
+    }
+
+    .e-grid .e-pager .e-pager-itemsinterval {
+        float: left;
+    }
+
+    .e-pager-itemsinterval {
+        direction: rtl;
+        float: left;
+    }
+</style>
+<div style='width: 100%; font-weight: bold;'>
+    <div><h1>Annual Median Case Mix Calculation</h1></div>
+</div>
+<div>
+    <table>
+        <tr>
+            <td><b>Effective Date:</b></td>
+            <td>@Html.DropDownListFor(x => x.EffectiveDateList, (IEnumerable<SelectListItem>)Model.EffectiveDateList, "Select Effective Date", new { ID = "drpEffectiveDateList", @style = "width: 90%;", aria_label="Effective Date" })</td>
+            <td><input id="btnRemoveEffDate" value="Remove Effective Date" onclick="RemoveQualityDate()" type="submit" class="btn btn-success" /></td>
+            <td><input id="txtNewEffDate" title="Add New Effective Date" type="date" class="datefield" style="width: 165px;" aria-label="Add Effective Date" /></td>
+            <td><input id="btnAddNewYear" value="ADD New Date" onclick="AddQualityDate()" type="submit" class="btn btn-success" /></td>
+            <td><input id="btnProcess" value="Process" onclick="ProcessQualityCalculations()" type="submit" class="btn btn-success" /></td>
+        </tr>
+    </table>
+    <center>
+        <div id="tblGrid"></div>
+    </center>
+</div>
+
+<div id="SyncFusionScript">
+    <script src="@Url.AbsoluteContentUri("~/Scripts/ej/common/ej.unobtrusive.min.js")"></script>
+</div>
+
+<script type="text/javascript">
+    $(document).ready(function () {
+        $("#txtNewEffDate").val("");
+        $("#btnAddNewYear").prop("disabled", true);
+        var fiscalYearSelected = $('#drpEffectiveDateList option:selected').text();
+        // By setting to NOT NOT equaling "Select Effective Date", will include null values...
+        $("#btnRemoveEffDate").prop("disabled", !(fiscalYearSelected != "Select Effective Date"));
+        $("#btnProcess").prop("disabled", !(fiscalYearSelected != "Select Effective Date"));
+
+        $("#txtNewEffDate").change(function () {
+            var val = $('#txtNewEffDate').val();
+            if (val != "") {
+                let v = Date.parse(val);
+                if (v > Date.parse('1900-01-01')) $("#btnAddNewYear").prop("disabled", false);
+                else $("#btnAddNewYear").prop("disabled", true);
+            } else {
+                $("#btnAddNewYear").prop("disabled", true);
+            }
+        });
+
+        $('#tblGrid').hide();   // Hide grid when loading.
+
+        $("#drpEffectiveDateList").change(function () {
+            var qualityCalculationVal = $('#drpEffectiveDateList option:selected').val();
+            var qualityCalculationText = $('#drpEffectiveDateList option:selected').text();
+            var qualityCalculationTypeMedian = @Html.Raw(Json.Encode(qualityCalculationTypeMedian));
+
+            if (qualityCalculationText != "Select Effective Date") {
+                $("#btnRemoveEffDate").prop("disabled", false);
+                $("#btnProcess").prop("disabled", false);
+                LoadNotificationDialog("Loading").then(() => {
+                    return new Promise((resolve, reject) => {
+                        $.ajax({
+                            async: true,
+                            url: "@Url.AbsoluteAction("GetQualityCalculationInfo", "Rate")",
+                            data: JSON.stringify({ "qualityCalculationId": qualityCalculationVal, annualRateSettingEnum: qualityCalculationTypeMedian }),
+                            type: "POST",
+                            cache: false,
+                            contentType: "application/json;charset=utf-8",
+                            success: function (result) {
+                                if (!result.Success) return resolve();
+
+                                var cols = [];
+                                cols.push({ field: 'DatabaseLookupVariableId', headerText: 'PrimaryKeyID', isPrimaryKey: true, isIdentity: true, visible: false, allowEditing: false });
+                                cols.push({ field: 'DisplayName', headerText: 'Value Name', width: '50', validationRules: { required: true }, visible: true, allowEditing: false });
+                                cols.push({ field: 'Key', headerText: 'Key', width: '10', visible: false, allowEditing: false });
+                                cols.push({ field: 'Value', headerText: 'Value', width: '50', validationRules: { required: true }, visible: true, allowEditing: true });
+
+                                $("#tblGrid").ejGrid({
+                                    dataSource: result.QualityViewModel,
+                                    columns: cols,
+                                    toolbarSettings: {
+                                        showToolbar: true,
+                                        toolbarItems: [ej.Grid.ToolBarItems.Edit, ej.Grid.ToolBarItems.Update, ej.Grid.ToolBarItems.Cancel]
+                                    },
+                                    pageSettings: { pageSize: 5, pageSizeList: [5, 10, 15, 20] },
+                                    allowPaging: true,
+                                    enableRowHover: true,
+                                    allowSelection: true,
+                                    allowSorting: true,
+                                    allowTextWrap: true,
+                                    allowFiltering: true,
+                                    filterSettings: { filterType: 'Menu' },
+                                    editSettings: { allowEditing: true, allowAdding: true, allowDeleting: true, showDeleteConfirmDialog: true, editType: "batch" },
+                                    actionBegin: function (args) {
+                                        if (args.requestType == "save") {
+                                            //Add or Update
+                                            //********************** Local Store ************
+                                            // Use Localstorage to save the grid's "CurrentPageIndex" to reset it after Postback.
+                                            // Syncfusion Forum link for future reference:
+                                            // --https://www.syncfusion.com/forums/144600/retain-last-selected-row-and-page-in-grid-after-postback--
+                                            window.localStorage.removeItem("currentPageIndex");
+                                            window.localStorage.setItem("currentPageIndex", args.model.pageSettings.currentPage);
+                                            //*********************** Local Store ************
+
+                                            var fiscalYearSelected = $('#drpEffectiveDateList option:selected').text();
+                                            var gridObj = $("#tblGrid").ejGrid("instance");
+                                            var gridData = gridObj.model.dataSource;
+                                            var hasDuplicates = false;
+                                            for (var i = 0; i < gridData.length; i++) {
+                                                //check if the entered data is already present in the grid
+                                                if ((args.data['Value'] == gridData[i]['Value']) && ((args.data['DatabaseLookupVariableId'] == 'undefined') || (args.data['DatabaseLookupVariableId'] != gridData[i]['DatabaseLookupVariableId']))) {
+                                                    args.cancel = true;
+                                                    hasDuplicates = true;
+                                                    StaticAlert({ content: "Duplicate Provider Numbers have been entered, please correct" });
+                                                    break;
+                                                }
+                                            }
+                                            if (!hasDuplicates) {
+                                                $.ajax({
+                                                    async: true,
+                                                    url: "@Url.AbsoluteAction("SaveLookUpVariables", "Rate")",
+                                                    data: JSON.stringify({ annualRateSettingEnum: qualityCalculationTypeMedian, value: args.data, "fiscalYear": fiscalYearSelected }),
+                                                    type: "POST",
+                                                    contentType: "application/json;charset=utf-8",
+                                                    dataType: "json",
+                                                    success: function (response) {
+                                                        if (!response.Success) {
+                                                            window.localStorage.removeItem("currentPageIndex");
+                                                            StaticAlert({ content: "Error Saving Data" });
+                                                        }
+                                                        else {
+                                                            //Re-bind Grid Data
+                                                            var currentPageIndex = parseInt(window.localStorage.getItem("currentPageIndex"), 10);
+                                                            $("#tblGrid").ejGrid({
+                                                                dataSource: response.DatabaseLookupViewModel.DatabaseLookupGridViewModelList
+                                                            });
+                                                            $("#tblGrid").ejGrid({
+                                                                pageSettings: { currentPage: currentPageIndex },
+                                                            });
+                                                        }
+                                                    },
+                                                    error: function (errormessage) {
+                                                        StaticAlert({ content: errormessage.responseText || errormessage });
+                                                    }
+                                                });
+                                            }
+                                        }
+                                        else if (args.requestType == "delete") {
+                                            var fiscalYearSelected = $('#drpEffectiveDateList option:selected').text();
+                                            $.ajax({
+                                                async: true,
+                                                url: "@Url.AbsoluteAction("DeleteLookUpVariables", "Rate")",
+                                                data: JSON.stringify({ annualRateSettingEnum: qualityCalculationTypeMedian, value: args.data, "fiscalYear": fiscalYearSelected }),
+                                                type: "POST",
+                                                contentType: "application/json;charset=utf-8",
+                                                dataType: "json",
+                                                success: function (response) {
+                                                    if (!response.Success) {
+                                                        StaticAlert({ content: "Error Deleting Data" });
+                                                    }
+                                                    else {
+                                                        //Re-bind Grid Data
+                                                        $("#tblGrid").ejGrid("dataSource", response.DatabaseLookupViewModel.DatabaseLookupGridViewModelList);
+                                                        $("#tblGrid").show();
+                                                    }
+                                                },
+                                                error: function (errormessage) {
+                                                    StaticAlert({ content: errormessage.responseText || errormessage });
+                                                    args.cancel = true;
+                                                }
+                                            });
+                                        }
+                                    }
+                                });
+
+                                $("#tblGrid").show();
+                                resolve();
+                            },
+                            error: function (errormessage) {
+                                StaticAlert({ content: errormessage.responseText }).then(() => {
+                                    resolve();
+                                });
+                            }
+                        });
+                    });
+                }).then(() => {
+                    return ClearNotificationDialog();
+                });
+            }
+            else {
+                $('#tblGrid').hide();
+                $("#btnRemoveEffDate").prop("disabled", true);
+                $("#btnProcess").prop("disabled", true);
+            }
+        })
+    })
+
+    function AddQualityDate() {
+        var newEffectiveDate = $('#txtNewEffDate').val();
+        var qualityCalculationTypeMedian = @Html.Raw(Json.Encode(qualityCalculationTypeMedian));
+        return LoadNotificationDialog("Saving...").then(() => {
+            return new Promise((resolve, reject) => {
+                $.ajax({
+                    async: true,
+                    url: "@Url.AbsoluteAction("AddQualityDate", "Rate")",
+                    data: JSON.stringify({ "effectiveDate": newEffectiveDate, annualRateSettingEnum: qualityCalculationTypeMedian }),
+                    type: "POST",
+                    contentType: "application/json;charset=utf-8",
+                    dataType: "json",
+                    success: function (result) {
+                        if (!result.Success) {
+                            StaticAlert({ content: result.Message }).then(() => {
+                                $("#txtNewEffDate").val("");
+                                $("#btnAddNewYear").prop("disabled", true);
+
+                                resolve();
+                            });
+                        }
+                        else {
+                            $("#txtNewEffDate").val("");
+                            $("#btnAddNewYear").prop("disabled", true);
+
+                            var ddl = $('#drpEffectiveDateList');
+                            ddl.empty();
+                            $(document.createElement('option'))
+                                .attr('value', '')
+                                .text('Select Effective Date')
+                                .appendTo(ddl);
+
+                            //Check if drop down list is empty
+                            if (result.QualityViewModel.EffectiveDateList.length == 0) {
+                                // Load Grid
+                                $("#drpEffectiveDateList option").filter(function () {
+                                    return this.text == 'Select Effective Date';
+                                }).attr('selected', true).trigger('change');
+                            }
+                            else {
+                                $(result.QualityViewModel.EffectiveDateList).each(function () {
+                                    $(document.createElement('option'))
+                                        .attr('value', this.Value)
+                                        .text(this.Text)
+                                        .appendTo(ddl);
+                                });
+
+                                // Load Grid
+                                $("#drpEffectiveDateList option").filter(function () {
+                                    return this.text == newEffectiveDate;
+                                }).attr('selected', true).trigger('change');
+                            }
+                            resolve();
+                        }
+                    },
+                    error: function (errormessage) {
+                        StaticAlert({ content: errormessage.responseText }).then(() => {
+                            resolve();
+                        });
+                    }
+                });
+            });
+        }).then(() => {
+            return ClearNotificationDialog();
+        });
+}
+
+    function RemoveQualityDate() {
+        var newEffectiveDate = $('#txtNewEffDate').val();
+        return StaticConfirm({
+            title: "Delete Confirm",
+            content: "Are you sure you want to Delete?",
+            buttons: ["Ok", "Cancel"]
+        }).then((key) => {
+            if (key != 0) return;
+
+            var qualityCalculationVal = $('#drpEffectiveDateList option:selected').val();
+             var qualityCalculationTypeMedian = @Html.Raw(Json.Encode(qualityCalculationTypeMedian));
+
+            return LoadNotificationDialog("Deleting...").then(() => {
+                return new Promise((resolve, reject) => {
+                    $.ajax({
+                        async: true,
+                        url: "@Url.AbsoluteAction("DeleteQualityDate", "Rate")",
+                        data: JSON.stringify({ "qualityCalculationId": qualityCalculationVal, annualRateSettingEnum: qualityCalculationTypeMedian }),
+                        type: "POST",
+                        contentType: "application/json;charset=utf-8",
+                        dataType: "json",
+                        success: function (result) {
+                            if (!result.Success) {
+                                StaticAlert({ content: result.Message }).then(() => {
+                                    resolve();
+                                });
+                            }
+                            else {
+                                $("#btnRemoveEffDate").prop("disabled", true);
+
+                                var ddl = $('#drpEffectiveDateList');
+                                ddl.empty();
+                                $(document.createElement('option'))
+                                    .attr('value', 'Select Effective Date')
+                                    .text('Select Effective Date')
+                                    .appendTo(ddl);
+
+                                if (result.QualityViewModel.EffectiveDateList.length == 0) {
+                                    // Load Grid
+                                    $("#drpEffectiveDateList option").filter(function () {
+                                        return this.text == 'Select Effective Date';
+                                    }).attr('selected', true).trigger('change');
+                                }
+                                else {
+                                    $(result.QualityViewModel.EffectiveDateList).each(function () {
+                                        $(document.createElement('option'))
+                                            .attr('value', this.Value)
+                                            .text(this.Text)
+                                            .appendTo(ddl);
+                                    });
+
+                                    // Load Grid
+                                    $("#drpEffectiveDateList option").filter(function () {
+                                        return this.text == newEffectiveDate;
+                                    }).attr('selected', true).trigger('change');
+                                }
+
+                                resolve();
+                            }
+                        },
+                        error: function (errormessage) {
+                            StaticAlert({ content: errormessage.responseText }).then(() => {
+                                resolve();
+                            });
+                        }
+                    });
+                });
+            }).then(() => {
+                return ClearNotificationDialog();
+            });
+        });
+    }
+
+    function ProcessQualityCalculations() {
+        return StaticConfirm({
+            title: "Median Case Mix Calculation Operation",
+            content: "Processing ALL provider CMIs for this effective date may take some time; continue?",
+            buttons: ["Ok", "Cancel"]
+        }).then((response) => {
+            if (response != 0) return;
+
+            var qualityCalculationText = $('#drpEffectiveDateList option:selected').text();
+            var qualityCalculationVal = $('#drpEffectiveDateList option:selected').val();
+            var qualityCalculationTypeEnumMedian = @Html.Raw(Json.Encode(qualityCalculationTypeMedian));
+
+            return LoadNotificationDialog("Calculating for Effective Date " + qualityCalculationText).then(() => {
+                return new Promise((resolve, reject) => {
+                    $.ajax({
+                        url: "@Url.AbsoluteAction("ProcessQualityCalculations", "Rate")",
+                        data: JSON.stringify({ "qualityCalculationId": qualityCalculationVal, annualRateSettingEnum: qualityCalculationTypeEnumMedian }),
+                        type: "POST",
+                        contentType: "application/json;charset=utf-8",
+                        dataType: "json",
+                        success: function (result) {
+                            $("#drpEffectiveDateList option").filter(function () {
+                                return this.text == qualityCalculationText;
+                            }).attr('selected', true).trigger('change');    // This will reload the grid.
+
+                            if (!result.Success && result.Message != "") {
+                                StaticAlert({ content: result.Message }).then(() => {
+                                    resolve();
+                                });
+                            }
+                            else {
+                                resolve();
+                            }
+                        },
+                        error: function (errormessage) {
+                            StaticAlert({ content: errormessage.Message }).then(() => {
+                                resolve();
+                            });
+                        }
+                    });
+                });
+            }).then(() => {
+                return ClearNotificationDialog();
+            });
+        });
+    }
+</script>
+

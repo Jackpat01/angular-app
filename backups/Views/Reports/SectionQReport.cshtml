@@ -1,0 +1,140 @@
+﻿@using MSLC.Portal.MVC.Utility
+@using WebPortal_OH_FI.Models.ViewModels
+@using System.Linq
+@using Microsoft.EntityFrameworkCore.Internal
+@model WebPortal_OH_FI.Models.ViewModels.SectionQReportViewModel.View
+@{
+	ViewBag.Title = "MDSReport";
+	Layout = "~/Views/Shared/_LayoutWithMenu.cshtml";
+	Func<object, object> template = e => "<p id='pageMessage' style='display:none;overflow:auto;height:200px;width:350px;'>This is a dialog.</p>";
+}
+@Html.Script("~/Scripts/Pages/Reports/SectionQReport.js", "jquery")
+
+<h2>Section Q Report</h2>
+<hr />
+
+@(Html.EJ()
+	.Dialog("pageDialog")
+	.Title("Report Generation")
+	.ShowOnInit(false)
+	.EnableResize(false)
+	.ContentTemplate(template))
+
+@if (TempData["Message"] != null && !string.IsNullOrEmpty(TempData["Message"].ToString()))
+{
+	<br />
+	<br />
+	<center>
+		<div class="errorLabel">
+			@Html.Raw(TempData["Message"].ToString())
+		</div>
+	</center>
+}
+else
+{
+	<script src="@Url.AbsoluteContent("~/Scripts/jszip.min.js?vs=5")"></script>
+	<div id="SectionQReportURL" data-url="@Url.AbsoluteAction("GenerateSectionQReport", "Reports")"></div>
+	<div id="ReportSuccessURL" data-url="@Url.AbsoluteAction("SectionQReportJobs", "BulkProcessing")"></div>
+	
+	<div style="padding-left: 15px; margin-top: 8px; margin-bottom: 12px; width: 65%; margin-left: auto; margin-right: auto;" class="ui-tabs ui-widget ui-widget-content ui-corner-all">
+		<table>
+			<tbody>
+				<tr id="ReportVersionRow" style="display: none">
+					<td><label for="ddlReportVersion">Choose Report Version:</label></td>
+					<td>@Html.DropDownListFor(x => x.ReportVersion, Model.ReportVersionList, "Select...", new { id = "ddlReportVersion", onchange = "ddlReportVersionOnChange('this')", style = "width: 375px;" })</td>
+				</tr>
+
+				<tr id="ReportTypeRow" style="display: none">
+					<td><label for="ddlReportType">Choose ReportType:</label></td>
+					<td>@Html.DropDownListFor(x => x.ReportType, Model.ReportTypeList, "Select...", new { id = "ddlReportType", onchange = "ddlReportTypeOnChange('this')", style = "width: 375px;" })</td>
+				</tr>
+
+				<tr id="CLSProviderGroupingRow" style="display: none">
+					<td><label for="ddlCLSProviderGrouping">Choose CLS Provider Grouping:</label></td>
+					<td>@Html.DropDownListFor(x => x.CLSProvGrouping, Model.CLSProvGroupingList, "Select...", new { id = "ddlCLSProviderGrouping", onchange = "ddlCLSProviderGroupingOnChange('this')", style = "width: 375px;" })</td>
+				</tr>
+
+				<tr id="EndingDateRow" style="display: none">
+					<td><label for="EndingDate">Ending Date</label>:</td>
+					<td>
+						<div style="margin: 4px 6px;">
+							@(Html.EJ().DatePicker("EndingDate")
+								.Value(Model.EndingDate)
+								.DateFormat("M/d/yyyy")
+								.WatermarkText("Ending Date"))
+						</div>
+					</td>
+				</tr>
+
+
+				@*<tr id="SelectProvidersRow" style="display: none">
+						<td colspan="2">
+							<div class="d-flex my-1">
+								<div>
+									<button class="btn btn-success BoldMe mr-1" onclick="SelectAllProviders()">Select All Providers</button>
+								</div>
+								<div>
+									<button class="btn btn-success BoldMe mx-1" onclick="SelectAllFilteredProviders()">Select All Filtered Providers</button>
+								</div>
+								<div>
+									<button class="btn btn-success BoldMe mx-1" onclick="DeselectAllProviders()">Deselect All Providers</button>
+								</div>
+							</div>
+							@(Html.EJ().Grid<object>("providerIDGrid")
+									.CssClass("mslcTable")
+									.Datasource(Model.providerList)
+									.AllowPaging()
+									.Locale("en-US")
+									.EnableRowHover(true)
+									.AllowFiltering()
+									.AllowSearching()
+									.AllowSorting()
+									.ToolbarSettings(toolbar =>
+									{
+										toolbar.ShowToolbar().ToolbarItems(items =>
+										{
+											items.AddTool(ToolBarItems.Search);
+										});
+									})
+									.PageSettings(p =>
+									{
+										p.PageSize(10);
+										p.PageSizeList(new List<int>() { 10, 25, 50, 100});
+									})
+									.TextWrapSettings(wrap => { wrap.WrapMode(WrapMode.Both); })
+									.FilterSettings(filter =>
+									{
+										filter.FilterType(FilterType.Menu);
+										filter.ShowPredicate(false);
+									})
+									.Columns(col =>
+									{
+										col.Field("Name").HeaderText("Name").TextAlign(TextAlign.Left).Width(14).CssClass("noWrap").Add();
+										col.Field("Number").HeaderText("Number").TextAlign(TextAlign.Left).Width(14).CssClass("noWrap").Add();
+										col.Template("#providerSelector").HeaderText("Selected").TextAlign(TextAlign.Center).Width(6).Add();
+									})
+									.ClientSideEvents(events =>
+									{
+										events.TemplateRefresh("loadIcons");
+										events.Load("DateStrings");
+									}))
+							<script id="providerSelector" type="text/x-template">
+								<input type="checkbox" {{if checked}} checked {{/if}} onclick="toggleProvider('{{:ARUMProviderID}}', '{{:checked}}')" />
+							</script>
+						</td>
+					</tr>*@
+			</tbody>
+		</table>
+		<div id="RunReportButtons" style="display: none">
+			<div class="d-flex justify-content-around">
+				<div>
+					<input id="btnSubmit" type="submit" onclick="GetReport()" class="btn btn-success m-2" value="Run Report">
+					<img id="dvLoading" class="hide align-self-end" src="~/Images/loading.gif" alt="Loading" width="48" height="48" />
+				</div>
+			</div>
+		</div>
+	</div>
+	<div id="SyncFusionScript">
+		<script src="@Url.AbsoluteContent("~/Scripts/ej/common/ej.unobtrusive.min.js")"></script>
+	</div>
+}

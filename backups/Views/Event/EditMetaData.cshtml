@@ -1,0 +1,117 @@
+﻿@*
+    DO NOT MODIFY OUTSIDE OF MSLC.STATLOG
+    This file comes from MSLC.Statlog, any changes to it will be wiped out when the nuget package is updated.
+    Please make the appropriate enhancements to MSLC.Statlog instead of here.
+*@
+
+@using MSLC.Portal.MVC.Utility
+@using MSLC.StatLog.MVC.MVC
+@using MSLC.StatLog.MVC.ViewModels
+@using MSLC.StatLog.Configuration
+@using MSLC.StatLog.Domain
+@using MSLC.StatLog.BL.Email
+@model MSLC.StatLog.MVC.ViewModels.EventViewModel.Metadata
+@{
+    Layout = null;
+}
+
+<script src="~/Scripts/jquery.validate.js" type="text/javascript"></script>
+<script src="~/Scripts/jquery.validate.unobtrusive.js" type="text/javascript"></script>
+<link href="~/Content/south-street/jquery-ui-1.9.2.custom.min.css" rel="stylesheet" />
+
+
+<script src="~/Scripts/jHtmlArea-0.8.js" type="text/javascript"></script> @*Used for editing bulletin boards*@
+<script src="~/Scripts/jHtmlArea.ColorPickerMenu-0.8.js" type="text/javascript"></script> @*Used for editing bulletin boards*@
+
+<link href="~/Content/jHtmlArea/jHtmlArea.ColorPickerMenu.css" rel="stylesheet" type="text/css" />
+<link href="~/Content/jHtmlArea/jHtmlArea.css" rel="stylesheet" type="text/css" />
+<link href="~/Content/jHtmlArea/jHtmlArea.Editor.css" rel="stylesheet" type="text/css" />
+@Html.Script("~/Scripts/Pages/Event/Edit.js", "jquery")
+<script src="@Url.AbsoluteContent("~/Scripts/Pages/Event/EditMetadata.js")"></script>
+@using (Html.BeginForm("SaveMetaData", "Event", FormMethod.Post, new { id = "frmSubmit", enctype = "multipart/form-data", @class = "modal-form", defaultbutton = "btnSave" }))
+{
+    @Html.AntiForgeryToken()
+    @Html.HiddenFor(m => m.sEventID)
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3 id="myModalLabel" style="text-align: left;">
+                Edit Metadata Options
+            </h3>
+            <button href="#" class="close" data-dismiss="modal">&times;</button>
+        </div>
+        <div class="modal-body">
+            <div class="d-flex flex-column">
+                <div id="dvMetadataVersionsURL" data-url="@Url.AbsoluteAction("GetVersionsFromName", "Metadata")"></div>
+                @Html.HiddenFor(m => m.MetadataIDList)
+                <div class="d-flex flex-row justify-content-between">
+                    <div>
+                        @Html.DropDownList("MetadataNameDLL", Model.MetadataNamesDropdown, "Select Schema", new { onchange = "MetadataNameChange()", aria_label = "Select Schema" })
+
+                    </div>
+                    <div>
+                        @Html.DropDownList("MetadataVersionDDL", new List<SelectListItem>(), "Select Version", new { onchange = "MetadataVersionChange()", disabled = "", aria_label = "Select Version" })
+
+                    </div>
+                    <div class="button-box">
+                        <button id="MetadataAddBtn" onclick="return addMetadata()" class="btn btn-kyBlue BoldMe" disabled="">Add Selected Metadata</button>
+                    </div>
+                </div>
+                <div>
+                    @(Html.EJ().Grid<MetadataViewModel.SelectList>("tblMetadata")
+                    .CssClass("mslcTable")
+                    .Datasource(Model.MetadataSelectList)
+                    .AllowPaging()
+                    .EnableRowHover(true)
+                    .AllowSelection(false)
+                    .AllowSorting(true)
+                    .AllowFiltering(true)
+                    .AllowTextWrap(true)
+                    .TextWrapSettings(wrap => { wrap.WrapMode(WrapMode.Both); })
+                    .FilterSettings(filter =>
+                    {
+                        filter.FilterType(FilterType.Menu);
+                        filter.ShowPredicate(false);
+                    })
+
+                    .ToolbarSettings(toolbar =>
+                    {
+                        toolbar.ShowToolbar().ToolbarItems(items =>
+                        {
+                            items.AddTool(ToolBarItems.Search);
+                        });
+                    })
+                    .Columns(col =>
+                    {
+                        col.Template("#removeMetadata").HeaderText("Remove").CssClass("icon").TextAlign(TextAlign.Center).Width(10).Add();
+                        col.Field(e => e.ID).HeaderText("ID").TextAlign(TextAlign.Center).Width(30).Add();
+                        col.Field(e => e.Name).HeaderText("Name").TextAlign(TextAlign.Center).Width(30).Add();
+                        col.Field(e => e.VersionNumber).HeaderText("Version Number").TextAlign(TextAlign.Center).Width(30).Add();
+                    })
+                    .ClientSideEvents(events =>
+                    {
+                        events.TemplateRefresh("loadIcons");
+                    }))
+                    <script id="removeMetadata" type="text/x-template">
+                        <a onclick="RemoveSelectedMetadata('{{:ID}}')">
+                            <i data-feather="trash"></i>
+                        </a>
+                    </script>
+                </div>
+            </div>
+        </div>
+
+        <div class="modal-footer mslcModalFooter" id="dvFooter" style="text-align: left !important;">
+            <div class="myImage" style="display: none; text-align: center;">
+                <img src="~/Images/loading.gif" alt="Loading" width="32" height="32" />
+            </div>
+            <div class="myControls">
+                <button id="btnClose" class="btn btn-basic BoldMe" data-dismiss="modal" aria-hidden="true">Close</button>&nbsp;&nbsp;
+                <button id="btnSave" type="submit" class="btn btn-success BoldMe" name="Command" value="Save">Save</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="SyncFusionScript">
+        <script src="@Url.AbsoluteContent("~/Scripts/ej/common/ej.unobtrusive.min.js")"></script>
+    </div>
+}

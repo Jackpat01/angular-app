@@ -1,0 +1,190 @@
+﻿@*
+    DO NOT MODIFY OUTSIDE OF MSLC.STATLOG
+    This file comes from MSLC.Statlog, any changes to it will be wiped out when the nuget package is updated.
+    Please make the appropriate enhancements to MSLC.Statlog instead of here.
+*@
+
+@Styles.Render("~/Content/StatLog.css")
+@using MSLC.Portal.Configuration
+@using MSLC.Portal.MVC.Utility
+@using MSLC.StatLog.Configuration
+@model MSLC.StatLog.MVC.ViewModels.EditStatLogViewModel.View
+@Html.Script("~/Scripts/Pages/StatLog/CreateStatLog.js", "jquery")
+@{
+    Layout = null;
+}
+
+<style>
+    .float-container {
+        padding: 20px;
+    }
+
+    .float-child {
+        width: 50%;
+        float: left;
+        padding: 20px;
+    }
+</style>
+
+<div id="dvValidateStatlog" data-url="@Url.AbsoluteAction("StatlogValidation","StatLog")"></div>
+
+@using (Html.BeginForm("SaveStatLog", "StatLog", FormMethod.Post, new { id = "frmSubmit", enctype = "multipart/form-data", @class = "modal-form" }))
+{
+    @Html.AntiForgeryToken()
+    @Html.Hidden("AuditTypeReplacementName", PortalConfiguration.AuditTypeReplacementName)
+    @Html.HiddenFor(m => m.HideDueDateField, new { id = "hdnHideDueDateField" })
+    @Html.HiddenFor(m => m.sARUMProviderID)
+    @Html.HiddenFor(m => m.sCostReportID)
+    <div class="modal-content">
+        <div class="modal-header">
+
+            @if (String.IsNullOrWhiteSpace(Model.sCostReportID))
+            {
+                <h3 id="myModalLabel" style="text-align: left;">
+                    Create New Stat Log
+                </h3>
+            }
+            else
+            {
+                <h3 id="myModalLabel" style="text-align: left;">
+                    Edit Stat Log
+                </h3>
+            }
+
+            <button href="#" class="close" data-dismiss="modal">&times;</button>
+        </div>
+        <div class="modal-body">
+            <table style="width: 100%;">
+                <tr>
+                    @if (!String.IsNullOrEmpty(Model.ProviderPrimaryIdentifierType))
+                    {
+                        <td width="30%" valign="top" align="right">
+                            @Model.ProviderPrimaryIdentifierType
+                            :
+                        </td>
+                        <td width="65%" align="left">
+                            @Model.ProviderPrimaryIentifier
+                        </td>
+                    }
+                    else
+                    {
+                        <td width="30%" valign="top" align="right">
+                            MCAID:
+                        </td>
+                        <td width="65%" align="left">
+                            @Model.ProviderPrimaryIentifier
+                        </td>
+                    }
+                </tr>
+                <tr>
+                    <td width="30%" valign="top" align="right">Provider Name:</td>
+                    <td width="65%" align="left">
+                        @Model.ProviderName
+                    </td>
+                </tr>
+                @if (Model.ProviderTypes.Count == 1)
+                {
+                    @Html.HiddenFor(m => m.ProviderType)
+                }
+                else
+                {
+                    <tr>
+                        <td width="30%" valign="top" align="right">
+                            <label for="ProviderType_hidden">Provider Type:</label>
+                        </td>
+                        <td width="65%" align="left">
+                            @(Html.EJ().DropDownList("ProviderType")
+                                .Datasource(Model.ProviderTypes.ToList())
+                                .DropDownListFields(df => df.ID("ProvType1").Text("Name").Value("ProvType1"))
+                                .SelectedIndex(Model.ProviderType == null ? -1 : Model.ProviderTypes.FindIndex(t => t.ProvType1.Trim() == Model.ProviderType.Trim()))
+                                .Width("300px")
+                                .WatermarkText("Select Provider Type")
+                                )
+                        </td>
+                    </tr>
+                }
+                <tr>
+                    <td width="30%" valign="top" align="right">
+                        <label for="AuditType_hidden">@PortalConfiguration.AuditTypeReplacementName:</label>
+                    </td>
+                    <td width="65%" align="left">
+                        @(Html.EJ().DropDownList("AuditType")
+                        .Datasource(Model.AuditTypes.ToList())
+                        .DropDownListFields(df => df.ID("AuditType").Text("Name").Value("AuditType"))
+                        .SelectedIndex(Model.AuditType == null ? -1 : Model.AuditTypes.FindIndex(t => t.AuditType.Trim() == Model.AuditType.Trim()))
+                        .Width("300px")
+                        .WatermarkText("Select " + @PortalConfiguration.AuditTypeReplacementName)
+                        .ClientSideEvents(e => e.Change("AuditTypeChange"))
+                        )
+                    </td>
+                </tr>
+                <tr>
+                    <td width="30%" valign="top" align="right">Notes:</td>
+                    <td width="65%" align="left">
+                        @Html.TextAreaFor(x => x.Notes, 5, 1, new { id = "txtNotes", @style = "width: 95% !important;", maxLength = 1000, aria_label="Notes" })
+                    </td>
+                </tr>
+                <tr>
+                    <td width="30%" valign="top" align="right">Begin Date:</td>
+                    <td width="65%" align="left">
+                        @Html.TextBoxFor(x => x.BeginDate, "{0:MM/dd/yyyy}", new { ID = "txtBeginDate", @class = "datefield", type = "text", @style = "width: 100px", aria_label="Begin Date" })
+                    </td>
+                </tr>
+                <tr>
+                    <td width="30%" valign="top" align="right">End Date:</td>
+                    <td width="65%" align="left">
+                        @Html.TextBoxFor(x => x.EndDate, "{0:MM/dd/yyyy}", new { ID = "txtEndDate", @class = "datefield", type = "text", @style = "width: 100px", aria_label="End Date" })
+                    </td>
+                </tr>
+                @if (!Model.HideDueDateField)
+                {
+                    <tr>
+                        <td width="30%" valign="top" align="right">Due Date:</td>
+                        <td width="65%" align="left">
+                            @Html.TextBoxFor(x => x.DueDate, "{0:MM/dd/yyyy}", new { ID = "txtDueDate", @class = "datefield", type = "text", @style = "width: 100px", aria_label="Due Date" })
+                        </td>
+                    </tr>
+                }
+                else
+                {
+                    @Html.HiddenFor(m => m.DueDate, new { id = "txtDueDate" })
+                }
+            </table>
+        </div>
+
+        <br />
+        <center>
+            <div ID="ErrorMessage" class="errorLabel" style="display:none"></div>
+            <div ID="TimeClock" class="myImage" style="display: none; text-align: center;">
+                <img src="~/Images/loading.gif" alt="Loading" width="32" height="32" />
+            </div>
+        </center>
+        <br />
+
+        <div class="modal-footer mslcModalFooter" id="dvFooter" style="text-align: left !important;">
+            <div class="myControls">
+                <button id="btnSaveWithWarnings" type="button" class="btn btn-success BoldMe" style="visibility: hidden;">Save with Warnings</button>
+                @if (!string.IsNullOrEmpty(Model.sCostReportID))
+                {
+                    if (StatLogConfiguration.CanHide(RetrieveSession.UserRoles))
+                    {
+                        if (Model.IsActive)
+                        {
+                            <button type="submit" class="btn btn-danger BoldMe" name="Command" value="Deactivate">Hide Stat Log</button>
+                        }
+                        else
+                        {
+                            <button id="btnActivate" type="button" class="btn btn-success BoldMe">Show Stat Log</button>
+
+                        }
+                    }
+                }
+                <button id="btnClose" class="btn btn-basic BoldMe" data-dismiss="modal" aria-hidden="true">Close</button>
+                <button id="btnSave" type="button" class="btn btn-success BoldMe">Save</button>
+            </div>
+        </div>
+    </div>
+}
+<div id="SyncFusionScript">
+    <script src="@Url.AbsoluteContent("~/Scripts/ej/common/ej.unobtrusive.min.js")"></script>
+</div>

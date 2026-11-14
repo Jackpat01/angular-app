@@ -1,0 +1,113 @@
+﻿@*
+    DO NOT MODIFY OUTSIDE OF MSLC.STATLOG
+    This file comes from MSLC.Statlog, any changes to it will be wiped out when the nuget package is updated.
+    Please make the appropriate enhancements to MSLC.Statlog instead of here.
+*@
+
+@Styles.Render("~/Content/StatLog.css")
+@using MSLC.Portal.MVC.Utility
+@model MSLC.StatLog.MVC.ViewModels.EditEventDateViewModel.View
+@Html.Script("~/Scripts/Pages/StatLog/EditEventDate.js", "jquery")
+@{
+    Layout = null;
+}
+@using (Html.BeginForm("SaveEventDates", "StatLog", FormMethod.Post, new { id = "frmSubmit", enctype = "multipart/form-data", @class = "modal-form", defaultbutton = "btnSave" }))
+{
+    @Html.AntiForgeryToken()
+    @Html.HiddenFor(m => m.sHistoryID)
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3 id="myModalLabel" style="text-align: left;">
+                Edit @Model.InitialEventName Date(s) - @Model.providerName
+            </h3>
+            <button href="#" class="close" data-dismiss="modal">&times;</button>
+        </div>
+
+        @if (Model.canEditDueDate)
+        {
+            <div class="modal-body">
+                <table style="width: 100%;">
+                    <tr>
+                        <td width="30%" valign="top" align="right">
+                            <label for="oldDueDate">Previous Due Date:</label>
+                        </td>
+                        <td width="65%" align="left">
+                            @Html.TextBoxFor(x => x.oldDueDate, "{0:MM/dd/yyyy}", new { disabled = "", @class = "datefield", type = "text", @style = "width: 100px" })
+                        </td>
+                    </tr>
+                    <tr>
+                        <td width="30%" valign="top" align="right">
+                            <label for="newDueDate">Due Date:</label>
+                        </td>
+                        <td width="65%" align="left">
+                            @Html.TextBoxFor(x => x.newDueDate, "{0:MM/dd/yyyy}", new { @class = "datefield", type = "text", @style = "width: 100px" })
+                            <div style="color: #C83C3C">Cannot change Due Date to Blank.</div>
+                            <div id="DueDateValidationMessage" style="color: #C83C3C">Due Date is not a valid date.</div>
+                        </td>
+                    </tr>
+                </table>
+            </div>
+        }
+
+        @if (Model.canEditResponseDate)
+        {
+            <div class="modal-body">
+                <table style="width: 100%;">
+                    <tr>
+                        <td width="30%" valign="top" align="right">
+                            <label for="oldResponseDate">Previous Response Date:</label>
+                        </td>
+                        <td width="65%" align="left">
+                            @Html.TextBoxFor(x => x.oldResponseDate, "{0:MM/dd/yyyy}", new { disabled = "", @class = "datefield", type = "text", @style = "width: 100px" })
+                        </td>
+                    </tr>
+                    <tr>
+                        <td width="30%" valign="top" align="right">
+                            <label for="newResponseDate">Response Date:</label>
+                        </td>
+                        <td width="65%" align="left">
+                            @Html.TextBoxFor(x => x.newResponseDate, "{0:MM/dd/yyyy}", new { @class = "datefield", type = "text", @style = "width: 100px" })
+                        </td>
+                    </tr>
+                </table>
+            </div>
+        }
+
+        @if (Model.canEditEventDate)
+        {
+            <div class="modal-body">
+                <table style="width: 100%;">
+                    <tr>
+                        <td width="30%" valign="top" align="right">
+                            <label for="oldEventDate">Previous Event Date:</label>
+                        </td>
+                        <td width="65%" align="left">
+                            @Html.TextBoxFor(x => x.oldEventDate, "{0:MM/dd/yyyy}", new { disabled = "", @class = "datefield", type = "text", @style = "width: 100px" })
+                        </td>
+                    </tr>
+                    <tr>
+                        <td width="30%" valign="top" align="right">
+                            <label for="newEventDate">Event Date:</label>
+                        </td>
+                        <td width="65%" align="left">
+                            @Html.TextBoxFor(x => x.newEventDate, "{0:MM/dd/yyyy}", new { @class = "datefield", type = "text", @style = "width: 100px" })
+                        </td>
+                    </tr>
+                </table>
+            </div>
+        }
+
+        <div class="modal-footer mslcModalFooter" id="dvFooter" style="text-align: left !important;">
+            <div class="myImage" style="display: none; text-align: center;">
+                <img src="~/Images/loading.gif" alt="Loading" width="32" height="32" />
+            </div>
+            <div class="myControls">
+                <button id="btnClose" class="btn btn-basic BoldMe" data-dismiss="modal" aria-hidden="true">Close</button>&nbsp;&nbsp;
+                <button id="btnSave" type="submit" class="btn btn-success BoldMe" name="Command" value="Save">Save</button>
+            </div>
+        </div>
+    </div>
+}
+<div id="SyncFusionScript">
+    <script src="@Url.AbsoluteContent("~/Scripts/ej/common/ej.unobtrusive.min.js")"></script>
+</div>

@@ -1,0 +1,72 @@
+﻿@*
+    DO NOT MODIFY OUTSIDE OF MSLC.STATLOG
+    This file comes from MSLC.Statlog, any changes to it will be wiped out when the nuget package is updated.
+    Please make the appropriate enhancements to MSLC.Statlog instead of here.
+*@
+
+@Styles.Render("~/Content/StatLog.css")
+@model MSLC.StatLog.MVC.ViewModels.WebControlsUploadModel
+@{
+    Layout = null;
+}
+
+
+
+@using (Html.BeginForm("PreviewWebControls", "Event", FormMethod.Post, new { enctype = "multipart/form-data", @class = "modal-form" }))
+{
+    @Html.AntiForgeryToken()
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3>Upload Web Control Report</h3>
+            <button href="#" class="close" data-dismiss="modal">&times;</button>
+        </div>
+
+        <div class="text-center row mt-2">
+            <div style="width: 24%"></div>
+            <div class="d-inline" style="width: 20%">
+                <label class="btn btn-kyBlue" role="button" aria-label="Browse Files">
+                    @Html.TextBoxFor(m => m.fileUpload,
+                                        null,
+                                        new
+                                             {
+                                            id = "file-upload",
+                                            type = "file",
+                                            name = "fileUpload",
+                                            @class = "d-none",
+                                            onchange = "showFileName(this, 'fileName')"
+                                        })
+                    Browse
+                </label>
+            </div>
+            <input class="my-1 d-inline" type="text" id="fileName" disabled aria-label="File Name" />
+        </div>
+
+        <div class="text-center">
+            <label style="width: 20%" for="dateUploaded">Date Uploaded</label>
+            <input class="mx-auto my-1" type="datetime" disabled value=@Model.uploadDate id="dateUploaded" />
+        </div>
+        <div class="text-center">
+            <label style="width: 20%" for="userName">Uploaded By</label>
+            <input class="mx-auto my-1" type="text" disabled value="@Model.userName" id="userName" />
+        </div>
+        <div class="mt-3 text-center">
+            <span class="my-2">Identify Events By</span>
+            <div>
+                <label for="idBtn">ID</label>
+                <input type="radio" name="selector" id="idBtn" value="ID" onclick="toggleBtn('nameBtn')" checked />
+                <label class="ml-4" for="nameBtn">Event Name</label>
+                <input type="radio" name="selector" id="nameBtn" value="Name" onclick="toggleBtn('idBtn')" />
+            </div>
+        </div>
+
+        <input class="btn btn-kyBlue mx-auto my-4" type="submit" value="Preview Changes" />
+    </div>
+
+}
+
+<script type="text/javascript">
+    function showFileName(fileInput, displayId) {
+        var display = document.getElementById(displayId);
+        display.value = fileInput.files[0].name;
+    }
+</script>

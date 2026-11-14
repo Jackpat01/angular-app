@@ -1,9 +1,9 @@
-import {Injectable} from '@angular/core';
+import {inject, Injectable} from '@angular/core';
 import {BehaviorSubject, firstValueFrom, Observable, of} from 'rxjs';
 import {ApiService} from './api';
-import {PortalConfig} from '../../models/portal-config';
 import {catchError, map} from 'rxjs/operators';
 import {Classification} from '../models/Classification';
+import {PortalConfig} from '../models/portal-config';
 
 @Injectable({
   providedIn: 'root',
@@ -13,13 +13,17 @@ export class PortalConfigService {
     WebPortalTitle: 'OMES Cost Report and Rate Setting',
     applicationName: 'OMES Cost Report and Rate Setting',
     loginMessageHyperLink: 'https://myersandstauffer.com/wp-content/uploads/2021/09/ExternalLoginMessage.txt',
-    loginSessionKey: 'ClassificationSession'
+    loginSessionKey: 'ClassificationSession',
+    classificationReplacementTerm: '',
+    allClassifications: [],
+    enableBB: false
   };
 
+  private apiService=inject(ApiService);
   private configSubject = new BehaviorSubject<PortalConfig>(this.defaultConfig);
   config$ = this.configSubject.asObservable();
 
-  constructor(private apiService: ApiService) {
+  constructor() {
     this.loadConfig();
   }
 
@@ -30,6 +34,9 @@ export class PortalConfigService {
     return this.configSubject.value;
   }
 
+  enableBB():boolean {
+    return this.configSubject.value.enableBB;
+  }
   /**
    * Get the application name from config
    */
@@ -42,10 +49,12 @@ export class PortalConfigService {
   }
 
   getClassificationReplacementTerm(): string {
+    return this.configSubject.value.classificationReplacementTerm;
 
   }
 
   getAllClassifications(): Classification[] {
+    return this.configSubject.value.allClassifications;
   }
 
   async retrieveLoginMessage(): Promise<string[]> {

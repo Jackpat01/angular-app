@@ -1,0 +1,36 @@
+﻿@*
+    DO NOT MODIFY OUTSIDE OF MSLC.STATLOG
+    This file comes from MSLC.Statlog, any changes to it will be wiped out when the nuget package is updated.
+    Please make the appropriate enhancements to MSLC.Statlog instead of here.
+*@
+
+@using MSLC.Portal.MVC.Utility
+@using MSLC.StatLog.Configuration;
+@model MSLC.StatLog.MVC.ViewModels.EventViewModel.Manage
+
+<div class="d-flex flex-column">
+    <hr class="m-0" />
+    <div class="row m-2">
+        <div class="col-2">
+            Enable User Assignment:
+        </div>
+        <div class="col-9">
+            @Model.AssignInit
+        </div>
+    </div>
+    <div class="row m-2">
+        <div class="col-2">
+            Roles:
+        </div>
+        <div class="col-9">
+            @Model.SelectedUserAssignableRoles
+        </div>
+    </div>
+    <div class="button-box">
+        <a onclick="return modalButton(this, 'tallerWidest')" href="@Url.Action("EditAssignUser", "Event", new
+            {
+                sEventID = Model.sEventID
+            })"
+           class="btn btn-kyBlue BoldMe">Edit User Assignment Options</a>
+    </div>
+</div>

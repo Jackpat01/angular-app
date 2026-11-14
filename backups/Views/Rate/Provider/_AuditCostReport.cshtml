@@ -1,0 +1,523 @@
+﻿@model WebPortal_OH_FI.Models.AuditCostReportViewModel 
+@using WebPortal_OH_FI.Web
+
+@*NOTE: references to HTML controls are done through constants, please refer to script tag below *@
+
+<style>
+    table {
+        width: 100%;
+    }
+
+    td {
+        padding: 10px; /* Adds consistent spacing */
+        vertical-align: top; /* Aligns items at the top */
+    }
+
+    .row-aligned {
+        display: flex;
+        align-items: center;
+    }
+
+    .form-label {
+        width: 200px; /* Fixed width to align labels consistently */
+        text-align: left; /* Align text on labels to the left */
+        margin-right: 10px; /* Add spacing between label and dropdown */
+    }
+
+    select {
+        width: 300px; /* Ensure consistent dropdown width */
+    }
+</style>
+@*<table class="table table-borderless tableFirst" style="table-layout: fixed;">*@
+<div id="formContainer">
+    <table class="table table-borderless tableFirst" style="table-layout: fixed;">
+        <tr>
+            <td colspan="2" align="left" valign="bottom">
+                <label class="FormLabel">Cost Report Begin Date:</label>
+                <span id="displayAuditBeginDate">@Html.DisplayFor(model => model.BeginDate, new { ID = "lblAuditBeginDate", })</span>
+            </td>
+            <td colspan="2" align="right" valign="top" style="padding-top:0px">
+                <label class="FormLabel">Cost Report Status:</label>
+                @Html.DropDownListFor(x => x.CostReportStatusId, Model.CostReportStatus, "Select", new { ID = "drpAuditCostReportStatus", @style = "width:200px" })
+            </td>
+        </tr>
+        <tr>
+            <td colspan="2" align="left">
+                <label class="FormLabel">Cost Report End Date:</label>
+                <span id="displayAuditEndDate">@Html.DisplayFor(model => model.EndDate, new { ID = "lblAuditEndDate" })</span>
+            </td>
+            <td colspan="2">&nbsp;</td>
+        </tr>
+        <tr>
+            <td colspan="2" align="left">
+                <label class="FormLabel">Cost Report Locked?</label>
+                <span id="displayAuditCostReportLocked">@Html.DisplayFor(model => model.IsCostReportLocked, new { ID = "lblAuditDueDate" })</span>
+            </td>
+            <td colspan="2">&nbsp;</td>
+        </tr>
+    </table>
+    @*<table class="table table-borderless">*@
+
+    <table class="table table-borderless" id="auditTable">
+        <tr>
+            <td>
+                Contract Audit:&nbsp;&nbsp;<input type="checkbox" id="contractAudit" name="contractAudit" >&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                Contractor Name:&nbsp;&nbsp;<input type="text" id="contractorName" style="width: 500px;" >
+            </td>
+        </tr>
+    </table>
+    <table class="table table-borderless">
+        <tr>
+            <td>
+                <div class="row-aligned">
+                    <label class="form-label">Auditor 1 Assigned:</label>
+                    @Html.DropDownListFor(x => x.Auditor1Id, Model.ActiveAuditUsers, Model.Auditor1Name ?? "Select", new { ID = "drpAuditorAssignedOne", @style = "width:300px" })
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <div class="row-aligned">
+                    <label class="form-label">Auditor 2 Assigned:</label>
+                    @Html.DropDownListFor(x => x.Auditor2Id, Model.ActiveAuditUsers, Model.Auditor2Name ?? "Select", new { ID = "drpAuditorAssignedTwo", @style = "width:300px" })
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <div class="row-aligned">
+                    <label class="form-label" style="display: inline-block; line-height: 1.5;">Peer Review<br> Auditor Assigned:</label>
+                    @Html.DropDownListFor(x => x.PeerAuditorId, Model.ActiveAuditUsers, Model.PeerAuditorName ?? "Select", new { ID = "drpPeerReviewAuditor", @style = "width:300px" })
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <div class="row-aligned">
+                    <label class="form-label">Field Auditor 1 Assigned:</label>
+                    @Html.DropDownListFor(x => x.FieldAuditor1Id, Model.ActiveAuditUsers, "Select", new { ID = "drpFieldAuditorAssignedOne", @style = "width:300px" })
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <div class="row-aligned">
+                    <label class="form-label">Field Auditor 2 Assigned:</label>
+                    @Html.DropDownListFor(x => x.FieldAuditor2Id, Model.ActiveAuditUsers, "Select", new { ID = "drpFieldAuditorAssignedTwo", @style = "width:300px" })
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <div class="row-aligned">
+                    <label class="form-label">Field Auditor 3 Assigned:</label>
+                    @Html.DropDownListFor(x => x.FieldAuditor3Id, Model.ActiveAuditUsers, "Select", new { ID = "drpFieldAuditorAssignedThree", @style = "width:300px" })
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <div class="row-aligned">
+                    <label class="form-label">Field Auditor 4 Assigned:</label>
+                    @Html.DropDownListFor(x => x.FieldAuditor4Id, Model.ActiveAuditUsers, "Select", new { ID = "drpFieldAuditorAssignedFour", @style = "width:300px" })
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <div class="row-aligned">
+                    <label class="form-label">Field Auditor 5 Assigned:</label>
+                    @Html.DropDownListFor(x => x.FieldAuditor5Id, Model.ActiveAuditUsers, "Select", new { ID = "drpFieldAuditorAssignedFive", @style = "width:300px" })
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <div class="row-aligned">
+                    <label class="form-label">Field Auditor 6 Assigned:</label>
+                    @Html.DropDownListFor(x => x.FieldAuditor6Id, Model.ActiveAuditUsers, "Select", new { ID = "drpFieldAuditorAssignedSix", @style = "width:300px" })
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <div class="row-aligned">
+                    <label class="form-label">Completion Date:</label>
+                    <input id="txtAuditCompletionDate" value="Add Completion Date" title="Select Date" type="date" class="datefield" style="width: 165px;"/>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <div class="row-aligned">
+                    <label class="form-label">Audit Type:</label>
+                    @Html.DropDownListFor(x => x.AuditTypeId, Model.AuditTypes, "Select", new { ID = "drpAuditType", @style = "width:300px" })
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <div class="row-aligned">
+                    <label class="form-label">Reason for Change:</label>
+                    @Html.DropDownListFor(x => x.ReasonForChangeId, Model.ReasonsForChange, "Select", new { ID = "drpReasonForChange", @style = "width:300px",  })
+                    <textarea id="txtReasonForChange" maxlength="200" style="width: 320px;height: 125px;"></textarea>
+                </div>
+            </td>
+        </tr>
+        <tr align="right">
+            <td>
+                <input id="btnAuditSubmitCostInfo" value="Submit" type="submit" class="btn btn-success" disable/>
+            </td>
+        </tr>
+    </table>
+</div>
+
+<script type="text/javascript">
+    $(function () {
+        //--- Constants
+        const form = '#formContainer';
+        const hiddenIn = '#auditTabRefreshTrigger'; // Used to find hidden div and assign a Jquery event to it
+        //-- Top Fields (Readonly)
+        const beginDateField = '#displayAuditBeginDate';
+        const endDateField = '#displayAuditEndDate';
+        const crAuditLockField = '#displayAuditCostReportLocked';
+        //-- Non DrpDwn Inputs
+        const conNameIn = '#contractorName'; //Text Box
+        const conAuditIn = '#contractAudit'; //Check Box
+        const audCompleteIn = '#txtAuditCompletionDate'; //Datefield
+        //-- DrpDwn Inputs
+        //Non Auditor drop downs
+        const crVersionDrpDwn = '#drpCostReportVersion';
+        const crStatusDrpDwn = '#drpAuditCostReportStatus';
+        const auditTypeDrpDwn = '#drpAuditType'
+        const reasonDrpDwn = '#drpReasonForChange';
+        const reasonTxt = '#txtReasonForChange';
+        //Auditor Assigned drop downs, with an array to correlate their group for assigning validation in event listeners
+        const audit1DrpDwn = '#drpAuditorAssignedOne';
+        const audit2DrpDwn = '#drpAuditorAssignedTwo';
+        const auditorGroup = [audit1DrpDwn, audit2DrpDwn];
+        // Peer auditor is by itself and thus does not need validation logic to verify there are no duplicates in the group
+        const peerDrpDwn = '#drpPeerReviewAuditor';
+        //Field Auditor Assigned drop downs, with an array to correlate their group for assigning validation in event listeners
+        const field1DrpDwn = '#drpFieldAuditorAssignedOne';
+        const field2DrpDwn = '#drpFieldAuditorAssignedTwo';
+        const field3DrpDwn = '#drpFieldAuditorAssignedThree';
+        const field4DrpDwn = '#drpFieldAuditorAssignedFour';
+        const field5DrpDwn = '#drpFieldAuditorAssignedFive';
+        const field6DrpDwn = '#drpFieldAuditorAssignedSix';
+        const fieldAuditorGroup = [field1DrpDwn, field2DrpDwn, field3DrpDwn, field4DrpDwn, field5DrpDwn, field6DrpDwn];
+        //-- Buttons
+        const submitBtn = '#btnAuditSubmitCostInfo';
+
+        //This will be populated with whatever the view model contained when it was first recieved from server
+        let oldData = {};
+        let allItems = {};
+
+
+        //--- JQuery Events
+        // //Handle everything that should be initially disabled
+        $(submitBtn).prop('disabled', true);
+        $(conNameIn).prop('disabled',  true);
+        $(conAuditIn).prop('disabled',  true);
+        $(audCompleteIn).prop('disabled',  true);
+        $(auditTypeDrpDwn).prop('disabled',  true);
+        $(reasonDrpDwn).prop('disabled',  true);
+        $(audit1DrpDwn).prop('disabled',  true);
+        $(audit2DrpDwn).prop('disabled',  true);
+        $(peerDrpDwn).prop('disabled',  true);
+        $(peerDrpDwn).prop('disabled',  true);
+        $(field1DrpDwn).prop('disabled',  true);
+        $(field2DrpDwn).prop('disabled',  true);
+        $(field3DrpDwn).prop('disabled',  true);
+        $(field4DrpDwn).prop('disabled',  true);
+        $(field5DrpDwn).prop('disabled',  true);
+        $(field6DrpDwn).prop('disabled',  true);
+        $(crStatusDrpDwn).prop('disabled', true);
+        $(reasonTxt).hide();
+
+        $(submitBtn).on('click', handleAuditCRSubmit);
+
+        $(conAuditIn).change(function () {
+            if(!this.checked) $(conNameIn).val('');
+            $(conNameIn).prop('disabled', !this.checked);
+        });
+        $(hiddenIn).change(handleAuditCRVersionChange);
+
+        $(form).find('textarea, input, select').on('change.all', () => $(submitBtn).attr('disabled', false));
+
+
+        $(auditTypeDrpDwn).change(
+            function () {
+                var selectedValue = $(this).find('option:selected').val();
+                var selectedText = $(this).find('option:selected').text();
+                var providerCostReportId = $(crVersionDrpDwn).val();
+
+                return new Promise((resolve, reject) => {
+                    if (selectedText == 'Unknown') {
+                        $(reasonDrpDwn).hide();
+                        $(reasonTxt).show();
+                    } else {
+                        $(reasonTxt).val('');
+                        $(reasonTxt).hide();
+                        $.ajax({
+                            async: true,
+                            url: "@Url.AbsoluteAction("GetReasonForChange", "Rate")",
+                            data: JSON.stringify({ auditTypeClientCode: selectedValue, providerCostReport: providerCostReportId }),
+                            type: "POST",
+                            cache: false,
+                            contentType: "application/json;charset=utf-8",
+                            success: function (result) {
+                                if (result.Success) {
+                                    $(reasonDrpDwn).show();
+                                    $(reasonDrpDwn).prop('disabled', false);
+                                    $(reasonDrpDwn).val('');
+                                    $(reasonDrpDwn).find('option').remove();
+
+                                    handleDropDownPopulation(reasonDrpDwn, result.ReasonForChangeViewModel.Reasons, null, true);
+                                } else {
+                                    StaticAlert({ content: result.message }).then(() => {
+				                                    resolve();
+                                    });
+                                }
+                            },
+                            error: function (errormessage) {
+                                StaticAlert({ content: errormessage.responseText }).then(() => {
+                                    resolve();
+                                });
+                            }
+                        });
+                    }
+                });
+            });
+
+        // Create validation rules for grouped auditor drop downs
+        for (const auditDrpDwn of auditorGroup) {
+            $(auditDrpDwn).change(function () {
+                handleAuditorDropDownChange(this, auditorGroup);
+            });
+        }
+        for (const fieldDrpDwn of fieldAuditorGroup) {
+            $(fieldDrpDwn).change(function () {
+                handleAuditorDropDownChange(this, fieldAuditorGroup);
+            });
+        }
+
+        //--- Functions
+        /** Uses Jquery to populate and set selected option for drop down with provided Id
+        @@param targetId Jquery selector for select list to be populated
+        @@param list data source for select elements options
+        @@param selectedValue value from list that should be selected by default, if there is none, default is 'Select'
+        */
+        function handleDropDownPopulation(targetId, list, selectedValue, canEdit, hideSelect = false) {
+            let options = '';
+
+            for (let i = 0; i < list.length; i++)
+                options += `<option value="${list[i].Value}">${list[i].Text}</option>`;
+
+            const emptyOptions = list.filter(x => x.Value == '');
+            if(emptyOptions.length == 0)
+                options += `<option value="" ${(hideSelect ? 'hidden' : '')}>Select</option>`;
+
+            selectedValue = (selectedValue === null || selectedValue === undefined) ? '' : selectedValue;
+            
+            if (canEdit) {
+                $(targetId).prop('disabled', false);
+            }
+            else {
+                $(targetId).prop('disabled', true);
+            }
+
+            $(targetId).html(options);
+            $(targetId).val(selectedValue);
+        }
+
+        /** Create view model from what is currently populated in the form */
+        function getModel() {
+            return {
+                ProviderCostReportId: $(crVersionDrpDwn).val(),
+                CostReportStatusId: $(crStatusDrpDwn).val(),
+                CostReportStatusName: $(`${crStatusDrpDwn} option:selected`).text(),
+                IsContractAudit: $(conAuditIn)[0].checked,
+                ContractorName: $(conNameIn).val(),
+                Auditor1Id: $(audit1DrpDwn).val(),
+                Auditor2Id: $(audit2DrpDwn).val(),
+                PeerAuditorId: $(peerDrpDwn).val(),
+                FieldAuditor1Id: $(field1DrpDwn).val(),
+                FieldAuditor2Id: $(field2DrpDwn).val(),
+                FieldAuditor3Id: $(field3DrpDwn).val(),
+                FieldAuditor4Id: $(field4DrpDwn).val(),
+                FieldAuditor5Id: $(field5DrpDwn).val(),
+                FieldAuditor6Id: $(field6DrpDwn).val(),
+                AuditTypeId: $(auditTypeDrpDwn).val(),
+                ReasonForChangeId: $(reasonDrpDwn).val(),
+                CompletionDate: $(audCompleteIn).val(),
+                ReasonForChangeComment: $(reasonTxt).val()
+            };
+        }
+
+        /** Handles refreshing the form to match the data of the newly selected cost report version
+        @@param data view model from the server
+        */
+        function renderAuditInformation(data) {
+            $(beginDateField).html(data.BeginDate);
+            $(endDateField).html(data.EndDate);
+            $(crAuditLockField).html(data.IsCostReportLocked ? 'Yes' : 'No');
+            $(conAuditIn)[0].checked = data.IsContractAudit;
+            $(conNameIn).val(data.ContractorName);
+            $(audCompleteIn).val(data.CompletionDate);
+
+            var canEdit = data.CanEditAudit;
+            handleDropDownPopulation(crStatusDrpDwn, data.CostReportStatus, data.CostReportStatusId, canEdit, true);
+            handleDropDownPopulation(audit1DrpDwn, data.ActiveAuditUsers, data.Auditor1Id, canEdit);
+            handleDropDownPopulation(audit2DrpDwn, data.ActiveAuditUsers, data.Auditor2Id, canEdit);
+            handleDropDownPopulation(peerDrpDwn, data.ActiveAuditUsers, data.PeerAuditorId, canEdit);
+            handleDropDownPopulation(field1DrpDwn, data.ActiveAuditUsers, data.FieldAuditor1Id, canEdit);
+            handleDropDownPopulation(field2DrpDwn, data.ActiveAuditUsers, data.FieldAuditor2Id, canEdit);
+            handleDropDownPopulation(field3DrpDwn, data.ActiveAuditUsers, data.FieldAuditor3Id, canEdit);
+            handleDropDownPopulation(field4DrpDwn, data.ActiveAuditUsers, data.FieldAuditor4Id, canEdit);
+            handleDropDownPopulation(field5DrpDwn, data.ActiveAuditUsers, data.FieldAuditor5Id, canEdit);
+            handleDropDownPopulation(field6DrpDwn, data.ActiveAuditUsers, data.FieldAuditor6Id, canEdit);
+            handleDropDownPopulation(auditTypeDrpDwn, data.AuditTypes, data.AuditTypeId, canEdit);
+
+            // Update Readonly fields
+            if (canEdit) {
+                $(conAuditIn).prop('disabled', false);
+                $(audCompleteIn).prop('disabled', false);
+                $(conNameIn).prop('disabled', !$(conAuditIn)[0].checked);
+            }
+            else {
+                $(conAuditIn).prop('disabled', true);
+                $(audCompleteIn).prop('disabled', true);
+                $(submitBtn).prop("disabled", true);
+                $(conNameIn).prop('disabled', true);
+            }
+            
+            if (data.ReasonForChangeComment !== '') {
+                $(reasonDrpDwn).hide();
+                $(reasonTxt).show();
+                $(reasonTxt).val(data.ReasonForChangeComment);
+                $(reasonTxt).prop('disabled', !canEdit);
+            } else {
+                $(reasonDrpDwn).show();
+                $(reasonTxt).hide();
+                handleDropDownPopulation(reasonDrpDwn, data.ReasonsForChange, data.ReasonForChangeId, canEdit);
+            }
+
+            //Load Statlog grid
+            if (data.CanViewStatlog) {
+                LoadCostReportStatlogList(data.ProviderCostReportStatlogList, data.CanEditStatlog); //This function is declared in _CostReport.cshtml
+            } else {
+                LoadCostReportStatlogList("", false);
+            }
+        }
+
+        /** Wipes data clean from all of the forms*/
+        function clearAuditInformation() {
+            $(submitBtn).prop("disabled", true);
+            $(beginDateField).html('');
+            $(endDateField).html('');
+            $(crAuditLockField).html('');
+            $(conAuditIn).checked = false;
+            $(conNameIn).val('');
+
+            $(auditTypeDrpDwn).val('');
+            $(reasonDrpDwn).val('');
+            $(peerDrpDwn).val('');
+            for (const id of auditorGroup) $(id).val('');
+            for (const id of fieldAuditorGroup) $(id).val('');
+
+        }
+
+        /** Requests audit cr version data from the server and renders it out to the page */
+        function handleAuditCRVersionChange() {
+            clearAuditInformation();
+            let providerCostReportId = $(crVersionDrpDwn).val();
+            LoadNotificationDialog("Get Cost Report Version...").then(() => {
+                return new Promise((resolve, reject) => {
+                    $.ajax({
+                        async: true,
+                        url: "@Url.AbsoluteAction("GetAuditCostReportInfo", "Rate")",
+                        data: JSON.stringify({ "ProviderCostReportId": providerCostReportId }),
+                        type: "POST",
+                        cache: false,
+                        contentType: "application/json;charset=utf-8",
+                        success: function (result) {
+                            if (result.Success) {
+                                renderAuditInformation(result.Data);
+                                const { CostReportStatus, ActiveAuditUsers, AuditTypes, ReasonsForChange, ProviderCostReportStatlogList, ...formatData } = result.Data;
+                                oldData = formatData;
+                                allItems = $(reasonDrpDwn).find('option').clone()
+                            }
+                            else clearAuditInformation();
+                            resolve();
+                        },
+                        error: function (errormessage) {
+                            StaticAlert({ content: errormessage.responseText }).then(() => {
+                                resolve();
+                            });
+                        }
+                    });
+                });
+            }).then(() => {
+                return ClearNotificationDialog();
+            });
+        }
+
+        /** Sends request to save modified data to the server */
+        function handleAuditCRSubmit() {
+            LoadNotificationDialog("Saving...").then(() => {
+                return new Promise((resolve, reject) => {
+                    $.ajax({
+                        async: true,
+                        url: "@Url.AbsoluteAction("SaveAuditCostReport", "Rate")",
+                        data: JSON.stringify({ auditViewModel: getModel(), oldModel: oldData }),
+                        type: "POST",
+                        cache: false,
+                        contentType: "application/json;charset=utf-8",
+                        success: function (result) {
+                            if (result.Success) {
+                                // Reload the cost report by calling the cost report version OnChange function.
+                                $(crVersionDrpDwn).change();
+                                resolve();
+                            } else {
+					            StaticAlert({ content: result.message }).then(() => {
+						            resolve();
+					            });
+                            }
+                        },
+                        error: function (errormessage) {
+                            StaticAlert({ content: errormessage.responseText }).then(() => {
+                                resolve();
+                            });
+                        }
+                    });
+                });
+            }).then(() => {
+                return ClearNotificationDialog();
+            });
+        }
+
+        /** Checks values from auditor drop downs in the same group to avoid duplicate values being selected
+        @@param input Jquery element that is being targeted for validation
+        @@param targetIds list of Jquery selectors from audit group the input is part of
+        */
+        function handleAuditorDropDownChange(input, targetIds) {
+            let values = [];
+            for (const id of targetIds) {
+                const value = $(id).val();
+                if (value == '' || value === undefined) continue;
+
+                if (values.includes(value)) {
+                    StaticAlert({
+                        title: 'Auditor Assignment Conflict',
+                        content: 'Cannot select the same auditor for Auditor Assigned'
+                    });
+                    $(input).val('');
+                    return;
+                }
+                values.push(value);
+            }
+        }
+
+    });
+</script>

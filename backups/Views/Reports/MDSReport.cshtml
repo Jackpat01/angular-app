@@ -1,0 +1,222 @@
+﻿@using MSLC.Portal.MVC.Utility
+@using WebPortal_OH_FI.Models.ViewModels
+@using System.Linq
+@using Microsoft.EntityFrameworkCore.Internal
+@model WebPortal_OH_FI.Models.ViewModels.MDSReport.View
+@{
+    ViewBag.Title = "MDSReport";
+    Layout = "~/Views/Shared/_LayoutWithMenu.cshtml";
+    Func<object, object> template = e => "<p id='pageMessage' style='display:none;overflow:auto;height:200px;width:350px;'>This is a dialog.</p>";
+}
+@Html.Script("~/Scripts/Pages/Reports/MDSReport.js", "jquery")
+
+<h2>MDS Report</h2>
+<hr />
+
+@(Html.EJ()
+	.Dialog("pageDialog")
+	.Title("Report Generation")
+	.ShowOnInit(false)
+	.EnableResize(false)
+	.ContentTemplate(template))
+
+@if (TempData["Message"] != null && !string.IsNullOrEmpty(TempData["Message"].ToString()))
+{
+    <br />
+    <br />
+    <center>
+        <div class="errorLabel">
+            @Html.Raw(TempData["Message"].ToString())
+        </div>
+    </center>
+}
+else
+{
+    <script src="@Url.AbsoluteContent("~/Scripts/jszip.min.js?vs=5")"></script>
+
+    <div id="MDSReportURL" data-url="@Url.AbsoluteAction("GenerateMDSReport", "Reports")"></div>
+    <div id="ExtensionAndFileSizeURL" data-url="@Url.AbsoluteAction("ReturnExtensionAndFileSize", "Reports")"></div>
+    <div id="ExtensionAndFileSizeURL" data-url="@Url.Action("", "Reports")"></div>
+    <div id="ReportingPeriodURL" data-url="@Url.AbsoluteAction("ReturnReportingPeriods", "Reports")"></div>
+    <div id="ReportingRateVersionURL" data-url="@Url.AbsoluteAction("ReturnReportingRateVersions", "Reports")"></div>
+    <div id="ReportingTypeURL" data-url="@Url.AbsoluteAction("ReturnReportingTypes", "Reports")"></div>
+    <div id="ReportingExtensionURL" data-url="@Url.AbsoluteAction("ReturnReportingExtensionTypes", "Reports")"></div>
+    <div id="ReportSuccessURL" data-url="@Url.AbsoluteAction("MDSReportJobs", "BulkProcessing")"></div>
+
+    @Html.Hidden("ProviderIDs")
+    <input type="hidden" id="hdnProviderID" value="" />
+    @*<div id="hdnUploadSendEmailURL" value="@Url.AbsoluteAction("SendEmail", "Reports")" />*@
+    @*<div id="hdnUploadFileURL" value="@Url.AbsoluteAction("UploadBulkFile", "Reports")" />*@
+    <input type="hidden" id="hdnSetProviderURL" value="@Url.AbsoluteAction("SetProvider", "Reports")" />
+    <input type="hidden" id="hdnFormatBytesFromErrorURL" value="@Url.AbsoluteAction("FormatBytesFromError", "Reports")" />
+    <div id="dvUserRole" data-url="@Url.AbsoluteAction("RoleForUser","User")"></div>
+
+    <div style="padding-left: 15px; margin-top: 8px; margin-bottom: 12px; width: 65%; margin-left: auto; margin-right: auto;" class="ui-tabs ui-widget ui-widget-content ui-corner-all">
+        <table>
+            <tbody>
+
+                <tr id="ReportingPeriodRow" style="display: none">
+                    <td>Reporting Period:</td>
+                    <td>
+                        @(Html.DropDownListFor(x => x.ApplicationPeriodId, Model.ApplicationPeriods, "Select...",
+						new
+						{
+							id = "ddlReportingPeriod",
+							onchange = "ddlReportingPeriodOnChange('this')",
+							style = "width: 375px;"
+						}))
+                    </td>
+                </tr>
+
+                <tr id="ReportingRateVersionRow" style="display: none">
+                    <td>Reporting Rate Version:</td>
+                    <td>
+                        @(Html.DropDownListFor(x => x.ReportRateVersion, Model.ApplicationPeriods, "Select...",
+						new
+						{
+							id = "ddlReportingRateVersion",
+							onchange = "ddlReportingRateVersionOnChange('this')",
+							style = "width: 375px;"
+						}))
+                    </td>
+                </tr>
+
+                <tr id="ReportingTypeRow" style="display: none">
+                    <td>Reporting Type:</td>
+                    <td>
+                        @(Html.DropDownListFor(x => x.ApplicationPeriodId, Model.ApplicationPeriods, "Select...",
+						new
+						{
+							id = "ddlReportingType",
+							onchange = "ddlReportingTypeOnChange('this')",
+							style = "width: 375px;"
+						}))
+                    </td>
+                </tr>
+
+                <tr id="ReportingExtensionRow" style="display: none">
+                    <td>Report Extension:</td>
+                    <td>
+                        @(Html.DropDownListFor(x => x.ApplicationPeriodId, Model.ApplicationPeriods, "Select...",
+							new
+							{
+								id = "ddlReportingExtensions",
+								onchange = "ddlReportingExtensionOnChange('this')",
+								style = "width: 375px;"
+							}))
+                    </td>
+                </tr>
+
+                <tr id="EndingDateRow" style="display: none">
+                    <td>Ending Date:</td>
+                    <td>
+                        <div style="margin: 4px 6px;">
+                            @(Html.EJ().DatePicker("EndingDate")
+							.Value(Model.EndingDate)
+							.DateFormat("M/d/yyyy")
+							.WatermarkText("Ending Date"))
+                        </div>
+                    </td>
+                </tr>
+
+                <tr id="SelectProvidersRow" style="display: none">
+                    <td class="gridProviders" colspan="2">
+                        <div id="gridProviders">
+                            <div class="d-flex my-1">
+                                <div>
+                                    <button class="btn btn-success BoldMe mr-1" onclick="SelectAllProviders()">Select All Providers</button>
+                                </div>
+                                <div>
+                                    <button class="btn btn-success BoldMe mx-1" onclick="SelectAllFilteredProviders()">Select All Filtered Providers</button>
+                                </div>
+                                <div>
+                                    <button class="btn btn-success BoldMe mx-1" onclick="DeselectAllProviders()">Deselect All Providers</button>
+                                </div>
+                            </div>
+                            @(Html.EJ().Grid<object>("providerIDGrid")
+								.CssClass("mslcTable")
+								.Datasource(Model.providerList)
+								.AllowPaging()
+								.Locale("en-US")
+								.EnableRowHover(true)
+								.AllowFiltering()
+								.AllowSearching()
+								.AllowSorting()
+								.ToolbarSettings(toolbar =>
+								{
+									toolbar.ShowToolbar().ToolbarItems(items =>
+									{
+										items.AddTool(ToolBarItems.Search);
+									});
+								})
+								.PageSettings(p =>
+								{
+									p.PageSize(10);
+									p.PageSizeList(new List<int>() { 10, 25, 50, 100});
+								})
+								.TextWrapSettings(wrap => { wrap.WrapMode(WrapMode.Both); })
+								.FilterSettings(filter =>
+								{
+									filter.FilterType(FilterType.Menu);
+									filter.ShowPredicate(false);
+								})
+								.Columns(col =>
+								{
+									col.Field("Name").HeaderText("Name").TextAlign(TextAlign.Left).Width(16).CssClass("noWrap").Add();
+									col.Field("MCAID").HeaderText("MCAID").TextAlign(TextAlign.Left).Width(10).CssClass("noWrap").Add();
+									col.Field("Number").HeaderText("NPI").TextAlign(TextAlign.Left).Width(14).CssClass("noWrap").Add();
+									col.Template("#providerSelector").HeaderText("Selected").TextAlign(TextAlign.Center).Width(6).Add();
+								})
+								.ClientSideEvents(events =>
+								{
+									events.TemplateRefresh("loadIcons");
+									events.Load("DateStrings");
+								}))
+                            <script id="providerSelector" type="text/x-template">
+                                <input type="checkbox" {{if checked}} checked {{/if}} onclick="toggleProvider('{{:ARUMProviderID}}', this)" />
+                            </script>
+                        </div>
+                    </td>
+                    <td class="dropdownProviders">Provider:</td>
+                    <td class="dropdownProviders">
+                        <div id="dropdownProviders" style="margin: 4px 6px;">
+                            @(Html.EJ()
+								.Autocomplete("ddlProviders")
+								.Datasource(Model.providerList)
+								.AutocompleteFields(e => e.Text("Name").Key("Number"))
+								.WatermarkText("Provider search")
+								.MinCharacter(0)
+								.MultiColumnSettings(obj => obj.Enable(true).Columns(obj1 =>
+								{
+									obj1.Field("Name").HeaderText("Name").Add();
+									obj1.Field("Number").HeaderText("NPI").Add();
+								}).ShowHeader(true).SearchColumnIndices(new List<int> { 1, 0 }).StringFormat("{0}"))
+								.HighlightSearch(true)
+								.Width("600px")
+								.ClientSideEvents(e =>
+								{
+									e.Open("FixDuplicateClasses");
+									e.Select("ddlProvidersSelect");
+								})
+								.PopupHeight("400px")
+								.AllowSorting(true).SortOrder(SortOrder.Ascending)
+								.ShowPopupButton(true)
+								.EmptyResultText("No Provider(s) found in list."))
+                        </div>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+        <div id="RunReportButtons" style="display: none">
+            <div class="d-flex justify-content-around">
+                <div>
+                    <input id="btnSubmit" type="submit" onclick="GetReport()" class="btn btn-success m-2" value="Run Report">
+                    <img id="dvLoading" class="hide align-self-end" src="~/Images/loading.gif" alt="Loading" width="48" height="48" />
+                </div>
+            </div>
+        </div>
+    </div>
+    <div id="SyncFusionScript">
+        <script src="@Url.AbsoluteContent("~/Scripts/ej/common/ej.unobtrusive.min.js")"></script>
+    </div>
+}

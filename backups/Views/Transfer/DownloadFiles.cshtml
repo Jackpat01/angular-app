@@ -1,0 +1,119 @@
+﻿@*
+    DO NOT MODIFY OUTSIDE OF MSLC.STATLOG
+    This file comes from MSLC.Statlog, any changes to it will be wiped out when the nuget package is updated.
+    Please make the appropriate enhancements to MSLC.Statlog instead of here.
+*@
+
+@using MSLC.Portal.MVC.Utility
+@using MSLC.StatLog.Configuration
+@using MSLC.StatLog.MVC.ViewModels
+@Styles.Render("~/Content/StatLog.css")
+@model DownloadFilesViewModel.View
+@{
+    Layout = null;
+}
+@Html.Script("~/Scripts/Pages/Transfer/DownloadFiles.js", "jquery")
+
+
+<div class="loader" id="loader">Loading ... </div>
+
+<style>
+    .loader {
+        position: fixed;
+        left: 40%;
+        top: 30%;
+        width: 20%;
+        height: 20%;
+        z-index: 9999;
+        background: url('~/Images/circle-loader.GIF') 50% 50% no-repeat rgb(249,249,249);
+        background-color: #fff;
+    }
+
+    /*.modal {
+          width: 900px;
+          left: calc(50% - 900px);
+     }*/
+</style>
+<div class="modal-content">
+    <div class="modal-header">
+        <span id="myModalLabel" style="text-align: left; font-size: 1.5em; font-weight: bolder; color:black;">
+            File Downloader -  @Model.ProviderName
+        </span>
+        <button href="#" class="close" data-dismiss="modal">&times;</button>
+    </div>
+
+    <div style="padding-left: 15px; margin: 8px;">
+        @(Html.EJ().Grid<DownloadFilesViewModel.FileInformation>
+          ("FlatGrid")
+          .CssClass("mslcTable")
+          .Datasource(Model.Files)
+          .AllowSorting(false)
+          .AllowResizeToFit()
+          .IsResponsive(true)
+          .AllowScrolling()
+          .AllowPaging()
+          .PageSettings(page => page.PageSize(8).PageCount(10))
+          .AllowFiltering()
+          .FilterSettings(filter => { filter.FilterType(FilterType.Menu); })
+          .AllowTextWrap()
+          .AllowSorting(true)
+          .ClientSideEvents(eve =>
+          {
+              //eve.Create("load");
+              eve.Load("TransferDateStrings");
+              //eve.DataBound("load");
+              //eve.TemplateRefresh("load");
+              eve.ActionComplete("actioncomplete");
+          })
+          .Columns(col =>
+          {
+              col.Field("Selected").Template("#selectedTemplate").HeaderText(" ").HeaderTemplateID("#headerTemplate").Width(10).TextAlign(TextAlign.Center).AllowFiltering(false).AllowSorting(false).Add();
+              col.Field("template.EventDate").HeaderText("Event Date").Type("date").Format("{0:MM/dd/yyyy}").TextAlign(TextAlign.Center).Width(20).Add();
+              col.Field(p => p.FileName).HeaderText("File Name").Width(70).TextAlign(TextAlign.Left).Add();
+              col.Field(p => p.EventName).HeaderText("Event").Width(60).TextAlign(TextAlign.Left).Add();
+              if (StatLogConfiguration.IsPHIControlsEnabled)
+              {
+                  col.Field(p => p.IsPHI).Width(17).HeaderText("Has PHI").TextAlign(TextAlign.Center).Add();
+              }
+              col.Field(p => p.IsReviewOkay).HeaderText("Is Review OK").Width(25).TextAlign(TextAlign.Center).Add();
+              col.Field(p => p.Notes).HeaderText("Notes").Width(75).TextAlign(TextAlign.Left).Add();
+              col.Field(p => p.FileSize).HeaderText("File Size (bytes)").Width(28).TextAlign(TextAlign.Center).Add();
+
+          })
+     )
+
+
+    </div>
+
+    <div id="selectedfilesize" style="margin: 8px;"></div>
+
+
+    <script id="selectedTemplate" type="text/template">
+        {{if Selected}}
+        <input type="checkbox" id="Selected" name="Selected" onchange="Selected(event)" checked="checked" class="e-field e-checkbox" style="width:30px" aria-label="Select Event" />
+        {{else}}
+        <input type="checkbox" id="Selected" name="Selected" onchange="Selected(event)" class="e-field e-checkbox" style="width:30px" aria-label="Select Event" />
+        {{/if}}
+    </script>
+
+    <script type="text/x-jsrender" id="headerTemplate">
+        <input type="checkbox" id="headerCheck" name="headerCheck" onchange="HeaderSelectRecords(event)" class="e-field e-checkbox" style="width:30px" aria-label="Select Event" />
+    </script>
+
+    <script>
+    $(document).ready(function () {
+        window.URL["TransferRequestFiles"] = '@Url.AbsoluteAction("RequestFiles", "Transfer")';
+        window.URL["TransferDownloadFile"] = '@Url.AbsoluteAction("DownloadFile", "Transfer")';
+    });
+    </script>
+
+    <div id="modalFooter" class="modal-footer">
+        <button type="button" class="btn btn-basic" data-dismiss="modal">Close</button>
+        @*<button type="button" class="btn btn-primary" data-dismiss="modal" style="margin-left: 20px;" onclick="Download('@Model.CostReportEndDateConcatAuditTypeDesc')">Download</button>*@
+        <button type="button" class="btn btn-basic" style="margin-left: 20px;" onclick="Download()">Download</button>
+    </div>
+
+    <div id="SyncFusionScript">
+        @System.Web.Optimization.Scripts.Render("~/Scripts/ej/common/ej.unobtrusive.min.js")
+    </div>
+</div>

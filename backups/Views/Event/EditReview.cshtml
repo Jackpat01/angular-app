@@ -1,0 +1,186 @@
+﻿@*
+    DO NOT MODIFY OUTSIDE OF MSLC.STATLOG
+    This file comes from MSLC.Statlog, any changes to it will be wiped out when the nuget package is updated.
+    Please make the appropriate enhancements to MSLC.Statlog instead of here.
+*@
+
+@using MSLC.Portal.MVC.Utility
+@using MSLC.StatLog.MVC.MVC
+@using MSLC.StatLog.Configuration
+@using MSLC.StatLog.Domain
+@using MSLC.StatLog.BL.Email
+@model MSLC.StatLog.MVC.ViewModels.EventViewModel.Review
+@{
+    Layout = null;
+}
+
+<script src="~/Scripts/jquery.validate.js" type="text/javascript"></script>
+<script src="~/Scripts/jquery.validate.unobtrusive.js" type="text/javascript"></script>
+<link href="~/Content/south-street/jquery-ui-1.9.2.custom.min.css" rel="stylesheet" />
+
+
+<script src="~/Scripts/jHtmlArea-0.8.js" type="text/javascript"></script> @*Used for editing bulletin boards*@
+<script src="~/Scripts/jHtmlArea.ColorPickerMenu-0.8.js" type="text/javascript"></script> @*Used for editing bulletin boards*@
+
+<link href="~/Content/jHtmlArea/jHtmlArea.ColorPickerMenu.css" rel="stylesheet" type="text/css" />
+<link href="~/Content/jHtmlArea/jHtmlArea.css" rel="stylesheet" type="text/css" />
+<link href="~/Content/jHtmlArea/jHtmlArea.Editor.css" rel="stylesheet" type="text/css" />
+@Html.Script("~/Scripts/Pages/Event/Edit.js", "jquery")
+@using (Html.BeginForm("SaveReviewOptions", "Event", FormMethod.Post, new { id = "frmSubmit", enctype = "multipart/form-data", @class = "modal-form", defaultbutton = "btnSave" }))
+{
+    @Html.AntiForgeryToken()
+    @Html.HiddenFor(m => m.sEventID)
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3 id="myModalLabel" style="text-align: left;">
+                Edit Event Review Options
+            </h3>
+            <button href="#" class="close" data-dismiss="modal">&times;</button>
+        </div>
+        <div class="modal-body">
+            <div class="d-flex flex-column">
+                <div class="row m-2 mb-4">
+                    <div class="col-3">
+                        @Html.CheckBoxFor(m => m.NeedsFileReview, new { id = "chkNeedsFileReview", onchange = "updateCheckboxes()" })
+                        @Html.Label("chkNeedsFileReview", "Enable File Reviews")
+                        @Html.ValidationMessageFor(m => m.NeedsFileReview)
+                    </div>
+                    <div class="col-8">
+                        <div>
+                            Uploaded file(s) or N/A flags need to be reviewed.
+                        </div>
+                        <div>
+                            In order to use this feature, please navigate to "Web Controls" and the “Display” and “Upload” options under any roles for the application.
+                        </div>
+                    </div>
+                    <div class="row m-2 d-flex flex-row">
+                        <div class="col-3">
+                            @Html.CheckBoxFor(m => m.DisableUploader, new { id = "chkDisableUploader", onchange = "updateCheckboxes()" })
+                            @Html.Label("chkDisableUploader", "Disable Uploader")
+                            @Html.ValidationMessageFor(m => m.DisableUploader)
+                        </div>
+                        <div class="col-8">
+                            <div>
+                                Removes the ability for the individual who uploaded the file or marked it as N/A from reviewing that file.
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="row m-2">
+                    <div class="col-3">
+                        <div>
+                            @Html.CheckBoxFor(m => m.NeedsTextReview, new { id = "chkNeedsTextReview", onchange = "updateCheckboxes()" })
+                            @Html.Label("chkNeedsTextReview", "Enable Event Review")
+                            @Html.ValidationMessageFor(m => m.NeedsTextReview)
+                        </div>
+                    </div>
+                    <div class="col-8">
+                        Event needs to be reviewed
+                    </div>
+                </div>
+            </div>
+            <hr />
+            <div class="d-flex flex-column">
+                <div class="row m-2">
+                    <div class="col-2">
+                        @Html.LabelFor(m => m.ReviewAcceptText, "Review Accept Button Text", new { @class = "pb-0" })
+                        @Html.ValidationMessageFor(m => m.ReviewAcceptText)
+                    </div>
+                    <div class="col-9">
+                        This allows you to customize the review accept button text for this event.  If blank it will default to Accept.
+                    </div>
+                    <div class="col-11 pl-5">
+                        @Html.TextBoxFor(m => m.ReviewAcceptText, new { maxlength = 50, @class = "w-100" })
+                    </div>
+                </div>
+                <div class="row m-2">
+                    <div class="col-2">
+                        @Html.LabelFor(m => m.ReviewRejectText, "Review Reject Button Text", new { @class = "pb-0" })
+                        @Html.ValidationMessageFor(m => m.ReviewRejectText)
+                    </div>
+                    <div class="col-9">
+                        This allows you to customize the review reject button text for this event.  If blank it will default to Reject.
+                    </div>
+                    <div class="col-11 pl-5">
+                        @Html.TextBoxFor(m => m.ReviewRejectText, new { maxlength = 50, @class = "w-100" })
+                    </div>
+                </div>
+            </div>
+            <hr />
+            <div class="d-flex flex-column">
+                <div class="row m-2">
+                    <div class="col-2">
+                        @Html.LabelFor(m => m.ReviewText, "Event Review Text", new { @class = "pb-0" })
+                        @Html.ValidationMessageFor(m => m.ReviewRejectText)
+                    </div>
+                    <div class="col-9">
+                        This allows you to add/customize a message that should appear when a user is reviewing a file or event. If blank there will not be a message shown on the review.
+                    </div>
+                </div>
+
+                <div class="row m-2">
+                    <div class="col-12">
+                        <div class="customHtmlArea">
+                            @Html.TextAreaFor(m => m.ReviewText, new { @style = "height: 300px;", @class = "w-100" })
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row m-2 border">
+                    @foreach (EmailReplacementTypes replacementType in Enum.GetValues(typeof(EmailReplacementTypes)))
+                    {
+                        if (!string.IsNullOrWhiteSpace(replacementType.Description()))
+                        {
+                            <div class="d-flex p-1 border-bottom w-100">
+                                <div class="col-5 p-0" style="word-break: break-word;">
+                                    @(replacementType.ReplacementValue())
+                                </div>
+                                <div class="col-7 p-0">
+                                    @(replacementType.Description())
+                                </div>
+                            </div>
+                        }
+                    }
+                </div>
+            </div>
+        </div>
+
+        <div class="modal-footer mslcModalFooter" id="dvFooter" style="text-align: left !important;">
+            <div class="myImage" style="display: none; text-align: center;">
+                <img src="~/Images/loading.gif" alt="Loading" width="32" height="32" />
+            </div>
+            <div class="myControls">
+                <button id="btnClose" class="btn btn-basic BoldMe" data-dismiss="modal" aria-hidden="true">Close</button>&nbsp;&nbsp;
+                <button id="btnSave" type="submit" class="btn btn-success BoldMe" name="Command" value="Save">Save</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function updateCheckboxes() {
+            var fileReview = $("#chkNeedsFileReview");
+            var eventReview = $("#chkNeedsTextReview");
+            var UploaderReview = $("#chkDisableUploader");
+
+            fileReview.prop("disabled", false);
+            eventReview.prop("disabled", false);
+            UploaderReview.prop("disabled", false);
+
+            if (fileReview.prop("checked")) {
+                eventReview.prop("checked", false);
+                eventReview.prop("disabled", true);
+
+            } else {
+                UploaderReview.prop("checked", false);
+                UploaderReview.prop("disabled", true);
+
+                if (eventReview.prop("checked")) {
+                    fileReview.prop("checked", false);
+                    fileReview.prop("disabled", true);
+                }
+            }
+        }
+        updateCheckboxes();
+    </script>
+}
+

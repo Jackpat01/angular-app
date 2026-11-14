@@ -1,0 +1,130 @@
+﻿@*
+    DO NOT MODIFY OUTSIDE OF MSLC.STATLOG
+    This file comes from MSLC.Statlog, any changes to it will be wiped out when the nuget package is updated.
+    Please make the appropriate enhancements to MSLC.Statlog instead of here.
+*@
+
+@using MSLC.Portal.Configuration
+@using MSLC.Portal.MVC.Utility
+@using MSLC.StatLog.Configuration
+@model MSLC.StatLog.MVC.ViewModels.WebControlPreviewModel
+@{
+    ViewBag.Title = "Preview Web Controls";
+    Layout = PortalConfiguration.DetermineLayout("Menu");
+}
+
+<h2>Preview Web Control Changes</h2>
+
+<div>
+    <div class="mb-3">
+        <label>Source Environment</label>
+        <input type="text" value="@Model.SourceEnvironment" disabled readonly />
+        <label class="ml-3">Target Environment</label>
+        <input type="text" value="@Model.TargetEnvironment" disabled readonly />
+    </div>
+</div>
+
+@(Html.EJ().Grid<MSLC.StatLog.MVC.ViewModels.WebControlPreviewModel.Preview>("tblPreviewChanges")
+        .CssClass("mslcTable")
+        .Datasource(Model.listPreviews)
+        .AllowPaging()
+        .Columns(col =>
+        {
+            col.Field(e => e.Name).HeaderText("Name").TextAlign(TextAlign.Center).Width(10).Add();
+            col.Field(e => e.Role).HeaderText("Role").TextAlign(TextAlign.Center).Width(10).Add();
+            col.Template("#addPerm").HeaderText("Add").Width(5).Add();
+            col.Template("#viewPerm").HeaderText("View").Width(5).Add();
+            col.Template("#uploadPerm").HeaderText("Upload").Width(5).Add();
+            col.Template("#downloadPerm").HeaderText("Download").Width(5).Add();
+            col.Template("#acceptPerm").HeaderText("Accept").Width(5).Add();
+            col.Template("#rejectPerm").HeaderText("Reject").Width(5).Add();
+            col.Template("#releasePerm").HeaderText("Release").Width(5).Add();
+            col.Template("#assignPerm").HeaderText("Assign").Width(5).Add();
+            col.Template("#hidePerm").HeaderText("Hide").Width(5).Add();
+            col.Template("#dueDatePerm").HeaderText("Due Date").Width(5).Add();
+        })
+        .ClientSideEvents(e => e.Create("onCreated")))
+
+@using (Html.BeginForm("WebControlSettingsFromReport", "Event", FormMethod.Post, new { enctype = "multipart/form-data", @class = "text-center mt-3 mr-4", id = "commitChangesForm" }))
+{
+    @Html.AntiForgeryToken()
+    <input type="hidden" name="listPreviews" id="GridData" value="" />
+    <input type="submit" id="commitChangesBtn" class="btn btn-kyBlue" value="Commit Changes" />
+    @Html.ActionLink("Cancel", "Index", null, new { @class = "btn btn-kyBlue ml-4", id = "cancelBtn" })
+}
+
+<script type="text/javascript">
+    $(function () {
+        $("#commitChangesBtn").click(function () {
+            $("#cancelBtn").addClass("disabled");
+        });
+        $("#cancelBtn").click(function () {
+            $("#commitChangesBtn").prop("disabled", true);
+        });
+    })
+
+    function onCreated() {
+        var result = this.model.dataSource;
+        $("#GridData").val(JSON.stringify(result));
+    }
+</script>
+
+<script id="addPerm" type="text/x-template">
+    <span {{:!listPermissions[0].Changed ? " style=color:gray" : listPermissions[0].Allowed ? " style=color:green;font-weight:bold;" : " style=color:red;font-weight:bold;"}}>
+        {{:listPermissions[0].Allowed ? "Enabled" : "Disabled"}}
+    </span>
+</script>
+
+<script id="viewPerm" type="text/x-template">
+    <span {{:!listPermissions[1].Changed ? " style=color:gray;" : listPermissions[1].Allowed ? " style=color:green;font-weight:bold;" : " style=color:red;font-weight:bold;"}}>
+        {{:listPermissions[1].Allowed ? "Enabled" : "Disabled"}}
+    </span>
+</script>
+
+<script id="uploadPerm" type="text/x-template">
+    <span {{:!listPermissions[2].Changed ? " style=color:gray" : listPermissions[2].Allowed ? " style=color:green;font-weight:bold;" : " style=color:red;font-weight:bold;"}}>
+        {{:listPermissions[2].Allowed ? "Enabled" : "Disabled"}}
+    </span>
+</script>
+
+<script id="downloadPerm" type="text/x-template">
+    <span {{:!listPermissions[3].Changed ? " style=color:gray" : listPermissions[3].Allowed ? " style=color:green;font-weight:bold;" : " style=color:red;font-weight:bold;"}}>
+        {{:listPermissions[3].Allowed ? "Enabled" : "Disabled"}}
+    </span>
+</script>
+
+<script id="acceptPerm" type="text/x-template">
+    <span {{:!listPermissions[4].Changed ? " style=color:gray" : listPermissions[4].Allowed ? " style=color:green;font-weight:bold;" : " style=color:red;font-weight:bold;"}}>
+        {{:listPermissions[4].Allowed ? "Enabled" : "Disabled"}}
+    </span>
+</script>
+
+<script id="rejectPerm" type="text/x-template">
+    <span {{:!listPermissions[5].Changed ? " style=color:gray" : listPermissions[5].Allowed ? " style=color:green;font-weight:bold;" : " style=color:red;font-weight:bold;"}}>
+        {{:listPermissions[5].Allowed ? "Enabled" : "Disabled"}}
+    </span>
+</script>
+
+<script id="releasePerm" type="text/x-template">
+    <span {{:!listPermissions[6].Changed ? " style=color:gray" : listPermissions[6].Allowed ? " style=color:green;font-weight:bold;" : " style=color:red;font-weight:bold;"}}>
+        {{:listPermissions[6].Allowed ? "Enabled" : "Disabled"}}
+    </span>
+</script>
+
+<script id="assignPerm" type="text/x-template">
+    <span {{:!listPermissions[7].Changed ? " style=color:gray" : listPermissions[7].Allowed ? " style=color:green;font-weight:bold;" : " style=color:red;font-weight:bold;"}}>
+        {{:listPermissions[7].Allowed ? "Enabled" : "Disabled"}}
+    </span>
+</script>
+
+<script id="hidePerm" type="text/x-template">
+    <span {{:!listPermissions[8].Changed ? " style=color:gray" : listPermissions[8].Allowed ? " style=color:green;font-weight:bold;" : " style=color:red;font-weight:bold;"}}>
+        {{:listPermissions[8].Allowed ? "Enabled" : "Disabled"}}
+    </span>
+</script>
+
+<script id="dueDatePerm" type="text/x-template">
+    <span {{:!listPermissions[9].Changed ? " style=color:gray" : listPermissions[9].Allowed ? " style=color:green;font-weight:bold;" : " style=color:red;font-weight:bold;"}}>
+        {{:listPermissions[9].Allowed ? "Enabled" : "Disabled"}}
+    </span>
+</script>

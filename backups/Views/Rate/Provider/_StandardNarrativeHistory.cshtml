@@ -1,0 +1,104 @@
+﻿<div id="window_standardnarrativehistory" class="modal fade" data-backdrop="static">
+    ﻿
+    <div class="modal-dialog modal-lg" role="document" style="max-width:1700px">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Standard Narrative History</h3>
+                <button type="button" class="close" data-dismiss="modal" onclick="closeStandardNarrativeHistory()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <table style="width: 100%;">
+                    <colgroup>
+                        <col />
+                    </colgroup>
+                    <tbody>
+                        <tr>
+                            <td>
+                                <center>
+                                    <div id="tblStandardNarrativeHistory"></div>
+                                </center>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    $(function () {
+        //========== Logic that Fires when Page Loads ==========
+        LoadNotificationDialog("Loading").then(() => {
+            GetData().then((data) => {
+                if (data !== undefined)
+                    RenderTable(data);
+            });
+        }).then(() => ClearNotificationDialog());
+
+        //========== Ajax Requests ==========
+        function GetData() {
+            return new Promise((resolve, reject) => {
+                const recordId = $("#hdnRecordId").val();
+                $.ajax({
+                    async: true,
+                    url: "@Url.AbsoluteAction("GetStandardNarrativeHistory", "Rate")",
+                    data: JSON.stringify({ 'recordId': recordId }),
+                    type: "POST",
+                    cache: false,
+                    contentType: "application/json;charset=utf-8",
+                    success: (result) => resolve(result),
+                    error: function (errormessage) {
+                        StaticAlert({ content: "Standard Narrative Table Error: " + errormessage.responseText }).then(() => {
+                            resolve();
+                        });
+                    }
+                });
+            });
+        }
+
+        //========== Table Functionality =========
+        function RenderTable(result) {
+            var cols = [];
+            cols.push({ field: 'Action', headerText: 'Action', width: 25 });
+            cols.push({ field: 'NarrativeNumber', headerText: 'Narrative Number', width: 25 });
+            cols.push({ field: 'NarrativeType', headerText: 'Narrative Type', width: 25 });
+            cols.push({ field: 'NarrativeCode', headerText: 'Narrative Code', width: 25 });
+            cols.push({ field: 'RYBeginYear', headerText: 'RY Begin Year', width: 25 });
+            cols.push({ field: 'RYEndYear', headerText: 'RY End Year', width: 25 });
+            cols.push({ field: 'Description', headerText: 'Description', width: 75 });
+            cols.push({ field: 'ReasonForChange', headerText: 'Reason for Change', width: 25 });
+            cols.push({ field: 'LastUpdatedBy', headerText: 'Last Update By', width: 25 });
+            cols.push({ field: 'LastUpdatedOn', headerText: 'Last Updated On', width: 25 });
+
+            const toolbarSettings = { showToolbar: false };
+            const pageSettings = { pageSize: 5, pageSizeList: [5, 10, 15, 20] };
+            const textWrapSettings = { wrapMode: ej.Grid.WrapMode.Both };
+            const editSettings = { allowEditing: false, allowAdding: false, allowDeleting: false, showDeleteConfirmDialog: false };
+
+            $("#tblStandardNarrativeHistory").ejGrid({
+                dataSource: result.Data,
+                columns: cols,
+                toolbarSettings: toolbarSettings,
+                pageSettings: pageSettings,
+                allowPaging: true,
+                enableRowHover: false,
+                allowSelection: false,
+                allowSorting: true,
+                allowTextWrap: true,
+                textWrapSettings: textWrapSettings,
+                editSettings: editSettings,
+                cssClass: 'mslcTable',
+                locale: 'en-US'
+            });
+        }
+    });
+
+
+    //========== On Click Functions =========
+    function closeStandardNarrativeHistory() {
+        LoadNotificationDialog("Closing Staff History...").then(() => {
+            $("#window_standardnarrativehistory").hide();
+        }).then(() => ClearNotificationDialog());
+    }
+</script>

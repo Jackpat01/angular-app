@@ -1,0 +1,183 @@
+﻿@*
+    DO NOT MODIFY OUTSIDE OF MSLC.STATLOG
+    This file comes from MSLC.Statlog, any changes to it will be wiped out when the nuget package is updated.
+    Please make the appropriate enhancements to MSLC.Statlog instead of here.
+*@
+
+@using MSLC.Portal.MVC.Utility
+@using System.Linq
+@using Microsoft.EntityFrameworkCore.Internal
+@using MSLC.Portal.MVC.Utility
+@using MSLC.StatLog.Controllers
+@using MSLC.StatLog.Enumerations
+@using EnumHelper = MSLC.StatLog.Enumerations.EnumHelper
+@using FilterType = Syncfusion.JavaScript.FilterType
+@model MSLC.StatLog.MVC.ViewModels.EventViewModel.Workflow
+@{
+    Layout = null;
+    var delimiter = "x22x";
+}
+
+<script src="~/Scripts/jquery.validate.js" type="text/javascript"></script>
+<script src="~/Scripts/jquery.validate.unobtrusive.js" type="text/javascript"></script>
+<link href="~/Content/south-street/jquery-ui-1.9.2.custom.min.css" rel="stylesheet" />
+
+
+<script src="~/Scripts/jHtmlArea-0.8.js" type="text/javascript"></script> @*Used for editing bulletin boards*@
+<script src="~/Scripts/jHtmlArea.ColorPickerMenu-0.8.js" type="text/javascript"></script> @*Used for editing bulletin boards*@
+
+<link href="~/Content/jHtmlArea/jHtmlArea.ColorPickerMenu.css" rel="stylesheet" type="text/css" />
+<link href="~/Content/jHtmlArea/jHtmlArea.css" rel="stylesheet" type="text/css" />
+<link href="~/Content/jHtmlArea/jHtmlArea.Editor.css" rel="stylesheet" type="text/css" />
+<script src="@Url.AbsoluteContent("~/Scripts/Pages/Event/EditWorkflow.js")"></script>
+@using (Html.BeginForm("SaveLifecycleWorkflowOptions", "Event", FormMethod.Post, new { id = "frmSubmit", enctype = "multipart/form-data", @class = "modal-form", defaultbutton = "btnSave" }))
+{
+    @Html.AntiForgeryToken()
+    @Html.Hidden("EventWorkflowDelimiter", delimiter)
+    @Html.Hidden("WorkflowStrategyList", EnumHelper.WorkflowStrategyListString.Join(","))
+    @Html.HiddenFor(m => m.sEventID)
+    @Html.HiddenFor(m => m.LifeCycle)
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3 id="myModalLabel" style="text-align: left;">
+                Edit Workflow Options
+            </h3>
+            <button href="#" class="close" data-dismiss="modal">&times;</button>
+        </div>
+        <div class="modal-body">
+            <div class="d-flex flex-column">
+                <div class="row m-2">
+                    <div>
+                        <label for="WorkflowDDLx22xEVENT_ADDED_dropdown">Add a new event @EventController.AddEventText(Model.LifeCycle)</label>
+                    </div>
+                    <div>
+                        If this workflow triggers because of an 'Upload' event under this event (like with a file review), Automatically Upload will automatically upload the reviewed file to the event added.
+                    </div>
+                    <div class="w-100 pt-2 d-flex justify-content-between">
+                        @(Html.EJ()
+                            .Autocomplete("WorkflowDDL" + delimiter + Model.LifeCycle)
+                            .Datasource(Model.EventList.Values.Select(x => new
+                            {
+                                EventID = x.sEventID,
+                                Event = x.Name,
+                                Descript = x.Description
+                            }).ToList())
+                            .AutocompleteFields(ac => ac.Text("Event").Key("EventID"))
+                            .CssClass("flex-grow-1 mr-3")
+                            .WatermarkText("Event search")
+                            .MinCharacter(0)
+                            .FilterType(FilterOperatorType.Contains)
+                            .MultiColumnSettings(obj => obj.Enable(true).Columns(obj1 =>
+                            {
+                                obj1.Field("Event").HeaderText("Event Name").Add();
+                                obj1.Field("Descript").HeaderText("Description").Add();
+                            }).ShowHeader(true).SearchColumnIndices(new List<int> { 1, 0 }).StringFormat("{0}"))
+                            .HighlightSearch(true)
+                            .ClientSideEvents(e =>
+                            {
+                                e.Select("workflowEventDDLSelected");
+                            })
+                            .PopupHeight("400px")
+                            .AllowSorting(true).SortOrder(SortOrder.Ascending)
+                            .ShowPopupButton(true)
+                            .EmptyResultText("No Events(s) found in list."))
+
+                        <div class="button-box">
+                            <button id=@("WorkflowAddBtn" + delimiter + Model.LifeCycle) onclick="return addWorkflow('@Model.LifeCycle.ToString()')" class="btn btn-kyBlue BoldMe" disabled="">Add Event to Workflow</button>
+                        </div>
+                    </div>
+                    <div>
+                        @(Html.EJ().Grid<object>("WorkflowGrid" + delimiter + Model.LifeCycle)
+                            .CssClass("mslcTable")
+                            .Datasource(Model.WorkflowList.Select(wkflow => new
+                                    {
+                                        PrimaryKey = wkflow.PrimaryKey,
+                                        sEventID = wkflow.sEventID,
+                                        EventName = Model.EventList.ContainsKey(wkflow.sEventID) ? Model.EventList[wkflow.sEventID].Name : null,
+                                        Descript = Model.EventList.ContainsKey(wkflow.sEventID) ? Model.EventList[wkflow.sEventID].Description : null,
+                                        ActionEnumID = (int) wkflow.ActionEnum,
+                                        ActionEnum = wkflow.ActionEnum.ToString(),
+                                        StrategyID = (int) wkflow.Strategy,
+                                        Strategy = wkflow.Strategy.ToString(),
+                                        Order = wkflow.Order,
+                                        AutomaticallyUploadFile = wkflow.AutomaticallyUploadFile,
+                                        LifeCycle = Model.LifeCycle.ToString()
+                                    }).Where(e => e.EventName != null).OrderBy(e => e.Order).ToList())
+
+                            .AllowPaging()
+                            .EnableRowHover(true)
+                            .AllowSelection(false)
+                            .AllowSorting(true)
+                            .AllowFiltering(true)
+                            .AllowTextWrap(true)
+                            .TextWrapSettings(wrap => { wrap.WrapMode(WrapMode.Both); })
+                            .FilterSettings(filter =>
+                            {
+                                filter.FilterType(FilterType.Menu);
+                                filter.ShowPredicate(false);
+                            })
+                            .ToolbarSettings(toolbar =>
+                            {
+                                toolbar.ShowToolbar().ToolbarItems(items =>
+                                {
+                                    items.AddTool(ToolBarItems.Search);
+                                });
+                            })
+                            .Columns(col =>
+                            {
+                                col.Template("#removeWorkflowEvent").HeaderText("Remove").CssClass("icon").TextAlign(TextAlign.Center).Width(10).Add();
+                                col.Template("#moveWorkflowEvent").HeaderText("Reorder").CssClass("icon").TextAlign(TextAlign.Center).Width(10).Add();
+                                col.Field("EventID").HeaderText("ID").TextAlign(TextAlign.Center).Width(10).Visible(false).Add();
+                                col.Field("EventName").HeaderText("Event Name").TextAlign(TextAlign.Center).Width(30).Add();
+                                col.Field("Descript").HeaderText("Description").TextAlign(TextAlign.Center).Width(50).Add();
+                                col.Template("#txtAutomaticallyUploadFile").HeaderText("Automatically upload").TextAlign(TextAlign.Center).Width(50).Add();
+                                col.Field("template.RelationshipDDL").HeaderText("Relationship").TextAlign(TextAlign.Center).Width(50).Add();
+                            })
+                            .ClientSideEvents(events =>
+                            {
+                                events.Load("loadWorkflowGrid");
+                                events.TemplateRefresh("updateWorkflowGrid");
+                            }))
+                        <script id="removeWorkflowEvent" type="text/x-template">
+                            <a onclick="removeWorkflowBtnClicked(this)" lifeCycle="{{:LifeCycle}}" primaryKey="{{:PrimaryKey}}">
+                                <i data-feather="trash"></i>
+                            </a>
+                        </script>
+                        <script id="txtAutomaticallyUploadFile" type="text/x-template">
+                            <input type="checkbox" {{if AutomaticallyUploadFile}} checked {{/if}}
+                                   onclick="checkboxWorkflowClicked(this)" lifeCycle="{{:LifeCycle}}" primaryKey="{{:PrimaryKey}}" />
+                        </script>
+                        <script id="moveWorkflowEvent" type="text/x-template">
+                            <a onclick="moveWorkflowUpBtnClicked(this)" lifeCycle="{{:LifeCycle}}" primaryKey="{{:PrimaryKey}}">
+                                <i data-feather="chevron-up"></i>
+                            </a>
+                            <a onclick="return moveWorkflowDownBtnClicked(this)" lifeCycle="{{:LifeCycle}}" primaryKey="{{:PrimaryKey}}">
+                                <i data-feather="chevron-down"></i>
+                            </a>
+                        </script>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="modal-footer mslcModalFooter" id="dvFooter" style="text-align: left !important;">
+            <div class="myImage" style="display: none; text-align: center;">
+                <img src="~/Images/loading.gif" alt="Loading" width="32" height="32" />
+            </div>
+            <div class="myControls">
+                <button id="btnClose" class="btn btn-basic BoldMe" data-dismiss="modal" aria-hidden="true">Close</button>&nbsp;&nbsp;
+                <button id="btnSave" type="submit" class="btn btn-success BoldMe" name="Command" value="Save">Save</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+
+    </script>
+}
+<div id="SyncFusionScript">
+    <script src="@Url.AbsoluteContent("~/Scripts/ej/common/ej.unobtrusive.min.js")"></script>
+    <script>
+        RegenerateEventWorkflowList();
+    </script>
+</div>

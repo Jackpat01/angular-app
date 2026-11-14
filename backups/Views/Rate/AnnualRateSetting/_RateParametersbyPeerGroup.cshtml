@@ -1,0 +1,399 @@
+﻿﻿﻿@Styles.Render("~/Content/StatLog.css")
+@using MSLC.Portal.MVC.Utility
+@model WebPortal_OH_FI.Models.DatabaseLookupGroupViewModel
+
+@{
+
+    string annualRateSettingEnum = Model.AnnualRateSettingEnum;
+}
+
+<style type="text/css">
+    .nav-tabs .nav-item.show .nav-link, .nav-tabs .nav-link.active {
+        background: moccasin;
+        border-bottom: 2px solid green;
+    }
+
+    th, td {
+        padding: 10px;
+    }
+
+    .e-grid .e-pager .e-pagercontainer {
+        float: left;
+    }
+
+    .e-grid .e-pager .e-pager-itemsinterval {
+        float: left;
+    }
+    .e-pager-itemsinterval {
+        direction: rtl;
+        float: left;
+    }
+</style>
+@{
+
+    AjaxOptions options = new AjaxOptions();
+    options.HttpMethod = "POST";
+
+}
+<div style='width: 100%; font-weight: bold;'> <div><h1>Rate Parameters By Peer Group</h1></div> </div>
+<div>
+    <table>
+        <tr>
+            <td>CYE:</td>
+            <td>@Html.DropDownListFor(x => x.LookupGroupFiscalYear, (IEnumerable<SelectListItem>)Model.LookupGroupFiscalYears, "Select CYE", new { ID = "drpLookupGroupFiscalYears", @style = "width: 80%;", aria_label="CYE" })</td>
+            <td><input id="btnRemoveLookupGroup" value="Remove CYE" onclick="DeleteLookupGroupFYEData()" type="submit" class="btn btn-success" /></td>
+            <td>@Html.TextBoxFor(x => x.LookupGroupYear, new { @placeholder = "Add New CYE", id = "txtLookupGroupDate", maxlength = 4, @oninput = "this.value = this.value.replace(/[^0-9.]/g, '').replace(/(\\..*)\\./g, '$1');", @style = "width: 100px;", aria_label="Add New CYE" })</td>
+            <td><input id="btnAddLookupGroupDate" value="ADD CYE" onclick="SaveLookupGroupDate()" type="submit" class="btn btn-success" /></td>
+        </tr>
+    </table>
+    <center>
+        <div id="tblLookupGroup"></div>
+    </center>
+</div>
+
+<div id="SyncFusionScript">
+    <script src="@Url.AbsoluteContent("~/Scripts/ej/common/ej.unobtrusive.min.js")"></script>
+</div>
+<script type="text/javascript">
+    $(document).ready(function () {
+        $("#btnAddLookupGroupDate").prop("disabled", true);
+        $("#txtLookupGroupDate").val("");
+        var fiscalYearSelected = $('#drpLookupGroupFiscalYears option:selected').text();
+        $("#btnRemoveLookupGroup").prop("disabled", fiscalYearSelected == "Select CYE");
+    })
+
+    $("#txtLookupGroupDate").keyup(function () {
+        var val = $('#txtLookupGroupDate').val();
+        if (val != "") {
+            $("#btnAddLookupGroupDate").prop("disabled", false);
+        } else {
+            $("#btnAddLookupGroupDate").prop("disabled", true);
+        }
+    });
+
+    $("#drpLookupGroupFiscalYears").change(function () {
+        var fiscalYearSelected = $('#drpLookupGroupFiscalYears option:selected').text();
+        var annualRateSettingEnum = @Html.Raw(Json.Encode(annualRateSettingEnum));
+        let isAdmin = @Model.IsUserAdmin.ToString().ToLower();
+        let toolBarSettings = [ ej.Grid.ToolBarItems.Edit, ej.Grid.ToolBarItems.Update, ej.Grid.ToolBarItems.Cancel];
+        let editSettings = { allowEditing: true, allowAdding: isAdmin, allowDeleting: isAdmin, showDeleteConfirmDialog: true };
+
+        if (isAdmin) {
+            toolBarSettings.push(ej.Grid.ToolBarItems.Add);
+            toolBarSettings.push(ej.Grid.ToolBarItems.Delete);
+        }
+
+        if (fiscalYearSelected != "Select CYE") {
+            $("#btnRemoveLookupGroup").prop("disabled", false);
+            LoadNotificationDialog("Loading Group").then(() => {
+                return new Promise((resolve, reject) => {
+                    $.ajax({
+                        async: true,
+                        url: "@Url.AbsoluteAction("GetDatabaseLookupGroup", "Rate")",
+						data: JSON.stringify({ "lookUpGroupDate": fiscalYearSelected, annualRateSettingEnum: annualRateSettingEnum }),
+                        type: "POST",
+                        cache: false,
+                        contentType: "application/json;charset=utf-8",
+                        success: function (result) {
+                            if (!result.Success) return resolve();
+
+                            var cols = [];
+                            cols.push({ field: 'PrimaryKeyID', headerText: 'PrimaryKeyID', isPrimaryKey: true, isIdentity: true, visible: false });
+                            cols.push({ field: 'DatabaseLookupGroupYearId', headerText: 'DatabaseLookupGroupYearId', visible: false });
+                            cols.push({ field: 'ValueType', headerText: 'ValueType', visible: false });
+                            for (var col = 0; col < result.LookupGroupViewModel.GridColumns.length; col++) {
+                                // Build "Columns" and "Header Text"
+                                colObj = {
+                                    field: result.LookupGroupViewModel.GridColumns[col].Field,
+                                    headerText: result.LookupGroupViewModel.GridColumns[col].HeaderText,
+                                    visible: result.LookupGroupViewModel.GridColumns[col].Visible,
+                                    type: result.LookupGroupViewModel.GridColumns[col].Type,
+                                    allowEditing: result.LookupGroupViewModel.GridColumns[col].AllowEditing
+                                };
+                                cols.push(colObj);
+                                if (colObj.type == "date") {
+                                    colObj.editType = ej.Grid.EditingType.DatePicker;
+                                    colObj.format = "{0:MM/dd/yyyy}";
+                                }
+                            }
+                            $("#tblLookupGroup").ejGrid({
+                                dataSource: JSON.parse(result.LookupGroupViewModel.DataModel),
+                                columns: cols,
+                                toolbarSettings: {
+                                    showToolbar: true,
+                                    toolbarItems: toolBarSettings
+                                },
+                                pageSettings: { pageSize: 5, pageSizeList: [5, 10, 15, 20] },
+                                allowPaging: true,
+                                enableRowHover: true,
+                                allowSelection: true,
+                                allowSorting: true,
+                                allowTextWrap: true,
+                                editSettings: editSettings,
+                                actionBegin: function (args) {
+                                    let table = this;
+                                    let previousValue = { ...args.previousData };
+
+                                    if (args.requestType == "beginedit") { // Edit
+                                        // This will register a copy of the data on the server so that it can tell what was modified.
+                                        var databaseLookupGroupYearId = $('#drpLookupGroupFiscalYears option:selected').val();
+                                        var value = JSON.stringify(args.rowData)
+                                        return new Promise((res, rej) => {
+                                            $.ajax({
+                                                async: true,
+                                                url: "@Url.AbsoluteAction("GetDatabaseLookupGroupId", "Rate")",
+                                                data: JSON.stringify({ value: value, "databaseLookupGroupYearId": databaseLookupGroupYearId }),
+                                                type: "POST",
+                                                contentType: "application/json;charset=utf-8",
+                                                dataType: "json",
+                                                success: function (response) {
+                                                    //var lookupGroupDataIdArray = response.lookupGroupDataIdArray;
+                                                    res();
+                                                },
+                                                error: function (errormessage) {
+                                                    StaticAlert({ content: errormessage.responseText }).then(() => {
+                                                        res();
+                                                    });
+                                                    args.cancel = true;
+                                                }
+                                            });
+                                        });
+                                    }
+                                    else if (args.requestType == "save") {
+                                        return StaticConfirm({
+                                            title: "Update Rate Parameter Values",
+                                            content: "Modifying these values can alter the Rate Calculation, is this correct?",
+                                            buttons: ["Ok", "Cancel"]
+                                        }).then((key) => {
+
+                                            //Add or Update
+                                            //********************** Local Store ************
+                                            // Use Localstorage to save the grid's "CurrentPageIndex" to reset it after Postback.
+                                            // Syncfusion Forum link for future reference:
+                                            // --https://www.syncfusion.com/forums/144600/retain-last-selected-row-and-page-in-grid-after-postback--
+                                            window.localStorage.removeItem("currentPageIndex");
+                                            window.localStorage.setItem("currentPageIndex", args.model.pageSettings.currentPage);
+
+                                            if (key != 0) {
+                                                table.model.dataSource[args.selectedRow] = previousValue;
+                                                table.refreshContent();
+                                                return;
+                                            }
+
+                                            //********************** Local Store ************
+                                            var value = JSON.stringify(args.data);
+                                            var lookupGroupYearId = $('#drpLookupGroupFiscalYears option:selected').val();
+                                            var fiscalYearSelected = $('#drpLookupGroupFiscalYears option:selected').text();
+                                            return new Promise((res, rej) => {
+                                                $.ajax({
+                                                    async: true,
+                                                    url: "@Url.AbsoluteAction("SaveDatabaseLookupGroup", "Rate")",
+                                                    data: JSON.stringify({ value: value, "lookupGroupYearId": lookupGroupYearId, "fiscalYear": fiscalYearSelected, annualRateSettingEnum: annualRateSettingEnum }),
+                                                    type: "POST",
+                                                    contentType: "application/json;charset=utf-8",
+                                                    dataType: "json",
+                                                    success: function (response) {
+                                                        if (!response.Success) {
+                                                            window.localStorage.removeItem("currentPageIndex");
+                                                            window.localStorage.setItem("currentPageIndex", 1);
+                                                            StaticAlert({ content: "Error Saving Group Data" }).then(() => {
+                                                                res();
+                                                            });
+                                                        }
+                                                        else {
+                                                            //Re-bind Grid Data
+                                                            var currentPageIndex = parseInt(window.localStorage.getItem("currentPageIndex"), 10);
+                                                            $("#tblLookupGroup").ejGrid("dataSource", JSON.parse(response.LookupGroupViewModel.DataModel));
+                                                            $("#tblLookupGroup").ejGrid({
+                                                                pageSettings: { currentPage: currentPageIndex },
+                                                            });
+                                                            $("#tblLookupGroup").show();
+                                                            res();
+                                                        }
+                                                    },
+                                                    error: function (errormessage) {
+                                                        window.localStorage.removeItem("currentPageIndex");
+                                                        StaticAlert({ content: errormessage.responseText }).then(() => {
+                                                            res();
+                                                        });
+                                                    }
+                                                });
+                                            });
+                                        });
+                                    }
+                                    else if (args.requestType == "delete") {
+                                        var lookupGroupYearId = $('#drpLookupGroupFiscalYears option:selected').val();
+                                        var fiscalYearSelected = $('#drpLookupGroupFiscalYears option:selected').text();
+                                        var value = JSON.stringify(args.data);
+                                        return new Promise((res, rej) => {
+                                            $.ajax({
+                                                async: true,
+                                                url: "@Url.AbsoluteAction("DeleteDatabaseLookupGroup", "Rate")",
+                                                data: JSON.stringify({ value: value, "lookupGroupYearId": lookupGroupYearId, "fiscalYear": fiscalYearSelected, annualRateSettingEnum: annualRateSettingEnum }),
+                                                type: "POST",
+                                                contentType: "application/json;charset=utf-8",
+                                                dataType: "json",
+                                                success: function (response) {
+                                                    if (!response.Success) {
+                                                        StaticAlert({ content: "Error Deleting Group Data" }).then(() => {
+                                                            res();
+                                                        });
+                                                    }
+                                                    else {
+                                                        $("#tblLookupGroup").ejGrid("dataSource", JSON.parse(response.LookupGroupViewModel.DataModel));
+                                                        $("#tblLookupGroup").show();
+                                                        res();
+                                                    }
+                                                },
+                                                error: function (errormessage) {
+                                                    args.cancel = true;
+                                                    window.localStorage.removeItem("currentPageIndex");
+                                                    StaticAlert({ content: errormessage.responseText }).then(() => {
+                                                        res();
+                                                    });
+                                                }
+                                            });
+                                        });
+                                    }
+                                }
+                            });
+
+                            $("#tblLookupGroup").show();
+                            resolve();
+                        },
+                        error: function (errormessage) {
+                            StaticAlert({ content: errormessage.responseText }).then(() => {
+                                resolve();
+                            });
+                        }
+                    });
+                });
+            }).then(() => {
+                return ClearNotificationDialog();
+            });
+        }
+        else {
+            $('#tblLookupGroup').hide();
+            $("#btnRemoveLookupGroup").prop("disabled", true);
+        }
+    })
+
+    function SaveLookupGroupDate() {
+        var lookupGroupYearSelected = $('#txtLookupGroupDate').val();
+        var annualRateSettingEnum = @Html.Raw(Json.Encode(annualRateSettingEnum));
+        return LoadNotificationDialog("Saving...").then(() => {
+            return new Promise((resolve, reject) => {
+                $.ajax({
+                    async: true,
+                    url: "@Url.AbsoluteAction("SaveLookupGroupDate", "Rate")",
+                    data: JSON.stringify({ "fiscalYear": lookupGroupYearSelected, annualRateSettingEnum: annualRateSettingEnum }),
+                    type: "POST",
+                    contentType: "application/json;charset=utf-8",
+                    dataType: "json",
+                    success: function (result) {
+                        if (!result.Success) {
+                            StaticAlert({ content: result.Message }).then(() => {
+                                ;
+                                $("#txtLookupGroupDate").val("");
+                                $("#btnAddLookupGroupDate").prop("disabled", true);
+                                $("#drpLookupGroupFiscalYears option").filter(function () {
+                                    return this.text == lookupGroupYearSelected;
+                                }).attr('selected', true).trigger('change');
+
+                                resolve();
+                            });
+                        }
+                        else {
+                            $("#txtLookupGroupDate").val("");
+                            $("#btnAddLookupGroupDate").prop("disabled", true);
+                            var ddl = $('#drpLookupGroupFiscalYears');
+                            ddl.empty();
+                            $(document.createElement('option'))
+                                .attr('value', 'Select CYE')
+                                .text('Select CYE')
+                                .appendTo(ddl);
+                            $(result.DatabaseLookupGroupViewModel.LookupGroupFiscalYears).each(function () {
+                                $(document.createElement('option'))
+                                    .attr('value', this.Value)
+                                    .text(this.Text)
+                                    .appendTo(ddl);
+                            });
+                            // Load Grid
+                            $("#drpLookupGroupFiscalYears option").filter(function () {
+                                return this.text == lookupGroupYearSelected;
+                            }).attr('selected', true).trigger('change');
+
+                            resolve();
+                        }
+                    },
+                    error: function (errormessage) {
+                        StaticAlert({ content: errormessage.responseText }).then(() => {
+                            resolve();
+                        });
+                    }
+                });
+            });
+        }).then(() => {
+            return ClearNotificationDialog();
+        });
+    }
+
+    function DeleteLookupGroupFYEData() {
+        return StaticConfirm({
+            title: "Delete Confirm",
+            content: "Are you sure you want to Delete?",
+            buttons: ["Ok", "Cancel"]
+        }).then((key) => {
+            if (key != 0) return;
+
+            var lookupGroupYearId = $('#drpLookupGroupFiscalYears option:selected').val();
+            var annualRateSettingEnum = @Html.Raw(Json.Encode(annualRateSettingEnum));
+            return LoadNotificationDialog("Deleting...").then(() => {
+                return new Promise((resolve, reject) => {
+                    $.ajax({
+                        async: true,
+                        url: "@Url.AbsoluteAction("DeleteLookupGroupFYEData", "Rate")",
+                        data: JSON.stringify({ "lookupGroupYearId": lookupGroupYearId, annualRateSettingEnum: annualRateSettingEnum }),
+                        type: "POST",
+                        contentType: "application/json;charset=utf-8",
+                        dataType: "json",
+                        success: function (result) {
+                            if (!result.Success) {
+                                StaticAlert({ content: result.Message }).then(() => {
+                                    resolve();
+                                });
+                            }
+                            else {
+                                var ddl = $('#drpLookupGroupFiscalYears');
+                                ddl.empty();
+                                $(document.createElement('option'))
+                                    .attr('value', 'Select CYE')
+                                    .text('Select CYE')
+                                    .appendTo(ddl);
+                                $(result.DatabaseLookupGroupViewModel.LookupGroupFiscalYears).each(function () {
+                                    $(document.createElement('option'))
+                                        .attr('value', this.Value)
+                                        .text(this.Text)
+                                        .appendTo(ddl);
+                                });
+                                $("#btnRemoveLookupGroup").prop("disabled", true);
+                                $('#tblLookupGroup').hide(); // Hide the grid and set DD to default
+                                $('select#drpLookupGroupFiscalYears option:contains("Select CYE")').prop('selected', true);
+
+                                resolve();
+                            }
+                        },
+                        error: function (errormessage) {
+                            StaticAlert({ content: errormessage.responseText }).then(() => {
+                                resolve();
+                            });
+                        }
+                    });
+                });
+            }).then(() => {
+                return ClearNotificationDialog();
+            });
+        });
+    }
+</script>
+

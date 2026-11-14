@@ -1,0 +1,349 @@
+﻿@model WebPortal_OH_FI.Models.BaseYearLookupViewModel
+@{
+    string baseYearType = Model.BaseYearTypeEnum;
+    string dateType = Model.DateType;
+}
+
+<style type="text/css">
+    .e-grid .e-pager .e-pagercontainer {
+        float: left;
+    }
+
+    .e-grid .e-pager .e-pager-itemsinterval {
+        float: left;
+    }
+    .e-pager-itemsinterval {
+        direction: rtl;
+        float: left;
+    }
+</style>
+<div style='width: 100%; font-weight: bold;'>
+    <div><h1>Administrator Ceiling Factors</h1></div>
+</div>
+<div>
+    <table>
+        <tr>
+            <td><b>@dateType:</b></td>
+            <td>@Html.DropDownListFor(x => x.FiscalYear, (IEnumerable<SelectListItem>)Model.FiscalYearList, "Select " + dateType, new { ID = "drpBaseYearFiscalYearList", @style = "width: 90%;", aria_label="Fiscal Year" })</td>
+            <td><input id="btnRemoveFYE" value="Remove @dateType" onclick="RemoveBaseYear()" type="submit" class="btn btn-success" /></td>
+            <td>@Html.TextBoxFor(x => x.NewYear, new { @placeholder = "Add New " + dateType, id = "txtNewBaseYear", maxlength = 10, @style = "width: 165px;", aria_label="New Base Year" })</td>
+            <td><input id="btnAddBaseYear" value="ADD New @dateType" onclick="AddBaseYear()" type="submit" class="btn btn-success" /></td>
+            <td><input id="btnProcessBaseYear" value="Process" onclick="ProcessBaseYear()" type="submit" class="btn btn-success" /></td>
+            <td><input id="btnExportExcel" value="Export to Excel" onclick="AdminCeilingExportExcel()" type="submit" class="btn btn-success" /></td>
+        </tr>
+    </table>
+    <center>
+        <div id="tblGrid"></div>
+    </center>
+</div>
+
+<div id="SyncFusionScript">
+    <script src="@Url.AbsoluteContentUri("~/Scripts/ej/common/ej.unobtrusive.min.js")"></script>
+</div>
+
+<script type="text/javascript">
+    $(document).ready(function () {
+        var annualRateSettingEnum = @Html.Raw(Json.Encode(baseYearType));
+        $("#btnAddBaseYear").prop("disabled", true);
+        $("#btnExportExcel").prop("disabled", true);
+        $("#txtNewBaseYear").val("");
+        var fiscalYearSelected = $('#drpBaseYearFiscalYearList option:selected').text();
+        $("#btnRemoveFYE").prop("disabled", fiscalYearSelected == "Select @dateType");
+        $("#btnProcessBaseYear").prop("disabled", fiscalYearSelected == "Select @dateType");
+
+        $("#txtNewBaseYear").keyup(function () {
+            var val = $('#txtNewBaseYear').val();
+            if (val != "") {
+                $("#btnAddBaseYear").prop("disabled", false);
+            } else {
+                $("#btnAddBaseYear").prop("disabled", true);
+            }
+        });
+
+
+        $("#drpBaseYearFiscalYearList").change(function () {
+            var selectionItemVal = $('#drpBaseYearFiscalYearList option:selected').text();
+            if (selectionItemVal != "Select @dateType") {
+                $("#btnRemoveFYE").prop("disabled", false);
+                $("#btnProcessBaseYear").prop("disabled", false);
+                $("#btnExportExcel").prop("disabled", false);
+                LoadNotificationDialog("Loading").then(() => {
+                    return new Promise((resolve, reject) => {
+                        $.ajax({
+                            async: true,
+                            url: "@Url.AbsoluteAction("GetDatabaseLookUpVariableInfo", "Rate")",
+                            data: JSON.stringify({ annualRateSettingEnum: annualRateSettingEnum, "fiscalYear": selectionItemVal }),
+                            type: "POST",
+                            cache: false,
+                            contentType: "application/json;charset=utf-8",
+                            success: function (result) {
+                                if (result.Success) {
+                                    var cols = [];
+                                    cols.push({ field: 'DatabaseLookupVariableId', headerText: 'PrimaryKeyID', isPrimaryKey: true, isIdentity: true, visible: false });
+                                    cols.push({ field: 'RangeMinimum', headerText: 'Bed Range Min', width: '50', editType: 'numericedit', validationRules: { required: true }, visible: true });
+                                    cols.push({ field: 'RangeMaximum', headerText: 'Bed Range Max', width: '50', editType: 'numericedit', validationRules: { required: true }, visible: true });
+                                    cols.push({ field: 'Value', headerText: 'Amount', width: '50', validationRules: { required: true }, visible: true });
+
+                                    $("#tblGrid").ejGrid({
+                                        dataSource: result.DatabaseLookupViewModel.DatabaseLookupGridViewModelList,
+                                        columns: cols,
+                                        pageSettings: { pageSize: 5, pageSizeList: [5, 10, 15, 20] },
+                                        allowPaging: true,
+                                        enableRowHover: true,
+                                        allowSelection: true,
+                                        allowSorting: true,
+                                        allowTextWrap: true,
+                                        allowFiltering: true,
+                                        filterSettings: { filterType: 'Menu' },
+                                        editSettings: { allowEditing: false, allowAdding: false, allowDeleting: false }
+                                    });
+
+                                    $("#tblGrid").show();
+                                    resolve();
+                                }
+                            },
+                            error: function (errormessage) {
+                                StaticAlert({ content: errormessage.responseText }).then(() => {
+                                    resolve();
+                                });
+                            }
+                        });
+                    });
+                }).then(() => {
+                    return ClearNotificationDialog();
+                });
+            }
+            else {
+                $('#tblGrid').hide();
+                $("#btnRemoveFYE").prop("disabled", true);
+                $("#btnProcessBaseYear").prop("disabled", true);
+                $("#btnExportExcel").prop("disabled", true);
+            }
+        })
+    });
+
+  function AddBaseYear() {
+      let selectedNewYear = $('#txtNewBaseYear').val();
+      let newYear = Number(selectedNewYear) + 1;
+      var rateStartDate = new Date(newYear, 6, 1);
+      var baseYearType = @Html.Raw(Json.Encode(baseYearType));
+
+      return LoadNotificationDialog("Saving...").then(() => {
+            return new Promise((resolve, reject) => {
+                $.ajax({
+                    async: true,
+                    url: "@Url.AbsoluteAction("AddBaseYear", "Rate")",
+                    data: JSON.stringify({ "baseYear": selectedNewYear, "rateStartDate": rateStartDate, baseYearTypeEnum: baseYearType }),
+                    type: "POST",
+                    contentType: "application/json;charset=utf-8",
+                    dataType: "json",
+                    success: function (result) {
+                        if (!result.Success) {
+                            StaticAlert({ content: result.Message }).then(() => {
+                                resolve();
+                            });
+                        }
+                        else {
+                            $("#txtNewBaseYear").val("");
+                            //$('#txtStartDateBaseYear').val("");
+                            $("#btnAddNewYear").prop("disabled", true);
+
+                            var ddl = $('#drpBaseYearFiscalYearList');
+                            ddl.empty();
+                            $(document.createElement('option'))
+                                .attr('value', '')
+                                .text('Select @dateType')
+                                .appendTo(ddl);
+
+                            //Check if drop down list is empty
+                            if (result.BaseYearLookupViewModel.FiscalYearList.length == 0) {
+                                // Load Grid
+                                $("#drpBaseYearFiscalYearList option").filter(function () {
+                                    return this.text == 'Select @dateType';
+                                }).attr('selected', true).trigger('change');
+                            }
+                            else {
+                                $(result.BaseYearLookupViewModel.FiscalYearList).each(function () {
+                                    $(document.createElement('option'))
+                                        .attr('value', this.Value)
+                                        .text(this.Text)
+                                        .appendTo(ddl);
+                                });
+
+                                // Load Grid
+                                $("#drpBaseYearFiscalYearList option").filter(function () {
+                                    return this.text == selectedNewYear;
+                                }).attr('selected', true).trigger('change');
+                            }
+
+                            resolve();
+                        }
+                    },
+                    error: function (errormessage) {
+                        StaticAlert({ content: errormessage.responseText || errormessage }).then(() => {
+                            resolve();
+                        });
+                    }
+                });
+            });
+        }).then(() => {
+            return ClearNotificationDialog();
+        });
+    }
+
+   function RemoveBaseYear() {
+        return StaticConfirm({
+            title: "Delete Confirm",
+            content: "Are you sure you want to Delete?",
+            buttons: ["Ok", "Cancel"]
+        }).then((key) => {
+            if (key != 0) return;
+
+            $("#btnRemoveBaseYear").prop("disabled", true);
+            $("#btnProcessBaseYear").prop("disabled", true);
+
+            var selectionItemVal = $('#drpBaseYearFiscalYearList option:selected').val();
+            var baseYearType = @Html.Raw(Json.Encode(baseYearType));
+            return LoadNotificationDialog("Deleting...").then(() => {
+                return new Promise((resolve, reject) => {
+                    $.ajax({
+                        async: true,
+                        url: "@Url.AbsoluteAction("DeleteBaseYear", "Rate")",
+                        data: JSON.stringify({ "fiscalYearId": selectionItemVal, baseYearTypeEnum: baseYearType }),
+                        type: "POST",
+                        contentType: "application/json;charset=utf-8",
+                        dataType: "json",
+                        success: function (result) {
+                            if (!result.Success) {
+                                StaticAlert({ content: result.Message }).then(() => {
+                                    resolve();
+                                });
+                                return;
+                            }
+
+                            $("#btnRemoveBaseYear").prop("disabled", true);
+                           // $('#txtStartDateBaseYear').val("");
+                            var ddl = $('#drpBaseYearFiscalYearList');
+                            ddl.empty();
+                            $(document.createElement('option'))
+                                .attr('value', 'Select @dateType')
+                                .text('Select @dateType')
+                                .appendTo(ddl);
+                            $(result.BaseYearLookupViewModel.FiscalYearList).each(function () {
+                                $(document.createElement('option'))
+                                    .attr('value', this.Value)
+                                    .text(this.Text)
+                                    .appendTo(ddl);
+                            });
+
+                            $('#tblGrid').hide(); // Hide the grid and set DD to default
+                            $('select#drpBaseYearFiscalYearList option:contains("Select @dateType")').prop('selected', true);
+                            resolve();
+                        },
+                        error: function (errormessage) {
+                            StaticAlert({ content: errormessage.responseText || errormessage }).then(() => {
+                                resolve();
+                            });
+                        }
+                    });
+                });
+            }).then(() => {
+                return ClearNotificationDialog();
+            });
+        });
+    }
+
+    function ProcessBaseYear() {
+        return StaticConfirm({
+            title: "Base Year Operation",
+            content: "Processing current 4.1 provider rates for this year will take some time; continue?",
+            buttons: ["Ok", "Cancel"]
+        }).then((response) => {
+            if (response != 0) return;
+
+            var selectionItemText = $('#drpBaseYearFiscalYearList option:selected').text();
+            var baseYearType = @Html.Raw(Json.Encode(baseYearType));
+            let newYear = Number(selectionItemText) + 1;
+            var rateStartDate = new Date(newYear, 6, 1);
+
+            return LoadNotificationDialog("Setting Base Year for " + selectionItemText).then(() => {
+                return new Promise((resolve, reject) => {
+                    $.ajax({
+                        url: "@Url.AbsoluteAction("ProcessBaseYear", "Rate")",
+                        data: JSON.stringify({ "year": selectionItemText, "rateStartDate": rateStartDate, baseYearTypeEnum: baseYearType, isBaseYear: true }),
+                        type: "POST",
+                        contentType: "application/json;charset=utf-8",
+                        dataType: "json",
+                        success: function (result) {
+                            if (!result.Success) {
+                                StaticAlert({ content: result.Message || "Unknown error" }).then(() => {
+                                    resolve();
+                                });
+                                return;
+                            }
+
+                            $("#drpBaseYearFiscalYearList option").filter(function () {
+                                return this.text == selectionItemText;
+                            }).attr('selected', true).trigger('change');
+
+                            resolve();
+                        },
+                        error: function (errormessage) {
+                            StaticAlert({ content: errormessage.responseText || errormessage }).then(() => {
+                                resolve();
+                            });
+                        }
+                    });
+                });
+            }).then(() => {
+                return ClearNotificationDialog();
+            });
+        });
+    }
+
+    function AdminCeilingExportExcel() {
+        var baseYearType = @Html.Raw(Json.Encode(baseYearType));
+        var annualRateSettingEnum = @Html.Raw(Json.Encode(baseYearType));
+        var selectionItemText = $('#drpBaseYearFiscalYearList option:selected').text();    //2020 Just the Year
+        let newYear = Number(selectionItemText);
+        var rateStartDate = new Date(newYear, 6, 1);
+
+        return LoadNotificationDialog("Generating Report...").then(() => {
+            return new Promise((resolve, reject) => {
+                $.ajax({
+                    async: true,
+                    url: "@Url.AbsoluteAction("AdminCeilingExportExcel", "Rate")",
+                    data: JSON.stringify({ "cyeYear": selectionItemText, "rateStartDate": rateStartDate, annualRateSettingEnum: annualRateSettingEnum }),
+                    type: "POST",
+                    contentType: "application/json;charset=utf-8",
+                    dataType: "json",
+                    success: function (response) {
+                        if (response.Success) {
+                            //get the file name for download
+                            if (response.fileName != "") {
+                                //debugger;
+                                //use window.location.href for redirect to download action for download the file
+                                window.location.href = "@Url.AbsoluteAction("Download", "Rate")/?fileName=" + response.fileName;
+                            }
+
+                            resolve();
+                        }
+                        else {
+                            StaticAlert({ content: "Error Generating Report: " + response.Message }).then(() => {
+                                resolve();
+                            });
+                        }
+                        resolve();
+                    },
+                    error: function (errormessage) {
+                        StaticAlert({ content: errormessage.responseText || errormessage }).then(() => {
+                            resolve();
+                        });
+                    }
+                });
+            });
+        }).then(() => {
+            return ClearNotificationDialog();
+        });
+    }
+</script>

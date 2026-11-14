@@ -1,0 +1,476 @@
+﻿@{
+    string valuePassedIn = this.ViewData.ContainsKey("VariableName") ? this.ViewData["VariableName"].ToString() : string.Empty;
+}
+<style type="text/css">
+    .e-grid .e-pager .e-pagercontainer {
+        float: left;
+    }
+
+    .e-grid .e-pager .e-pager-itemsinterval {
+        float: left;
+    }
+    .e-pager-itemsinterval {
+        direction: rtl;
+        float: left;
+    }
+</style>
+<div class="modal-header">
+    <span id="myModalLabel" style="text-align: left; font-size: 1.5em; font-weight: bolder; color: black;">
+        Import
+    </span>
+    <button href="#" class="close" data-dismiss="modal">&times;</button>
+</div>
+<div style="padding: 1rem;">
+    <table style="width: 100%;">
+        <colgroup>
+            <col style="width: 8rem;" />
+            <col />
+        </colgroup>
+        <tbody>
+            <tr>
+                <td>Import file:</td>
+                <td>
+                    <input type="file" name="Command" id="Import_File" value="Select" class="btn btn-default BoldMe" accept=".csv, .txt" aria-label="Import File" />
+                    <span id="Import">
+                        <button type="submit" name="Command" id="btnSubmitGroup" value="New" class="btn btn-success BoldMe">Submit</button>
+                        <button class="btn btn-success BoldMe" data-dismiss="modal" aria-hidden="true">Close</button>
+                    </span>
+                    <img id="SubmitWait" src="~/Images/loading.GIF" style="display: none;" width="32" height="32" />
+                </td>
+            </tr>
+        </tbody>
+    </table>
+</div>
+<div style="padding: 1rem;">
+    <p id="res">The time period records listed below could not be imported.</p>
+    <center>
+        <div id="reasonGrid"></div>
+    </center>
+</div>
+<script>
+    $(document).ready(function () {
+        var elem = document.getElementById("res");
+        elem.style.display = "none";
+        var valuePassedIn = @Html.Raw(Json.Encode(valuePassedIn));
+        var completeData = [];
+
+        function createGrid(data) {
+            return new Promise((resolve, reject) => {
+                var cols = [];
+                if (valuePassedIn === 'QualityPointsRateSch6') {
+                    cols.push({ field: 'EffectiveDate', headerText: 'EffectiveDate', width: '130', visible: true });
+                    cols.push({ field: 'ProviderNumber', headerText: 'Provider Number', width: '130', visible: true });
+                    cols.push({ field: 'PressureUlcers', headerText: 'Pressure Ulcers', width: '130', visible: true });
+                    cols.push({ field: 'UrinaryTractInfection', headerText: 'Urinary Tract Infection', width: '130', visible: true });
+                    cols.push({ field: 'IndependentMovement', headerText: 'Independent Movement', width: '130', visible: true });
+                    cols.push({ field: 'Catheter', headerText: 'Catheter', width: '100', visible: true });
+                    cols.push({ field: 'Occupancy', headerText: 'Occupancy', width: '100', visible: true });
+                    cols.push({ field: 'LSDI', headerText: 'LSDI', width: '80', visible: true });
+                    cols.push({ field: 'LSFI', headerText: 'LSFI', width: '80', visible: true });
+                    cols.push({ field: 'LSAM', headerText: 'LSAM', width: '80', visible: true });
+                    cols.push({ field: 'AdjustedStaffing', headerText: 'Adjusted Staffing', width: '130', visible: true });
+                    cols.push({ field: 'Reason', headerText: 'Reason', width: '120', visible: true });
+                }
+                else if (valuePassedIn === 'CorpOfficeSalaryCeilingTables') {
+                    cols.push({ field: 'CYE', headerText: 'CYE', width: '65', visible: true });
+                    cols.push({ field: 'General_Classification', headerText: 'GeneralClassification', width: '200', visible: true });
+                    cols.push({ field: 'Classification_Title', headerText: 'ClassificationTitle', width: '200', visible: true });
+                    cols.push({ field: 'Classification_Number', headerText: 'ClassificationNumber', width: '150', visible: true });
+                    cols.push({ field: 'Bed_Size_Min', headerText: 'BedSizeMin', width: '150', visible: true });
+                    cols.push({ field: 'POSITION_NUM', headerText: 'PositionNum', width: '160', visible: true });
+                    cols.push({ field: 'Step_1', headerText: 'Step1', width: '130', visible: true });
+                    cols.push({ field: 'Step_2', headerText: 'Step2', width: '130', visible: true });
+                    cols.push({ field: 'Step_3', headerText: 'Step3', width: '130', visible: true });
+                    cols.push({ field: 'Step_4', headerText: 'Step4', width: '130', visible: true });
+                    cols.push({ field: 'Step_5', headerText: 'Step5', width: '130', visible: true });
+                    cols.push({ field: 'Step_6', headerText: 'Step6', width: '130', visible: true });
+                    cols.push({ field: 'Step_7', headerText: 'Step7', width: '130', visible: true });
+                    cols.push({ field: 'Step_8', headerText: 'Step8', width: '130', visible: true });
+                    cols.push({ field: 'Step_9', headerText: 'Step9', width: '130', visible: true });
+                    cols.push({ field: 'Reason', headerText: 'Reason', width: '120', visible: true });
+                }
+                else if (valuePassedIn == 'QualityPoints') {
+                    cols.push({ field: 'FYE', headerText: 'FYE', width: '25', visible: true });
+                    cols.push({ field: 'ProviderNumber', headerText: 'Provider Number', width: '40', visible: true });
+                    cols.push({ field: 'QualityPoints', headerText: 'Quality Points', width: '25', visible: true });
+                    cols.push({ field: 'Reason', headerText: 'Reason', width: '100', visible: true });
+                }
+                else if (valuePassedIn == 'AnnualCaseMixScores') {
+                    cols.push({ field: 'CYE', headerText: 'CYE', width: '20', visible: true });
+                    cols.push({ field: 'ProviderNumber', headerText: 'Provider Number', width: '40', visible: true });
+                    cols.push({ field: 'CaseMixValue', headerText: 'CMI Value', width: '20', visible: true });
+                    cols.push({ field: 'MDSScoreType', headerText: 'MDS Score', width: '20', visible: true });
+                    cols.push({ field: 'Comments', headerText: 'Comments', width: '100', visible: true });
+                    cols.push({ field: 'Reason', headerText: 'Reason', width: '100', visible: true });
+                }
+                else if (valuePassedIn == 'SemiAnnualCaseMixScores') {
+                    cols.push({ field: 'FYE', headerText: 'Effective Date', width: '40', visible: true });
+                    cols.push({ field: 'ProviderNumber', headerText: 'Provider Number', width: '40', visible: true });
+                    cols.push({ field: 'CaseMixValue', headerText: 'CMI Value', width: '20', visible: true });
+                    cols.push({ field: 'MDSScoreType', headerText: 'MDS Score', width: '20', visible: true });
+                    cols.push({ field: 'Comments', headerText: 'Comments', width: '100', visible: true });
+                    cols.push({ field: 'Reason', headerText: 'Reason', width: '100', visible: true });
+                }
+                else if (valuePassedIn == 'QuarterlyCaseMixScores') {
+                    cols.push({ field: 'FYE', headerText: 'Quarter End Date', width: '40', visible: true });
+                    cols.push({ field: 'ProviderNumber', headerText: 'Provider Number', width: '40', visible: true });
+                    cols.push({ field: 'CaseMixValue', headerText: 'CMI Value', width: '20', visible: true });
+                    cols.push({ field: 'MDSScoreType', headerText: 'MDS Score', width: '20', visible: true });
+                    cols.push({ field: 'Comments', headerText: 'Comments', width: '100', visible: true });
+                    cols.push({ field: 'Reason', headerText: 'Reason', width: '100', visible: true });
+                }
+                else if (valuePassedIn == 'QuarterlyCaseMixScoresSFY') {
+                    cols.push({ field: 'SFY', headerText: 'SFY', width: '20', visible: true });
+                    cols.push({ field: 'ProviderNumber', headerText: 'Provider Number', width: '40', visible: true });
+                    cols.push({ field: 'EffectiveDate', headerText: 'Effective Date', width: '40', visible: true });
+                    cols.push({ field: 'CaseMixValue', headerText: 'CMI Value', width: '30', visible: true });
+                    cols.push({ field: 'ScoreType', headerText: 'Score Type', width: '30', visible: true });
+                    cols.push({ field: 'Comments', headerText: 'Comments', width: '70', visible: true });
+                    cols.push({ field: 'Reason', headerText: 'Reason', width: '70', visible: true });
+                }
+                else if (valuePassedIn == 'ProviderWithTaxOverride') {
+                    cols.push({ field: 'FYE', headerText: 'SFY', width: '40', visible: true });
+                    cols.push({ field: 'ProviderNumber', headerText: 'Provider Number', width: '40', visible: true });
+                    cols.push({ field: 'TaxRate', headerText: 'Tax Rate', width: '20', visible: true });
+                    cols.push({ field: 'Comments', headerText: 'Comments', width: '100', visible: true });
+                    cols.push({ field: 'Reason', headerText: 'Reason', width: '100', visible: true });
+                }
+                else if (valuePassedIn == 'DirectCareRateFreeze') {
+                    cols.push({ field: 'EffectiveDate', headerText: 'Effective Date', width: '40', visible: true });
+                    cols.push({ field: 'ProviderNumber', headerText: 'Provider Number', width: '40', visible: true });
+                    cols.push({ field: 'CaseMixScore', headerText: 'Case Mix Score', width: '20', visible: true });
+                    cols.push({ field: 'DirectCareRate', headerText: 'Direct Care Rate', width: '20', visible: true });
+                    cols.push({ field: 'Reason', headerText: 'Reason', width: '100', visible: true });
+                }
+                else if (valuePassedIn == 'ProvidersWithLowOccupancyOverride') {
+                    cols.push({ field: 'FYE', headerText: 'SFY', width: '40', visible: true });
+                    cols.push({ field: 'ProviderNumber', headerText: 'Provider Number', width: '40', visible: true });
+                    cols.push({ field: 'Comments', headerText: 'Comments', width: '100', visible: true });
+                    cols.push({ field: 'Reason', headerText: 'Reason', width: '100', visible: true });
+                }
+                else if (valuePassedIn == 'CHOWQualityPaymentOverride') {
+                    cols.push({ field: 'FYE', headerText: 'SFY', width: '40', visible: true });
+                    cols.push({ field: 'ProviderNumber', headerText: 'Provider Number', width: '40', visible: true });
+                    cols.push({ field: 'Comments', headerText: 'Comments', width: '100', visible: true });
+                    cols.push({ field: 'Reason', headerText: 'Reason', width: '100', visible: true });
+                }
+                else {
+                    cols.push({ field: 'FiscalYear', headerText: 'FYE', width: '25', visible: true });
+                    cols.push({ field: 'Value', headerText: 'Provider Number', width: '40', visible: true });
+                    cols.push({ field: 'Reason', headerText: 'Reason', width: '100', visible: true });
+                }
+
+                // load to grid
+                $("#reasonGrid").ejGrid({
+                    dataSource: JSON.parse(data[0].GroupDataTable),
+                    columns: cols,
+                    height: 350,
+                    enableRowHover: true,
+                    allowSelection: true,
+                    allowSorting: true,
+                    allowScrolling: true,
+                    allowTextWrap: true,
+                });
+                resolve();
+            });
+        };
+
+        //Reload FYE after import
+        $("#window_ImportDocument").on('hidden.bs.modal', function (e) {
+            let selectedValue = $("#drpAnnualRateSetting").val();
+            var url2 = "@Html.Raw(Url.AbsoluteAction("actionName","Rate"))";
+            url2 = url2.replace("actionName", selectedValue);
+            LoadNotificationDialog("Loading...").then(() => {
+                return new Promise((resolve, reject) => {
+                    $.ajax({
+                        async: true,
+                        url: url2,
+                        type: "POST",
+                        cache: false,
+                        contentType: "application/json;charset=utf-8",
+                        success: function (result) {
+                            $("#gridPlaceholder").show();
+                            $("#gridPlaceholder").html(result);
+                            resolve();
+                        },
+                        error: function (errormessage) {
+                            StaticAlert({ content: errormessage.responseText }).then(() => {
+                                resolve();
+                            });
+                        }
+                    });
+                });
+            }).then(() => {
+                return ClearNotificationDialog();
+            });
+        });
+
+        var resultFlag = false;
+        let flag = true;
+        let inValid = true;
+        let clearSession = false;
+
+        $("#btnSubmitGroup").click(function () {
+            //debugger;
+            var success = false;
+            var fileUpload = $("#Import_File").get(0);
+            var files = fileUpload.files;
+            // Checking whether FormData is available in browser
+            if (files.length == 0 || window.FormData === undefined) {
+                return false;
+            }
+            var fileData = new FormData();
+
+            fileData.append(files[0].name, files[0]);
+            var url2 = "@Html.Raw(Url.AbsoluteAction("actionName","Rate"))";
+            url2 = url2.replace("actionName", valuePassedIn + "_Import");
+
+            LoadNotificationDialog("Importing ...").then(() => {
+                return new Promise((resolve, reject) => {
+                    $.ajax({
+                        async: true,
+                        url: url2, //
+                        type: "POST",
+                        contentType: false, // Not to set any content header
+                        processData: false, // Not to process data
+                        data: fileData,
+                        cache: false,
+                        dataType: "json",
+                        success: function (results) {
+                            if (!results) {
+                                return resolve();   // need to actually do here instead of complete()
+                            }
+                            resolve(results);
+                        },
+                        complete: function () {
+                            //return resolve();
+                            $("#Import_File").val(null);
+                        },
+                        error: function (a, b, c) {
+                            StaticAlert({ content: "An error occured in import." }).then(() => {
+                                resolve();  // need to actually do here instead of complete()
+                            });
+                        }
+
+                    });
+                });
+            }).then((results) => {
+                var p = new Promise((resolve, reject) => { resolve(); });
+                if (results && results.Success) {
+                    let years = results.Data;
+                    //completeData = completeData.concat(results.RejectList);
+
+                    for (let i = 0; i < years.length; i++) {
+                        if (i === years.length - 1) {
+                            clearSession = true;
+                        }
+                        var year = years[i];
+                        p = ImportDateGroup(p, year, clearSession);
+                    }
+                }
+                return p;
+            }).then(() => {
+                return ClearNotificationDialog();
+            }).then(() => {
+                if (completeData.length > 0) {
+                    elem.style.display = "block";
+                    //completeData = $.grep(completeData, function (value) {
+                    //    return value !== undefined;
+                    //});
+                    return createGrid(completeData);
+                }
+            }).then(() => {
+                if (resultFlag) {
+                    return StaticAlert({ content: 'Import completed successfully.' });
+                }
+                else {
+                    return StaticAlert({ content: 'Error occurred importing the file.' });
+                }
+            }).then(() => {
+                return ClearNotificationDialog();
+            });
+        });
+
+        //function DateConversion(dateJS) {
+        //    if (dateJS) {
+        //        console.log(dateJS);
+        //        var jScriptDate = new Date(parseInt(dateJS.substr(6)));
+        //        var date = new Date(Date.parse(jScriptDate.toLocaleDateString('en-US')));
+        //        var fullDate = ((date.getMonth() + 1) + "/" + (date.getDate()) + "/" + date.getFullYear());
+        //        return fullDate;
+        //    }
+        //    else {
+        //        return "";
+        //    }
+        //}
+
+        function ImportDateGroup(p, year, clearSession) {
+            return p.then(() => {
+                return new Promise((resolve, reject) => {
+                    $.ajax({
+                        async: true,
+                        url: "@Url.AbsoluteAction("CheckGroupYear", "Rate")",
+                        data: JSON.stringify({ annualRateSettingEnum: valuePassedIn, lookupGroupDate: year }),
+                        type: "POST",
+                        contentType: "application/json;charset=utf-8",
+                        dataType: "json",
+                        success: function (response) {
+                            if (!response.Success) {
+                                let year = response.fyeValue;
+                                ClearNotificationDialog().then(() => {
+                                    ref = $("body div.overlay");
+                                    ref.hide();
+                                    return StaticConfirm({
+                                        title: "Data Import Status",
+                                        content: response.AlertMessage,
+                                        //content: "Records for " + year + " doesn't exist! A new Date Group will be created",
+                                        buttons: ["Ok", "Cancel"]
+                                    });
+                                }).then((key) => {
+                                    if (key == 0) {
+                                        return LoadNotificationDialog("Importing ...").then(() => {
+                                            return new Promise((res, rej) => {
+                                                flag = false;
+                                                inValid = false;
+                                                $.ajax({
+                                                    async: true,
+                                                    url: "@Url.AbsoluteAction("ImportGroup", "Rate")",
+                                                    data: JSON.stringify({ annualRateSettingEnum: valuePassedIn, flag: flag, inValid: inValid, lookupGroupDate: year, clearSession: clearSession }),
+                                                    type: "POST",
+                                                    contentType: "application/json;charset=utf-8",
+                                                    dataType: "json",
+                                                    success: function (response) {
+                                                        if (response.Success) {
+                                                            SetResponseFlag(response.Success);
+                                                            completeData = completeData.concat(response.Data);
+                                                        }
+                                                        res();
+                                                    },
+                                                    error: function (errormessage) {
+                                                        StaticAlert({ content: errormessage.responseText || errormessage }).then(() => {
+                                                            res();
+                                                        });
+                                                    }
+                                                });
+                                            });
+                                        });
+                                    }
+                                    else {
+                                        return new Promise((res, rej) => {
+                                            flag = false;
+                                            inValid = true;
+                                            $.ajax({
+                                                async: true,
+                                                url: "@Url.AbsoluteAction("ImportGroup", "Rate")",
+                                                data: JSON.stringify({ annualRateSettingEnum: valuePassedIn, flag: flag, inValid: inValid, lookupGroupDate: year, clearSession: clearSession }),
+                                                type: "POST",
+                                                contentType: "application/json;charset=utf-8",
+                                                dataType: "json",
+                                                success: function (response) {
+                                                    if (response.Success) {
+                                                        SetResponseFlag(response.Success);
+                                                        completeData = completeData.concat(response.Data);
+                                                    }
+                                                    res();
+                                                },
+                                                error: function (errormessage) {
+                                                    StaticAlert({ content: errormessage.responseText || errormessage }).then(() => {
+                                                        res();
+                                                    });
+                                                }
+                                            });
+                                        });
+                                    }
+                                }).then(() => {
+                                    resolve();
+                                });
+                            }
+                            else {
+                                ref = $("body div.overlay");
+                                ref.hide();
+                                //let year = response.fyeValue;
+                                let year = response.fyeValue;
+
+                                ClearNotificationDialog().then(() => {
+                                    return StaticConfirm({
+                                        title: "Data Import Status",
+                                        content: response.AlertMessage,
+                                        //content: "Records for " + year + " already exists, should current data be overwritten?",
+                                        buttons: ["Ok", "Cancel"]
+                                    });
+                                }).then((key) => {
+                                    if (key == 0) {
+                                        return LoadNotificationDialog("Importing ...").then(() => {
+                                            return new Promise((res, rej) => {
+                                                flag = true;
+                                                inValid = false;
+
+                                                $.ajax({
+                                                    async: true,
+                                                    url: "@Url.AbsoluteAction("ImportGroup", "Rate")",
+                                                    data: JSON.stringify({ annualRateSettingEnum: valuePassedIn, flag: flag, inValid: inValid, lookupGroupDate: year, clearSession: clearSession }),
+                                                    type: "POST",
+                                                    contentType: "application/json;charset=utf-8",
+                                                    dataType: "json",
+                                                    success: function (response) {
+                                                        if (response.Success) {
+                                                            SetResponseFlag(response.Success);
+                                                            completeData = completeData.concat(response.Data);
+                                                        }
+                                                        res();
+                                                    },
+                                                    error: function (errormessage) {
+                                                        StaticAlert({ content: errormessage.responseText || errormessage }).then(() => {
+                                                            res();
+                                                        });
+                                                    }
+                                                });
+                                            });
+                                        });
+                                    }
+                                    else {
+                                        return new Promise((res, rej) => {
+                                            flag = false;
+                                            inValid = true;
+                                            $.ajax({
+                                                async: true,
+                                                url: "@Url.AbsoluteAction("ImportGroup", "Rate")",
+                                                data: JSON.stringify({ annualRateSettingEnum: valuePassedIn, flag: flag, inValid: inValid, lookupGroupDate: year, clearSession: clearSession }),
+                                                type: "POST",
+                                                contentType: "application/json;charset=utf-8",
+                                                dataType: "json",
+                                                success: function (response) {
+                              
+                                                    if (response.Success) {
+                                                        SetResponseFlag(response.Success);
+                                                        completeData = completeData.concat(response.Data);
+
+                                                    }
+                                                    res();
+                                                },
+                                                error: function (errormessage) {
+                                                    StaticAlert({ content: errormessage.responseText || errormessage }).then(() => {
+                                                        res();
+                                                    });
+                                                }
+                                            });
+                                        });
+                                    }
+                                }).then(() => {
+                                    resolve();
+                                });
+                            }
+                        }
+
+                    });
+                });
+            });
+        }
+
+        function SetResponseFlag(resultflag) {
+            resultFlag = resultflag;
+        }
+    });
+</script>
+
+

@@ -1,0 +1,181 @@
+﻿@*
+    DO NOT MODIFY OUTSIDE OF MSLC.STATLOG
+    This file comes from MSLC.Statlog, any changes to it will be wiped out when the nuget package is updated.
+    Please make the appropriate enhancements to MSLC.Statlog instead of here.
+*@
+
+@using MSLC.Portal.Configuration
+@using MSLC.Portal.MVC.Utility
+@model MSLC.StatLog.MVC.ViewModels.ProviderEmailViewModel.View
+@Styles.Render("~/Content/ej/web/bootstrap-theme/ej.web.all.min.css")
+
+@{
+    Html.EnableClientValidation(true);
+    Html.EnableUnobtrusiveJavaScript(true);
+
+
+    Layout = PortalConfiguration.DetermineLayout("Menu");
+    ViewBag.Title = "Email ALL Providers";
+    bool userIsReadOnly = false;
+}
+
+<script src="~/Scripts/jquery.validate.js" type="text/javascript"></script>
+<script src="~/Scripts/jquery.validate.unobtrusive.js" type="text/javascript"></script>
+<link href="~/Content/south-street/jquery-ui-1.9.2.custom.min.css" rel="stylesheet" />
+
+
+<script src="~/Scripts/jHtmlArea-0.8.js" type="text/javascript"></script> @*Used for editing bulletin boards*@
+<script src="~/Scripts/jHtmlArea.ColorPickerMenu-0.8.js" type="text/javascript"></script> @*Used for editing bulletin boards*@
+
+<link href="~/Content/jHtmlArea/jHtmlArea.ColorPickerMenu.css" rel="stylesheet" type="text/css" />
+<link href="~/Content/jHtmlArea/jHtmlArea.css" rel="stylesheet" type="text/css" />
+<link href="~/Content/jHtmlArea/jHtmlArea.Editor.css" rel="stylesheet" type="text/css" />
+
+@Html.Script("~/Scripts/Pages/Communication/SendEmail.js", "jquery")
+
+<style>
+    .datepicker {
+        z-index: 1151 !important;
+    }
+</style>
+
+<div id="GetUsersByType" data-url="@Url.AbsoluteAction("GetUsersByType","Communication")"></div>
+
+<h2>Email All Providers</h2>
+
+@if (TempData["Message"] != null)
+{
+    <br />
+    <br />
+    <div class="errorLabel">
+        @Html.Raw(TempData["Message"].ToString())
+    </div>
+    <br />
+    <br />
+}
+
+@using (Html.BeginForm("SendProviders", "Communication", FormMethod.Post, new { id = "frmEmailSubmit", enctype = "multipart/form-data", @class = "modal-form" }))
+{
+    @Html.AntiForgeryToken()
+    <div class="modal-content">
+
+        <div class="modal-body">
+            <div style="padding-left: 15px; margin: 8px;" class="ui-tabs ui-widget ui-widget-content ui-corner-all">
+                <table>
+                    <tr><td colspan="2" style="height: 5px;"></td></tr>
+                    <tr><td colspan="2" style="height: 10px;"></td></tr>
+                    <tr><td colspan="2" style="height: 10px;"></td></tr>
+                    <tr><td colspan="2" style="height: 10px;"></td></tr>
+                    <tr>
+                        <td>
+                            <label for="txtEmail_Subject" class="FormLabel">Subject:</label>
+                        </td>
+                        <td align="left">
+                            @Html.TextBoxFor(x => x.Email_Subject, new { id = "txtEmail_Subject", @style = "width: 75%;" })
+                            <div id="txtEmail_Subject_Validation" style="display: none; color: #C83C3C">Email subject is required</div>
+                            @*<div class="errorLabelSml">@Html.ValidationMessageFor(model => model.Email_Subject)</div>*@
+                        </td>
+                    </tr>
+                    <tr><td colspan="2" style="height: 10px;"></td></tr>
+                    <tr>
+                        <td>
+                            <label for="txtEmail_Message" class="FormLabel">Message:</label>
+                        </td>
+                        <td align="left">
+                            @Html.TextAreaFor(x => x.Email_Message, new { id = "txtEmail_Message", @style = "width: 500px; height: 200px;" })
+                            <div id="txtEmail_Message_Validation" style="display: none; color: #C83C3C">Email message is required</div>
+                            @*<div id="Email_MessageValidation" style="visibility: hidden; color:red">Email message is required</div>*@
+                            @*<div class="errorLabelSml">@Html.ValidationMessageFor(model => model.Email_Message)</div>*@
+                        </td>
+                        <td></td>
+                    </tr>
+                    <tr><td colspan="2" style="height: 10px;"></td></tr>
+
+                    <tr>
+                        <td>
+                            <label for="txtEmail_MinsToWait" class="FormLabel">Delay Sending:</label>
+                        </td>
+                        <td align="left">
+                            @Html.TextBoxFor(x => x.Email_MinsToWait, new { id = "txtEmail_MinsToWait", @style = "width: 20%;" })
+                            <text>min(s)</text>
+                            <div id="txtEmail_MinsToWait_Validation" style="display: none; color: #C83C3C">Sending delay time is required</div>
+                            @*<div class="errorLabelSml">@Html.ValidationMessageFor(model => model.Email_MinsToWait)</div>*@
+                        </td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+        <div id="dvFooter" class="modal-footer mslcModalFooter">
+            <div style="margin-left: auto; margin-right: auto;">
+                <div class="myControls">
+                    @*<button class="btn btn-basic BoldMe" data-dismiss="modal" aria-hidden="true">Close</button>&nbsp;&nbsp;*@
+
+                    @if (!userIsReadOnly)
+                    {
+                        @*<button id="btnSend" type="submit" class="btn btn-success BoldMe" name="Command" value="Send">Send</button><text>&nbsp;&nbsp;</text>*@
+                        <button id="btnSend" type="button" class="btn btn-success BoldMe" name="Command" value="Send" onclick="submitform()">Send</button><text>&nbsp;&nbsp;</text>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+<div class="myImage" id="sendclock" style="display: none; text-align: center;">
+    Do not close this window.  Emails are being sent.  It may take awhile.
+    <br />
+    <img src="~/Images/loading.gif" alt="Loading" width="32" height="32" />
+    <text>&nbsp;&nbsp;&nbsp;&nbsp;</text>
+</div>
+
+<div id="SyncFusionScript">
+    <script src="@Url.AbsoluteContent("~/Scripts/ej/common/ej.unobtrusive.min.js")"></script>
+</div>
+
+<script>
+    function validateform() {
+        var validationpass = true;
+
+        //Validate Email Subject Text
+        var textemailmessagetext = document.getElementById('txtEmail_Subject').value;
+        if (!textemailmessagetext.match(/\S/)) {
+            document.getElementById('txtEmail_Subject_Validation').style.display = '';
+            validationpass = false;
+        }
+        else {
+            document.getElementById('txtEmail_Subject_Validation').style.display = 'none';
+        }
+
+        //Validate Email Message Text
+        var textemailmessagetext = document.getElementById('txtEmail_Message').value;
+        if (!textemailmessagetext.match(/\S/)) {
+            document.getElementById('txtEmail_Message_Validation').style.display = '';
+            validationpass = false;
+        }
+        else {
+            document.getElementById('txtEmail_Message_Validation').style.display = 'none';
+        }
+
+        //Validate Email delay time
+        var textemailmessagetext = document.getElementById('txtEmail_MinsToWait').value;
+        if (!textemailmessagetext.match(/\d/)) {
+            document.getElementById('txtEmail_MinsToWait_Validation').style.display = '';
+            validationpass = false;
+        }
+        else {
+            document.getElementById('txtEmail_MinsToWait_Validation').style.display = 'none'
+        }
+
+        return validationpass;
+    };
+
+    function submitform() {
+
+        if (validateform()) {
+            $("#frmEmailSubmit").hide();
+            $('#btnSend').hide();
+            document.getElementById('sendclock').style.display = '';
+            document.getElementById("frmEmailSubmit").submit();
+        }
+    }
+</script>

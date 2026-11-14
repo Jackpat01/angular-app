@@ -1,0 +1,171 @@
+﻿<div class="modal-header">
+    <h3>A-1 Import</h3>
+    <button href="#" class="close" data-dismiss="modal">&times;</button>
+</div>
+<div style="padding: 1rem;">
+    <table style="width: 100%;">
+        <colgroup>
+            <col style="width: 8rem;" />
+            <col />
+        </colgroup>
+        <tbody>
+            <tr>
+                <td>Import file:</td>
+                <td>
+                    <input type="file" name="Command" id="SchA1_File" value="Select" class="btn btn-default BoldMe" aria-label="Import File" />
+                    <span id="SchA1_Import">
+                        <button type="submit" name="Command" id="SchA1_Submit" value="New" class="btn btn-success BoldMe">Submit</button>
+                        <button class="btn btn-success BoldMe" data-dismiss="modal">Close</button>
+                    </span>
+                    <img id="SubmitWait" src="~/Images/loading.GIF" style="display: none;" width="32" height="32" />
+                </td>
+            </tr>
+        </tbody>
+    </table>
+</div>
+<div style="padding: 1rem;">
+    <p id="res">The imported data was either updated or invalidated. Please reference the output results below.</p>
+    <table id="editA1Grid"></table>
+</div>
+<script>
+    $(document).ready(function () {
+        var elem = document.getElementById("res");
+        elem.style.display = "none";
+
+        function createA1Grid(data) {
+            return new Promise((resolve, reject) => {
+                jQuery("#editA1Grid").jqGrid({
+                    datatype: "local",
+                    height: 250,
+                    colNames: ['Imported Data', 'Line', 'Column', 'Reason'],
+                    colModel: [
+                        { name: 'ImportData', index: 'ImportData', width: 200, align: 'left' },
+                        { name: 'Line', index: 'Line', width: 100, align: 'left' },
+                        { name: 'Column', index: 'Column', width: 100, align: 'left' },
+                        { name: 'Reason', index: 'Reason', width: 350, align: 'left' },
+                    ]
+                });
+
+                // ensure grid is cleared before filling (again?) ;)
+                jQuery("#editA1Grid").jqGrid("clearGridData");
+                var mydata = data;
+                if (!!mydata && !!mydata.length) {
+                    for (var i = 0; i <= mydata.length; i++)
+                        jQuery("#editA1Grid").jqGrid('addRowData', i + 1, mydata[i]);
+                }
+                resolve();
+            });
+        };
+
+        if (@Json.Encode(Model)) {
+            $('#SchA1_Submit').prop('disabled', true);
+
+        } else {
+            $("#SchA1_Submit").click(function () {
+                var success = false;
+                var fileUpload = $("#SchA1_File").get(0);
+                var files = fileUpload.files;
+
+                // Checking whether FormData is available in browser
+                if (files.length == 0 || window.FormData === undefined) {
+                    return false;
+                }
+
+                var fileData = new FormData();
+
+                fileData.append(files[0].name, files[0]);
+
+                return LoadNotificationDialog("Importing ...").then(() => {
+                    return new Promise((resolve, reject) => {
+                        $.ajax({
+                            async: true,
+                            url: "@Url.AbsoluteAction("SchA1Import", "Schedule")",
+                            type: "POST",
+                            contentType: false, // Not to set any content header
+                            processData: false, // Not to process data
+                            data: fileData,
+                            cache: false,
+                            dataType: "json",
+                            success: function (results) {
+                                //debugger;
+                                if (!results) {
+                                    return resolve();   // need to actually do here instead of complete()
+                                }
+
+                                // For either result, we need to hide the error grid.
+                                $("#window_A1ImportDocument").modal("hide");
+
+                                // When Import is sucess. No Errors, No Error Data
+                                if (!!results.Success && (!results.Data || results.Data.length == 0)) {
+                                    // we have to re-load the schedule because it has to load BOTH grids!
+                                    //* 1 - GetOCRTData - Reload the OCRT data model in the client.
+                                    Promise.all([
+                                        window.CostReport.Selected.LoadModelOCRT(),
+                                        window.CostReport.Selected.LoadModelTB()
+                                    ]).then(() => {
+                                        //* 2 - Set the data model to "updated" - Set the updated flag so that it will process.
+                                        window.CostReport.Selected.ModelOCRT.Updated = true;
+                                        window.CostReport.Selected.Flag_UpdatedOCRT = true;
+                                        //* 3  - Call In Rule ProcessCostReportCalcHandler
+                                        return window.CostReport.InRuleCalculation.ProcessCostReportCalcHandler(true, false);
+                                    }).then(() => {
+                                        return window.CostReport.Selected.Show();
+                                    }).then(() => {
+                                        $('#GridSummary').trigger('reloadGrid');
+                                        if (!!results.Message) {
+                                            return StaticAlert({ content: results.Message });
+                                        }
+                                    }).then(() => {
+                                        resolve();
+                                    });
+                                }
+                                // When Import Failed. With Errors, With Error Data
+                                else if (!!results.Data && results.Data.length > 0) {
+                                    //debugger;
+                                    Promise.all([
+                                        window.CostReport.Selected.LoadModelOCRT(),
+                                        window.CostReport.Selected.LoadModelTB()
+                                    ]).then(() => {
+                                        return window.CostReport.Selected.Show();
+                                    }).then(() => {
+                                        $("#window_A1ImportDocument").modal("show");
+                                        elem.style.display = "block";
+                                    }).then(() => {
+                                        return createA1Grid(results.Data);
+                                    }).then(() => {
+                                        $('#GridSummary').trigger('reloadGrid');
+                                        if (!!results.Message) {
+                                            return StaticAlert({ content: results.Message });
+                                        }
+                                    }).then(() => {
+                                        resolve();  // need to actually do here instead of complete()
+                                    });
+                                }
+                                else {
+                                    //debugger;
+                                    if (!!results.Message) {
+                                        StaticAlert({ content: results.Message }).then(() => {
+                                            resolve();
+                                        });
+                                    }
+                                    else {
+                                        resolve();  // need to actually do here instead of complete()
+                                    }
+                                }
+                            },
+                            error: function (a, b, c) {
+                                StaticAlert({ content: "An error occured in importing Schedule A-1." }).then(() => {
+                                    resolve();  // need to actually do here instead of complete()
+                                });
+                            }
+                        });
+                    });
+                }).then(() => {
+                    //debugger;
+                    return ClearNotificationDialog()
+                });
+            });
+        }
+    });
+</script>
+

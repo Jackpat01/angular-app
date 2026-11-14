@@ -1,0 +1,387 @@
+﻿@{
+    string valuePassedIn = this.ViewData.ContainsKey("VariableName") ? this.ViewData["VariableName"].ToString() : string.Empty;
+}
+<style type="text/css">
+    .e-grid .e-pager .e-pagercontainer {
+        float: left;
+    }
+
+    .e-grid .e-pager .e-pager-itemsinterval {
+        float: left;
+    }
+    .e-pager-itemsinterval {
+        direction: rtl;
+        float: left;
+    }
+</style>
+<div class="modal-header">
+    <h3>Import</h3>
+    <button href="#" class="close btnClose" data-dismiss="modal">&times;</button>
+</div>
+<div style="padding: 1rem;">
+    <table style="width: 100%;">
+        <colgroup>
+            <col style="width: 8rem;" />
+            <col />
+        </colgroup>
+        <tbody>
+            <tr>
+                <td>Import file:</td>
+                <td>
+                    <input type="file" name="Command" id="Import_File" value="Select" class="btn btn-default BoldMe" accept=".csv, .txt" aria-label="Import File" />
+                    <span id="Import">
+                        <button type="submit" name="Command" id="btnSubmitImport" value="New" class="btn btn-success BoldMe">Submit</button>
+                        <button class="btn btn-success BoldMe btnClose" data-dismiss="modal" id="btnCancel" aria-hidden="true">Close</button>
+                    </span>
+                    <img id="SubmitWait" src="~/Images/loading.GIF" style="display: none;" width="32" height="32" />
+                </td>
+            </tr>
+        </tbody>
+    </table>
+</div>
+<div style="padding: 1rem;">
+    <p id="res">The records listed below could not be imported.</p>
+    <center>
+        <div id="reasonGrid"></div>
+    </center>
+</div>
+<script>
+    $(document).ready(function () {
+        var elem = document.getElementById("res");
+        elem.style.display = "none";
+        var valuePassedIn = @Html.Raw(Json.Encode(valuePassedIn));
+        var completeData = [];
+
+        function createGrid(data) {
+            return new Promise((resolve, reject) => {
+                var cols = [];
+                if (valuePassedIn === 'FRVCountyModifiers') {
+                    cols.push({ field: 'FiscalYear', headerText: 'CYE', width: '25', cssClass: 'Wrap', textAlign: 'center', visible: true });
+                    cols.push({ field: 'Key', headerText: 'County', width: '35', cssClass: 'Wrap', textAlign: 'center', visible: true });
+                    cols.push({ field: 'Value', headerText: 'Modifier Mean', width: '45', cssClass: 'Wrap', textAlign: 'center', visible: true });
+                    cols.push({ field: 'Reason', headerText: 'Reason', width: '100', cssClass: 'Wrap', textAlign: 'center', visible: true });
+                }
+                else if ((valuePassedIn === 'AnnualCaseMixScores') || (valuePassedIn === 'SemiAnnualCaseMixScores') || (valuePassedIn === 'QuarterlyCaseMixScores')) {
+                    cols.push({ field: 'FiscalYear', headerText: 'Effective Date / CYE', width: '30', cssClass: 'Wrap', textAlign: 'center', visible: true });
+                    cols.push({ field: 'Key', headerText: 'Provider Number', width: '30', cssClass: 'Wrap', textAlign: 'center', visible: true });
+                    cols.push({ field: 'Value', headerText: 'Value', width: '35', cssClass: 'Wrap', textAlign: 'center', visible: true });
+                    cols.push({ field: 'DisplayName', headerText: 'Display Name', cssClass: 'Wrap', textAlign: 'center', width: '50', visible: true });
+                    cols.push({ field: 'Reason', headerText: 'Reason', width: '100', cssClass: 'Wrap', textAlign: 'center', visible: true });
+                }
+                else if ((valuePassedIn === 'PeerGroupFiveA') || (valuePassedIn === 'ProviderDownsized') || (valuePassedIn === 'CriticalAccessProviders')
+                    || (valuePassedIn === 'SpecialFocusFacilities') || (valuePassedIn === 'PeerGroupSixProviders')) {
+                    cols.push({ field: 'FiscalYear', headerText: 'CYE', width: '25', cssClass: 'Wrap', textAlign: 'center', visible: true });
+                    cols.push({ field: 'Value', headerText: 'Provider Number', width: '40', cssClass: 'Wrap', textAlign: 'center', visible: true });
+                    cols.push({ field: 'Reason', headerText: 'Reason', width: '100', cssClass: 'Wrap', textAlign: 'center', visible: true });
+                }
+                else {
+                    cols.push({ field: 'FiscalYear', headerText: 'FYE', width: '25', cssClass: 'Wrap', textAlign: 'center', visible: true });
+                    cols.push({ field: 'Value', headerText: 'Provider Number', width: '40', cssClass: 'Wrap', textAlign: 'center', visible: true });
+                    cols.push({ field: 'Reason', headerText: 'Reason', width: '100', cssClass: 'Wrap', textAlign: 'center', visible: true });
+                }
+                // load to grid
+                $("#reasonGrid").ejGrid({
+                    dataSource: data,
+                    columns: cols,
+                    height: 350,
+                    enableRowHover: true,
+                    allowSelection: true,
+                    allowSorting: true,
+                    allowTextWrap: true,
+                });
+                resolve();
+            });
+        };
+
+        //Reload FYE after import
+        $("#window_ImportDocument").on('hidden.bs.modal', function (e) {
+
+            let selectedValue = $("#drpAnnualRateSetting").val();
+            var url2 = "@Html.Raw(Url.AbsoluteAction("actionName","Rate"))";
+            url2 = url2.replace("actionName", selectedValue);
+            LoadNotificationDialog("Loading...").then(() => {
+                return new Promise((resolve, reject) => {
+                    $.ajax({
+                        async: true,
+                        url: url2,
+                        type: "POST",
+                        cache: false,
+                        contentType: "application/json;charset=utf-8",
+                        success: function (result) {
+                            $("#gridPlaceholder").show();
+                            $("#gridPlaceholder").html(result);
+                            resolve();
+                        },
+                        error: function (errormessage) {
+                            StaticAlert({ content: errormessage.responseText }).then(() => {
+                                resolve();
+                            });
+                        }
+                    });
+                });
+            }).then(() => {
+                return ClearNotificationDialog();
+            });
+        });
+
+        var resultFlag = false;
+        let flag = true;
+        let inValid = true;
+        let clearSession = false;
+
+        $("#btnSubmitImport").click(function () {
+            var success = false;
+            var fileUpload = $("#Import_File").get(0);
+            var files = fileUpload.files;
+            // Checking whether FormData is available in browser
+            if (files.length == 0 || window.FormData === undefined) {
+                return false;
+            }
+
+            var fileData = new FormData();
+            fileData.append(files[0].name, files[0]);
+            var url2 = "@Html.Raw(Url.AbsoluteAction("actionName","Rate"))";
+            url2 = url2.replace("actionName", valuePassedIn + "_Import");
+
+            return LoadNotificationDialog("Importing ...").then(() => {
+                return new Promise((resolve, reject) => {
+                    $.ajax({
+                        async: true,
+                        url: url2, //"@Url.AbsoluteAction("Import", "Rate")",
+                        type: "POST",
+                        contentType: false, // Not to set any content header
+                        processData: false, // Not to process data
+                        data: fileData,
+                        cache: false,
+                        dataType: "json",
+                        success: function (results) {
+                            if (!results) {
+                                return resolve();   // need to actually do here instead of complete()
+                            }
+                            resolve(results);
+                        },
+                        complete: function () {
+                            //return resolve();
+                            $("#Import_File").val(null);
+                        },
+                        error: function (a, b, c) {
+                            StaticAlert({ content: "An error occured in import." }).then(() => {
+                                resolve();  // need to actually do here instead of complete()
+                            });
+                        }
+                    });
+
+
+                });
+            }).then((results) => {
+                var p = new Promise((resolve, reject) => { resolve(); });
+
+                if (results.Success) {
+                    let dates = results.Data;
+                    completeData = completeData.concat(results.RejectList);
+
+                    for (let i = 0; i < dates.length; i++) {
+                        if (i === dates.length - 1) {
+                            clearSession = true;
+                        }
+                        var date = dates[i];
+
+                        // By passing the resolved Promise INTO the function, we can chain it in there, but the
+                        // change in function scope ensures that the other parameter is a set value instead of
+                        // the last value inside of this function scope. It makes the loop worthwhile :)
+                        p = ImportDateGroup(p, date, clearSession);
+                    }
+
+                }
+
+                return p;
+            }).then(() => {
+                return ClearNotificationDialog();
+            }).then(() => {
+                if (completeData.length > 0) {
+                    elem.style.display = "block";
+                    return createGrid(completeData);
+                }
+            }).then(() => {
+                if (resultFlag) {
+                    return StaticAlert({ content: 'Import completed successfully.' });
+                }
+                else {
+                    return StaticAlert({ content: 'Error occurred importing the file.' });
+                }
+            }).then(() => {
+                return ClearNotificationDialog();
+            });
+        });
+
+        function ImportDateGroup(p, date, clearSession) {
+            return p.then(() => {
+                return new Promise((resolve, reject) => {
+                    $.ajax({
+                        async: true,
+                        url: "@Url.AbsoluteAction("CheckFYE", "Rate")", // Check if a FYE already exists
+                        data: JSON.stringify({ annualRateSettingEnum: valuePassedIn, date: date }),
+                        type: "POST",
+                        contentType: "application/json;charset=utf-8",
+                        dataType: "json",
+                        success: function (response) {
+                            if (!response.Success) {
+                                let effectiveFYE = response.fyeValue;
+                                ClearNotificationDialog().then(() => {
+                                    //debugger;
+                                    return StaticConfirm({
+                                        title: "Data Import Status",
+                                        content: response.AlertMessage,
+                                        buttons: ["Ok", "Cancel"]
+                                    });
+                                }).then((key) => {
+                                    if (key == 0) {
+                                        return LoadNotificationDialog("Importing ...").then(() => {
+                                            return new Promise((res, rej) => {
+                                                flag = false;
+                                                inValid = false;
+
+                                                $.ajax({
+                                                    async: true,
+                                                    url: "@Url.AbsoluteAction("Import", "Rate")",
+                                                    data: JSON.stringify({ annualRateSettingEnum: valuePassedIn, flag: flag, inValid: inValid, effectiveFYE: effectiveFYE, clearSession: clearSession }),
+                                                    type: "POST",
+                                                    contentType: "application/json;charset=utf-8",
+                                                    dataType: "json",
+                                                    success: function (response) {
+                                                        if (response.Success) {
+                                                            SetResponseFlag(response.Success);
+                                                            completeData = completeData.concat(response.Data);
+                                                        }
+                                                        res();
+                                                    },
+                                                    error: function (errormessage) {
+                                                        StaticAlert({ content: errormessage.responseText || errormessage }).then(() => {
+                                                            res();
+                                                        });
+                                                    }
+                                                });
+                                            });
+                                        });
+                                    }
+                                    else {
+                                        return new Promise((res, rej) => {
+                                            flag = false;
+                                            inValid = true;
+
+                                            $.ajax({
+                                                async: true,
+                                                url: "@Url.AbsoluteAction("Import", "Rate")",
+                                                data: JSON.stringify({ annualRateSettingEnum: valuePassedIn, flag: flag, inValid: inValid, effectiveFYE: effectiveFYE, clearSession: clearSession }),
+                                                type: "POST",
+                                                contentType: "application/json;charset=utf-8",
+                                                dataType: "json",
+                                                success: function (response) {
+                                                    if (response.Success) {
+                                                        SetResponseFlag(response.Success);
+                                                        completeData = completeData.concat(response.Data);
+                                                    }
+                                                    res();
+                                                },
+                                                error: function (errormessage) {
+                                                    StaticAlert({ content: errormessage.responseText || errormessage }).then(() => {
+                                                        res();
+                                                    });
+                                                }
+                                            });
+                                        });
+                                    }
+                                }).then(() => {
+                                    resolve();
+                                });
+
+
+                            }
+                            else {
+                                let effectiveFYE = response.fyeValue;
+                                let isFYE = !isNaN(new Date(effectiveFYE));
+                                let contents = isFYE ? "Effective Date " + effectiveFYE : "FYE " + effectiveFYE;
+                                ClearNotificationDialog().then(() => {
+                                    //debugger;
+                                    return StaticConfirm({
+                                        title: "Data Import Status",
+                                        content: response.AlertMessage,
+                                        buttons: ["Ok", "Cancel"]
+                                    });
+                                }).then((key) => {
+                                    if (key == 0) {
+                                        return LoadNotificationDialog("Importing ...").then(() => {
+                                            return new Promise((res, rej) => {
+                                                flag = true;
+                                                inValid = false;
+
+                                                $.ajax({
+                                                    async: true,
+                                                    url: "@Url.AbsoluteAction("Import", "Rate")",
+                                                    data: JSON.stringify({ annualRateSettingEnum: valuePassedIn, flag: flag, inValid: inValid, effectiveFYE: effectiveFYE, clearSession: clearSession }),
+                                                    type: "POST",
+                                                    contentType: "application/json;charset=utf-8",
+                                                    dataType: "json",
+                                                    success: function (response) {
+                                                        if (response.Success) {
+                                                            SetResponseFlag(response.Success);
+                                                            completeData = completeData.concat(response.Data);
+                                                        }
+                                                        res();
+                                                    },
+                                                    error: function (errormessage) {
+                                                        StaticAlert({ content: errormessage.responseText || errormessage }).then(() => {
+                                                            res();
+                                                        });
+                                                    }
+                                                });
+                                            });
+                                        });
+                                    }
+                                    else {
+                                        return new Promise((res, rej) => {
+                                            flag = false;
+                                            inValid = true;
+
+                                            $.ajax({
+                                                async: true,
+                                                url: "@Url.AbsoluteAction("Import", "Rate")",
+                                                data: JSON.stringify({ annualRateSettingEnum: valuePassedIn, flag: flag, inValid: inValid, effectiveFYE: effectiveFYE, clearSession: clearSession }),
+                                                type: "POST",
+                                                contentType: "application/json;charset=utf-8",
+                                                dataType: "json",
+                                                success: function (response) {
+                                                    if (response.Success) {
+                                                        SetResponseFlag(response.Success);
+                                                        completeData = completeData.concat(response.Data);
+                                                    }
+                                                    res();
+                                                },
+                                                error: function (errormessage) {
+                                                    StaticAlert({ content: errormessage.responseText || errormessage }).then(() => {
+                                                        res();
+                                                    });
+                                                }
+                                            });
+                                        });
+                                    }
+                                }).then(() => {
+                                    resolve();
+                                });
+                            }
+                        },
+                        error: function (errormessage) {
+                            StaticAlert({ content: errormessage.responseText || errormessage }).then(() => {
+                                resolve();
+                            });
+                        }
+                    });
+                });
+            });
+        }
+
+        function SetResponseFlag(resultflag) {
+            resultFlag = resultflag;
+        }
+    });
+</script>

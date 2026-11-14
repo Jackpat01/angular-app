@@ -1,0 +1,193 @@
+﻿@model  WebPortal_OH_FI.BL.MappedObjects.TabIndexModel
+
+@{
+    List<WebPortal_OH_FI.BL.MappedObjects.Tab> dropdownItems = new List<WebPortal_OH_FI.BL.MappedObjects.Tab>();
+    List<WebPortal_OH_FI.BL.MappedObjects.Tab> buttonItems = new List<WebPortal_OH_FI.BL.MappedObjects.Tab>();
+    foreach (WebPortal_OH_FI.BL.MappedObjects.Tab item in Model.Item.OrderBy(i => i.Sequence))
+    {
+        Dictionary<string, string> style = item.Style.Split(new[] { ';' }, StringSplitOptions.RemoveEmptyEntries)
+            .Select(x => x.Split(':'))
+            .Where(x => x.Length == 2)
+            .ToDictionary(x => x[0], x => x[1]);
+
+        KeyValuePair<string, string>? dropdown = style
+            .Where(x => x.Key == "drop-down")
+            .Select(x => (KeyValuePair<string,string>?)x)
+            .FirstOrDefault();
+        if (dropdown != null && dropdown.HasValue && dropdown.Value.Value.Trim() == "true")
+        {
+            dropdownItems.Add(item);
+        }
+
+        KeyValuePair<string, string>? button = style
+            .Where(x => x.Key == "button")
+            .Select(x => (KeyValuePair<string, string>?)x)
+            .FirstOrDefault();
+        if (button == null || !button.HasValue || button.Value.Value.Trim() == "true")
+        {
+            buttonItems.Add(item);
+        }
+    }
+
+    bool isChangeButtonDisabled = !Model.CanEditCostReport;
+    bool isCostReportSubmitted = Model.CostReportSubmitted;
+    var isCostReportTypeId = Model.CostReportTypeId;
+}
+
+@if (dropdownItems.Count() > 0)
+{
+    foreach (var item in buttonItems.OrderBy(i => i.Sequence))
+    {
+        if (item.Name == "previous schedule")
+        {
+            <li>
+                <a href="#" data-tabname="@item.Name">@item.Title</a>
+            </li>
+        }
+    }
+    <li>
+        <select id="selectedSchedule" aria-label="Selected Schedule" data-tabname>
+            @foreach (var item in dropdownItems.OrderBy(i => i.Sequence))
+            {
+                if (Model.Selected != null && item.Name == Model.Selected.Name)
+                {
+                    <option value="@item.Name" selected="selected" aria-label="@item.Name">@item.Title</option>
+                }
+                else
+                {
+                    <option value="@item.Name" aria-label="@item.Name">@item.Title</option>
+                }
+            }
+        </select>
+    </li>
+}
+@foreach (var item in buttonItems.OrderBy(i => i.Sequence))
+{
+    if (item.Name != "previous schedule")
+    {
+        <li class="@(Model.Selected != null && item.Name == Model.Selected.Name ? "active" : string.Empty)">
+
+            @if ((item.Name == "recalculate" || item.Name == "recalculate all") && isChangeButtonDisabled)
+            {
+                <a href="#">@item.Title</a>
+            }
+            else if (item.Name == "submit" && isCostReportSubmitted)
+            {
+                <a href="#">@item.Title</a>
+            }
+            else if (item.Name == "std narr search")
+            {
+                <div style="display:flex;">
+                    <a href="#" data-tabname="@item.Name">@item.Title</a>
+                    <div style="border-left: 1px solid white; background-color: #74c141; padding: 0 2px 0 2px">
+                        <i data-feather="search"></i>
+                    </div>
+                </div>
+            }
+            else
+            {
+                <a href="#" data-tabname="@item.Name">@item.Title</a>
+            }
+
+        </li>
+    }
+}
+<script>
+    $(document).ready(function () {
+        feather.replace({ heigh: "20px", width: "20px", color: "white" });
+
+        if (!window.page) {
+            window.page = {};
+        }
+
+        window.page.Tab = {
+            Show: function (name) {
+                //console.log("window.page.Tab show");
+                var tab = $("a[data-tabname='" + name + "']");
+
+                if (tab.length == 0) {
+                    tab = $("select[data-tabname] option[value='" + name + "']");
+                }
+
+                if (tab.length == 0) {
+                    StaticAlert({ content: "An invalid tab was selected." });
+                    return false;
+                }
+
+                if (name != "recalculate all") {
+                    tab.parents("ul").find("li.active").removeClass("active");
+                    tab.parents("li").addClass("active");
+                }
+            }
+        };
+
+        $("select[data-tabname]")
+            .off("change.tabindex")
+            .on("change.tabindex", function () {
+                let option = $(this).find("option:selected");
+                let tabName = option.val();
+                let tabDescription = option.text();
+                window.CostReport.Navigation.Sub.SelectedScheduleIndex = option[0].index;
+                return window.page.LoadTab(tabName, tabDescription);
+            });
+
+        $("a[data-tabname]")
+            .off("click.tabindex")
+            .on("click.tabindex", function () {
+                let tabName = $(this).attr("data-tabname");
+                let tabDescription = $(this).text();
+
+                tabindexClick(tabName, tabDescription);
+            })
+            .off("keydown.tabindex")
+            .on("keydown.tabindex", function (e) {
+                if (e.keyCode == 13 || e.keyCode == 32) {   // ENTER or SPACE
+                    let tabName = $(this).attr("data-tabname");
+                    let tabDescription = $(this).text();
+
+                    tabindexClick(tabName, tabDescription);
+                    return false;
+                }
+            });
+
+            function tabindexClick(tabName, tabDescription) {
+                if (tabName == "recalculate") {
+                    let costReportTypeId = "@isCostReportTypeId";
+                    // reset the tab name and description to what is currently displayed.
+                    let option = $("select[data-tabname] option:selected");
+                    tabName = option.val();
+                    tabDescription = option.text();
+                    
+                    return LoadNotificationDialog("Recalculating...")
+                        .then(() => window.CostReport.Selected.AuditAdjustmentsToOCRT())
+                        //// Perform recalculations and reload the grid
+                        .then(() => {
+                            //if (costReportTypeId.startsWith("4.9"))
+                            //    window.CostReport.Selected.CalculateAuditAdjustments("override");
+                            //else
+                                 window.CostReport.Selected.CalculateFullDocument("override"); 
+                        })
+                        .then(() => window.CostReport.Navigation.Sub.Select(tabName, true))
+                        .then(() => window.page.LoadTab(tabName, tabDescription))
+                        .then(() => ClearNotificationDialog());
+                }
+                else {
+                    return window.page.LoadTab(tabName, tabDescription);
+                }
+            }
+
+            window.page.LoadTab = function (tabName, tabDescription) {
+                //alert(tabName);
+            // this is an asynchronous call, and execution will "fall through" before it returns.
+                if (tabName === "edits" || tabName === "audit adjustments" || tabName == "std narr search") {
+                return ClearNotificationDialog();
+            }
+            LoadNotificationDialog("Loading " + tabDescription + ", please wait...").then(() => {
+                return window.page.Tab.Show(tabName);
+            }).then(() => {
+                return ClearNotificationDialog();
+            });
+            return false;
+        };
+    });
+</script>

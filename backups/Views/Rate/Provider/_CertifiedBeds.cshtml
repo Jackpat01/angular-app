@@ -1,0 +1,243 @@
+﻿<style type="text/css">
+    .e-grid .e-pager .e-pagercontainer {
+        float: left;
+    }
+
+    .e-grid .e-pager .e-pager-itemsinterval {
+        float: left;
+    }
+</style>
+
+<div id="window_CertifiedBeds" class="modal fade" data-backdrop="static" role="dialog">
+    ﻿
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Certified Beds</h3>
+                <button type="button" class="close" data-dismiss="modal" onclick="closeCertifiedBedsWindow()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <table style="width: 100%;">
+                    <colgroup>
+                        <col />
+                    </colgroup>
+                    <tbody>
+                        <tr>
+                            <td>
+                                <div id="tblCertifiedBeds"></div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    $(document).ready(function () {
+        ej.parseDateInUTC = true;
+        var clientSideTimeZoneDiff = new Date().getTimezoneOffset() / 60;
+
+        LoadNotificationDialog("Loading").then(() => {
+            return new Promise((resolve, reject) => {
+                $.ajax({
+                    async: true,
+                    url: "@Url.AbsoluteAction("GetCertifiedBeds", "Rate")",
+                    type: "POST",
+                    cache: false,
+                    contentType: "application/json;charset=utf-8",
+                    success: function (result) {
+                        if (result.Success) {
+                            //ej.serverTimezoneOffset = result.TimeZoneOffset.Hours + clientSideTimeZoneDiff;
+
+                            var cols = [];
+                            cols.push({ field: 'CertifiedBedsId', headerText: 'PrimaryKeyID', width: "100px", isPrimaryKey: true, isIdentity: true, visible: false });
+                            cols.push({
+                                field: 'EffectiveDate',
+                                headerText: 'Effective',
+                                width: "110px",
+                                placeHolder: 'Select Date',
+                                editType: ej.Grid.EditingType.DatePicker,
+                                type: "date",
+                                format: "{0:MM/dd/yyyy}",   // handle the formatting of the field.
+                                validationRules: { required: true }
+                            });
+
+                            if ($('#IsNF').val() == 'value') {
+                                cols.push({ field: 'Status', headerText: 'Status', width: "95px", defaultValue: "Active" });
+                                cols.push({ field: 'MedicaidNF', headerText: 'Medicaid NF', width: "120px", editType: 'numericedit', validationRules: { maxlength: '10' } });
+                                cols.push({ field: 'DualSNFNF', headerText: 'Dual SNF/NF', width: "120px", editType: 'numericedit', validationRules: { maxlength: '10' } });
+                                cols.push({ field: 'Total', headerText: 'Total NF', width: "95px", allowEditing: false });
+                                cols.push({ field: 'Comments', headerText: 'Comments', width: "200px", validationRules: { maxlength: '50' } });
+                            }
+                            if ($('#IsICF').val() == 'value') {
+                                cols.push({ field: 'Status', headerText: 'Status', width: "100px", defaultValue: "Active" });
+                                cols.push({ field: 'Total', headerText: 'Total ICF-IID', width: "130px", editType: 'numericedit', validationRules: { maxlength: '10' } });
+                                cols.push({ field: 'Comments', headerText: 'Comments', width: "300px", validationRules: { maxlength: '50' } });
+                            }
+
+                            $("#tblCertifiedBeds").ejGrid({
+                                dataSource: result.CertifiedBedsViewModel,
+                                columns: cols,
+                                toolbarSettings: {
+                                    showToolbar: true,
+                                    toolbarItems: [ej.Grid.ToolBarItems.Add, ej.Grid.ToolBarItems.Edit, ej.Grid.ToolBarItems.Delete, ej.Grid.ToolBarItems.Update, ej.Grid.ToolBarItems.Cancel]
+                                },
+                                pageSettings: { pageSize: 5, pageSizeList: [5, 10, 15, 20] },
+                                allowPaging: true,
+                                enableRowHover: true,
+                                allowSelection: true,
+                                allowSorting: true,
+                                //allowTextWrap: true,
+                                allowScrolling: true,
+                                scrollSettings: { width: 755 },
+                                editSettings: { allowEditing: true, allowAdding: true, allowDeleting: true, showDeleteConfirmDialog: true },
+                                actionBegin: function (args) {
+                                    if (args.requestType == "save") {
+                                        //Add or Update
+                                        //********************** Local Store ************
+                                        // Use Localstorage to save the grid's "CurrentPageIndex" to reset it after Postback.
+                                        // Syncfusion Forum link for future reference:
+                                        // --https://www.syncfusion.com/forums/144600/retain-last-selected-row-and-page-in-grid-after-postback--
+                                        window.localStorage.removeItem("currentPageIndexCB");
+                                        window.localStorage.setItem("currentPageIndexCB", args.model.pageSettings.currentPage);
+                                        //********************** Local Store ************
+                                        var data = result.CertifiedBedsViewModel;
+                                        var hasDuplicates = false;
+                                        for (var i = 0; i < data.length; i++) {
+                                            //check if the entered data is already present in the grid
+                                            if ((args.data['Key'] == data[i]['Key']) && ((args.data['EffectiveDate'] == 'undefined') || (args.data['EffectiveDate'] == data[i]['EffectiveDate']))) {
+                                                args.cancel = true;
+                                                hasDuplicates = true;
+                                                break;
+                                            }
+                                        }
+
+                                        if (hasDuplicates) {
+                                            StaticAlert({ content: "Duplicate Certified Beds have been entered, please correct" });
+                                        }
+                                        else if (!hasDuplicates) {
+                                            return new Promise((res, rej) => {
+                                                $.ajax({
+                                                    async: true,
+                                                    url: "@Url.AbsoluteAction("SaveCertifiedBeds", "Rate")",
+                                                    data: JSON.stringify({ certifiedBedsInput: args.data }),
+                                                    type: "POST",
+                                                    contentType: "application/json;charset=utf-8",
+                                                    dataType: "json",
+                                                    success: function (response) {
+                                                        if (!response.Success) {
+                                                            window.localStorage.removeItem("currentPageIndexCB");
+                                                            StaticAlert({ content: "Error Saving Data" }).then(() => {
+                                                                res();
+                                                            });
+                                                        }
+                                                        else {
+                                                            //Re-bind Grid Data
+                                                            var currentPageIndex = parseInt(window.localStorage.getItem("currentPageIndexCB"), 10);
+                                                            $("#tblCertifiedBeds").ejGrid({
+                                                                dataSource: response.CertifiedBedsViewModel
+                                                            });
+                                                            $("#tblCertifiedBeds").ejGrid({
+                                                                pageSettings: { currentPage: currentPageIndex },
+                                                            });
+
+                                                            res();
+                                                        }
+                                                    },
+                                                    error: function (errormessage) {
+                                                        StaticAlert({ content: errormessage.responseText }).then(() => {
+                                                            res();
+                                                        });
+                                                    }
+                                                });
+                                            });
+                                        }
+                                        else {
+                                            StaticAlert({ content: 'Please format Effective Date as "MM/DD/YYYY"' });
+                                        }
+                                    }
+                                    else if (args.requestType == "delete") {
+                                        new Promise((res, rej) => {
+                                            $.ajax({
+                                                async: true,
+                                                url: "@Url.AbsoluteAction("DeleteCertifiedBeds", "Rate")",
+                                                data: JSON.stringify({ "certifiedBedsInput": args.data }),
+                                                type: "POST",
+                                                contentType: "application/json;charset=utf-8",
+                                                dataType: "json",
+                                                success: function (response) {
+                                                    if (!response.Success) {
+                                                        StaticAlert({ content: "Error Deleting Data" }).then(() => {
+                                                            res();
+                                                        });
+                                                    }
+                                                    else {
+                                                        //Re-bind Grid Data
+                                                        $("#tblCertifiedBeds").ejGrid("dataSource", response.CertifiedBedsViewModel);
+
+                                                        res();
+                                                    }
+                                                },
+                                                error: function (errormessage) {
+                                                    args.cancel = true;
+                                                    StaticAlert({ content: errormessage.responseText }).then(() => {
+                                                        res();
+                                                    });
+                                                }
+                                            });
+                                        });
+                                    }
+                                    else if (args.requestType == "sorting") {
+                                        action = args.columnSortDirection;
+                                    }
+                                    else {
+                                        var limit = args.model.dataSource.length;
+                                        for (let i = 0; i < limit; i++) {
+                                            let v = args.model.dataSource[i];
+                                            if (v.EffectiveDate != null && v.EffectiveDate.length > 10) {
+                                                v.EffectiveDate = new Date(Number(v.EffectiveDate.match(/\d+/)[0]));
+                                            }
+                                            if (v.EffectiveDate != null) {
+                                                v.EffectiveDate = new Date(v.EffectiveDate).addHours(ej.serverTimezoneOffset + clientSideTimeZoneDiff);
+                                            }
+                                         }
+                                    }
+                                }
+                            });
+
+                            resolve();
+                        }
+                    },
+                    error: function (errormessage) {
+                        StaticAlert({ content: errormessage.responseText }).then(() => {
+                            resolve();
+                        });
+                    }
+                });
+            });
+
+        }).then(() => {
+            return ClearNotificationDialog();
+        });
+    });
+
+    function closeCertifiedBedsWindow() {
+        LoadNotificationDialog("Reloading Provider Data...").then(() => {
+            $("#window_CertifiedBeds").hide();
+        }).then(() => {
+            return new Promise((resolve, reject) => {
+                $.ajax({
+                    url: "@Url.AbsoluteAction("ProviderGeneralInformation", "Rate")",
+                    success: function (response) {
+                        $('#nav-general').html(response);
+                        resolve();
+                    }
+                });
+            });
+        }).then(() => {
+            return ClearNotificationDialog();
+        });
+    }
+</script>

@@ -1,0 +1,601 @@
+﻿@using WebPortal_OH_FI.Web
+@model WebPortal_OH_FI.Models.DatabaseLookupGroupViewModel
+
+<style type="text/css">
+    .e-grid .e-pager .e-pagercontainer {
+        float: left;
+    }
+
+    .e-grid .e-pager .e-pager-itemsinterval {
+        float: left;
+    }
+
+    .e-pager-itemsinterval {
+        direction: rtl;
+        float: left;
+    }
+</style>
+
+<input type="hidden" id="IsNF" value="@OHFISession.IsNF" />
+<input type="hidden" id="IsICF" value="@OHFISession.IsICF" />
+
+<div style='width: 100%; font-weight: bold;'>
+    <div><h1>Occupancy Percentage LOA Rate</h1></div>
+</div>
+<div>
+    <table>
+        <tr>
+            <td>SFY:</td>
+            <td>@Html.DropDownListFor(x => x.LookupGroupFiscalYear, (IEnumerable<SelectListItem>)Model.LookupGroupFiscalYears, "Select SFY", new { ID = "drpDateList", @style = "width: 90%;", aria_label="SFY" })</td>
+            <td><input id="btnRemoveEffectiveDate" value="Remove SFY" type="submit" class="btn btn-success" /></td>
+            <td>@Html.TextBoxFor(x => x.LookupGroupYear, "", new { @placeholder = "Add New SFY", id = "txtSFYDate", @class = "form-control", @maxlength = "4", type = "text", @style = "width: 100px", aria_label="Add New SFY" })</td>
+            <td><input id="btnAddEffectiveDate" value="ADD SFY" type="submit" class="btn btn-success" /></td>
+            <td><input id="btnProcessOCLOARate" value="Process" type="submit" class="btn btn-success" /></td>
+            <td><input id="btnExportExcel" value="Occupancy Percentage Report Export to Excel" type="submit" class="btn btn-success" /></td>
+        </tr>
+    </table>
+    <center>
+        <div id="tblGrid"></div>
+    </center>
+</div>
+
+<script type="text/javascript">
+    $(document).ready(function () {
+        const $loaRateTable = "#tblGrid";
+        const $addDate = "#btnAddEffectiveDate";
+        const $excelExport = "#btnExportExcel";
+        const $process = "#btnProcessOCLOARate";
+        const $sfyDate = "#txtSFYDate";
+        const $dateDrpDwn = "#drpDateList";
+        const $rmvDate = "#btnRemoveEffectiveDate";
+        const $dateDrpDwnOption = `${$dateDrpDwn} option`;
+        const $selectedDate = `${$dateDrpDwnOption}:selected`
+
+        const reportName = "Ocuppancy Percentage LOA Rates";
+        const pageSizes = [5, 10, 15, 20];
+        const defaultPageSize = pageSizes[0];
+        const annualRateSettingEnum = @Html.Raw(Json.Encode(Model.AnnualRateSettingEnum));
+
+        $($addDate).prop("disabled", true);
+        $($excelExport).prop("disabled", true);
+        $($process).prop("disabled", true);
+
+        $($sfyDate).val("");
+        var fiscalYearSelected = $($selectedDate).text();
+        $($rmvDate).prop("disabled", fiscalYearSelected == "Select SFY");
+
+        $($sfyDate).keyup(function () {
+            var val = $($sfyDate).val();
+            if (val != "") {
+                $($addDate).prop("disabled", false);
+            } else {
+                $($addDate).prop("disabled", true);
+            }
+        });
+
+        $($dateDrpDwn).change(function () {
+            var val = $($selectedDate).text();
+
+            let dateSelected = (val != "Select SFY");
+            $($process).prop("disabled", !dateSelected); //if value is not Select SFY,
+            $($rmvDate).prop("disabled", !dateSelected); //buttons can be enabled
+            $($excelExport).prop("disabled", !dateSelected);
+            if (dateSelected) GetDatabaseLookupGroup();
+            else $($loaRateTable).hide();
+        });
+
+        $($rmvDate).on("click", RemoveEffectiveDate);
+        $($addDate).on("click", SaveLookupGroupDate);
+        $($excelExport).on("click", ExportExcel);
+        $($process).on("click", ProcessLOAOccupancyRate);
+
+        function GetDatabaseLookupGroup() {
+            var effectiveDateSelected = $($selectedDate).text();
+            if (effectiveDateSelected != "Select SFY") {
+                $($rmvDate).prop("disabled", false);
+                LoadNotificationDialog("Loading").then(() => {
+                    return new Promise((resolve, reject) => {
+                        $.ajax({
+                            async: true,
+                            url: "@Url.AbsoluteAction("GetDatabaseLookupGroup", "Rate")",
+                            data: JSON.stringify({ "lookUpGroupDate": effectiveDateSelected, annualRateSettingEnum: annualRateSettingEnum }),
+                            type: "POST",
+                            cache: false,
+                            contentType: "application/json;charset=utf-8",
+                            success: function (result) {
+                                if (!result.Success) {
+                                    StaticAlert(result.Message).then(() => {
+                                        resolve();
+                                    });
+                                    return;
+                                }
+
+                                RenderTable(CreateTableCols(result), result);
+                                resolve();
+                            },
+                            error: function (errormessage) {
+                                StaticAlert({ content: errormessage.responseText || errormessage }).then(() => {
+                                    resolve();
+                                });
+                            }
+                        });
+                    });
+                }).then(() => {
+                    return ClearNotificationDialog();
+                });
+            }
+            else {
+                $($loaRateTable).hide();
+                $($rmvDate).prop("disabled", true);
+            }
+        }
+
+        function SaveLookupGroupDate() {
+            var selectedEffectiveDate = $($sfyDate).val();
+            if (selectedEffectiveDate > 2000) {
+                return LoadNotificationDialog("Saving...").then(() => {
+                    return new Promise((resolve, reject) => {
+                        $.ajax({
+                            async: true,
+                            url: "@Url.AbsoluteAction("SaveLookupGroupDate", "Rate")",
+                            data: JSON.stringify({ "fiscalYear": selectedEffectiveDate, annualRateSettingEnum: annualRateSettingEnum }),
+                            type: "POST",
+                            contentType: "application/json;charset=utf-8",
+                            dataType: "json",
+                            success: function (result) {
+                                if (!result.Success) {
+                                    StaticAlert({ content: result.Message }).then(() => {
+                                        $($sfyDate).val("");
+                                        $($addDate).prop("disabled", true);
+                                        $($dateDrpDwnOption).filter(function () {
+                                            return this.text == selectedEffectiveDate;
+                                        }).attr('selected', true).trigger('change');
+
+                                        resolve();
+                                    });
+                                }
+                                else {
+                                    $($sfyDate).val("");
+                                    $($addDate).prop("disabled", true);
+                                    var ddl = $($dateDrpDwn);
+                                    ddl.empty();
+                                    $(document.createElement('option'))
+                                        .attr('value', '')
+                                        .text('Select SFY')
+                                        .appendTo(ddl);
+                                    //Check if FYE drop down list is empty
+                                    if (result.DatabaseLookupGroupViewModel.LookupGroupFiscalYears.length === 0) {
+                                        $(document.createElement('option'))
+                                            .attr('value', selectedEffectiveDate)
+                                            .text(selectedEffectiveDate)
+                                            .appendTo(ddl);
+                                    }
+                                    else {
+                                        $(result.DatabaseLookupGroupViewModel.LookupGroupFiscalYears).each(function () {
+                                            $(document.createElement('option'))
+                                                .attr('value', this.Value)
+                                                .text(this.Text)
+                                                .appendTo(ddl);
+                                        });
+                                    }
+                                    // Load Grid
+                                    $($dateDrpDwnOption).filter(function () {
+                                        return this.text == selectedEffectiveDate;
+                                    }).attr('selected', true).trigger('change');
+
+                                    resolve();
+                                }
+                            },
+                            error: function (errormessage) {
+                                StaticAlert({ content: errormessage.responseText }).then(() => {
+                                    resolve();
+                                });
+                            }
+                        });
+                    });
+                }).then(() => {
+                    return ClearNotificationDialog();
+                });
+            }
+            else {
+                return StaticAlert({ content: 'Please enter an SFY after 2000' }).then(() => {
+                    $($sfyDate).val('');
+                    $($addDate).prop("disabled", true);
+                });
+            }
+        }
+
+        function RemoveEffectiveDate() {
+            return StaticConfirm({
+                title: "Delete Confirm",
+                content: "Are you sure you want to Delete?",
+                buttons: ["Ok", "Cancel"]
+            }).then((key) => {
+                if (key != 0) return;
+
+
+                var lookupGroupYearId = $($selectedDate).val();
+                return LoadNotificationDialog("Deleting...").then(() => {
+                    return new Promise((resolve, reject) => {
+                        $.ajax({
+                            async: true,
+                            url: "@Url.AbsoluteAction("DeleteLookupGroupFYEData", "Rate")",//// annualRateSettingEnum: annualRateSettingEnum, "year": year
+                            data: JSON.stringify({ "lookupGroupYearId": lookupGroupYearId, annualRateSettingEnum: annualRateSettingEnum }),
+                            type: "POST",
+                            contentType: "application/json;charset=utf-8",
+                            dataType: "json",
+                            success: function (result) {
+                                if (!result.Success) {
+                                    StaticAlert({ content: result.Message }).then(() => {
+                                        resolve();
+                                    });
+                                }
+                                else {
+                                    $($rmvDate).prop("disabled", true);
+                                    var ddl = $($dateDrpDwn);
+                                    ddl.empty();
+                                    $(document.createElement('option'))
+                                        .attr('value', 'Select SFY')
+                                        .text('Select SFY')
+                                        .appendTo(ddl);
+                                    $(result.DatabaseLookupGroupViewModel.LookupGroupFiscalYears).each(function () {
+                                        $(document.createElement('option'))
+                                            .attr('value', this.Value)
+                                            .text(this.Text)
+                                            .appendTo(ddl);
+                                    });
+
+                                    $($loaRateTable).hide(); // Hide the grid and set DD to default
+                                    $(`select${$dateDrpDwnOption}:contains("Select SFY")`).prop('selected', true);
+
+                                    resolve();
+                                }
+                            },
+                            error: function (errormessage) {
+                                StaticAlert({ content: errormessage.responseText }).then(() => {
+                                    resolve();
+                                });
+                            }
+                        });
+                    });
+                }).then(() => {
+                    return ClearNotificationDialog();
+                });
+            });
+        }
+
+        function ExportExcel() {
+            var fiscalYear = $($selectedDate).text();
+            if (fiscalYear == 'Select SFY' || fiscalYear == '' || fiscalYear == null) {
+                StaticAlert({ content: "Please select a fiscal year to generate the report." });
+            }
+            else {
+
+                return LoadNotificationDialog(`Generating ${reportName} Report...`).then(() => {
+                    return new Promise((resolve, reject) => {
+                        $.ajax({
+                            url: "@Url.AbsoluteAction("GenerateOccupancyPercentageReport", "Rate")",
+                            data: JSON.stringify({ fiscalYear: fiscalYear, annualRateSettingEnum: annualRateSettingEnum }),
+                            type: "POST",
+                            contentType: "application/json;charset=utf-8",
+                            dataType: "json",
+                            success: function (result) {
+                                if (result.Success) {
+                                    //get the file name for download
+                                    if (result.fileName != "") {
+                                        //use window.location.href for redirect to download action for download the file
+                                        window.location.href = "@Url.AbsoluteAction("Download", "Rate")/?fileName=" + result.fileName;
+                                    }
+                                    resolve();
+                                }
+                                else {
+                                    StaticAlert({ content: result.Message || "Unknown error" }).then(() => {
+                                        resolve();
+                                    });
+                                }
+                            },
+                            error: function (errormessage) {
+                                StaticAlert({ content: errormessage.responseText || errormessage }).then(() => {
+                                    resolve();
+                                });
+                            }
+                        });
+                    });
+                }).then(() => {
+                    return ClearNotificationDialog();
+                });
+            }
+        }
+
+        function CreateTableCols(result) {
+            var cols = [];
+            cols.push({ field: 'PrimaryKeyID', headerText: 'PrimaryKeyID', isPrimaryKey: true, isIdentity: true, visible: false });
+            cols.push({ field: 'DatabaseLookupGroupYearId', headerText: 'DatabaseLookupGroupYearId', visible: false });
+            cols.push({ field: 'ValueType', headerText: 'ValueType', visible: false });
+            for (var col = 0; col < result.LookupGroupViewModel.GridColumns.length; col++) {
+                var propName = result.LookupGroupViewModel.GridColumns[col].Field;
+                //propName = propName.split(' ').join('');
+
+                if (propName == 'ProviderMedicaidNumber') {
+                    // Build base Header Text and data type
+                    cols.push({
+                        field: result.LookupGroupViewModel.GridColumns[col].Field,
+                        headerText: result.LookupGroupViewModel.GridColumns[col].HeaderText,
+                        visible: result.LookupGroupViewModel.GridColumns[col].Visible,
+                        type: result.LookupGroupViewModel.GridColumns[col].Type,
+                        validationRules: {
+                            required: true,
+                            maxlength: result.LookupGroupViewModel.ProviderNumberMaxLength,
+                            minlength: result.LookupGroupViewModel.ProviderNumberMinLength
+                        }
+                    });
+                }
+                else if (propName == 'ProviderNPINumber') {
+                    // Build base Header Text and data type
+                    cols.push({
+                        field: result.LookupGroupViewModel.GridColumns[col].Field,
+                        headerText: result.LookupGroupViewModel.GridColumns[col].HeaderText,
+                        visible: result.LookupGroupViewModel.GridColumns[col].Visible,
+                        type: result.LookupGroupViewModel.GridColumns[col].Type,
+                        validationRules: {
+                            required: true
+                        }
+                    });
+                }
+                else if (propName == 'TotalLicensedBedDaysAvailable') {
+                    // Build base Header Text and data type
+                    cols.push({
+                        field: result.LookupGroupViewModel.GridColumns[col].Field,
+                        headerText: result.LookupGroupViewModel.GridColumns[col].HeaderText,
+                        visible: result.LookupGroupViewModel.GridColumns[col].Visible,
+                        type: result.LookupGroupViewModel.GridColumns[col].Type,
+                        validationRules: {
+                            required: true
+                        },
+                        edit: {
+                            validateDecimalOnType: true,
+                            decimals: 0,
+                            format: "N"
+                        }
+                    });
+                }
+                else if (propName == 'TotalLicensedInpatientDays') {
+                    // Build base Header Text and data type
+                    cols.push({
+                        field: result.LookupGroupViewModel.GridColumns[col].Field,
+                        headerText: result.LookupGroupViewModel.GridColumns[col].HeaderText,
+                        visible: result.LookupGroupViewModel.GridColumns[col].Visible,
+                        type: result.LookupGroupViewModel.GridColumns[col].Type,
+                        validationRules: {
+                            required: true
+                        },
+                        edit: {
+                            validateDecimalOnType: true,
+                            decimals: 1,
+                            format: "N1"
+                        }
+                    });
+                }
+                else if (propName == 'CostReportLicensedPercentOccupancy') {
+                    // Build base Header Text and data type
+                    cols.push({
+                        field: result.LookupGroupViewModel.GridColumns[col].Field,
+                        headerText: result.LookupGroupViewModel.GridColumns[col].HeaderText,
+                        visible: result.LookupGroupViewModel.GridColumns[col].Visible,
+                        type: result.LookupGroupViewModel.GridColumns[col].Type,
+                        validationRules: {
+                            required: true
+                        },
+                        edit: {
+                            validateDecimalOnType: true,
+                            decimals: 2,
+                            format: "N2"
+                        }
+                    });
+                }
+                else {
+                    // Build base Header Text and data type
+                    colObj = {
+                        field: result.LookupGroupViewModel.GridColumns[col].Field,
+                        headerText: result.LookupGroupViewModel.GridColumns[col].HeaderText,
+                        visible: result.LookupGroupViewModel.GridColumns[col].Visible,
+                        type: result.LookupGroupViewModel.GridColumns[col].Type
+                    };
+                    cols.push(colObj);
+                    if (colObj.type == "date") {
+                        colObj.editType = ej.Grid.EditingType.DatePicker;
+                        colObj.format = "{0:MM/dd/yyyy}";
+                    }
+                }
+            }
+
+            return cols;
+        }
+
+        function RenderTable(cols, result) {
+            $($loaRateTable).ejGrid({
+                dataSource: JSON.parse(result.LookupGroupViewModel.DataModel),
+                columns: cols,
+                toolbarSettings: {
+                    showToolbar: true,
+                    toolbarItems: [ej.Grid.ToolBarItems.Add, ej.Grid.ToolBarItems.Edit, ej.Grid.ToolBarItems.Update, ej.Grid.ToolBarItems.Cancel, ej.Grid.ToolBarItems.Delete]
+                },
+                pageSettings: { pageSize: defaultPageSize, pageSizeList: pageSizes },
+                allowPaging: true,
+                enableRowHover: true,
+                allowSelection: true,
+                allowSorting: true,
+                allowTextWrap: true,
+                allowFiltering: true,
+                filterSettings: { filterType: 'Menu' },
+                editSettings: { allowEditing: true, allowAdding: true, allowDeleting: true, showDeleteConfirmDialog: true },
+                actionBegin: function (args) {
+                    if (args.requestType == "beginedit") {
+                        // This will register a copy of the data on the server so that it can tell what was modified.
+                        var databaseLookupGroupYearId = $($selectedDate).val();
+                        var value = JSON.stringify(args.rowData)
+                        return new Promise((res, rej) => {
+                            $.ajax({
+                                async: true,
+                                url: "@Url.AbsoluteAction("GetDatabaseLookupGroupId", "Rate")",
+                                data: JSON.stringify({ value: value, "databaseLookupGroupYearId": databaseLookupGroupYearId }),
+                                type: "POST",
+                                contentType: "application/json;charset=utf-8",
+                                dataType: "json",
+                                success: function (response) {
+                                    //var lookupGroupDataIdArray = response.lookupGroupDataIdArray;
+                                    res();
+                                },
+                                error: function (errormessage) {
+                                    StaticAlert({ content: errormessage.responseText }).then(() => {
+                                        res();
+                                    });
+                                    args.cancel = true;
+                                }
+                            });
+                        });
+                    }
+                    else if (args.requestType == "save") {
+                        //Add or Update
+                        //********************** Local Store ************
+                        // Use Localstorage to save the grid's "CurrentPageIndex" to reset it after Postback.
+                        // Syncfusion Forum link for future reference:
+                        // --https://www.syncfusion.com/forums/144600/retain-last-selected-row-and-page-in-grid-after-postback--
+                        window.localStorage.removeItem("currentPageIndex");
+                        window.localStorage.setItem("currentPageIndex", args.model.pageSettings.currentPage);
+                        //********************** Local Store ************
+                        var effectiveDateSelected = $($selectedDate).text();
+                        var lookupGroupYearId = $($selectedDate).val();
+
+                        //********************* Validation ********************
+                        var gridObj = $($loaRateTable).ejGrid("instance");
+                        var gridData = gridObj.model.dataSource;
+                        var invalid = false;
+                        var value = JSON.stringify(args.data);
+                        for (var i = 0; i < gridData.length; i++) {
+                            //check if the entered data is already present in the grid
+                            if (args.data['ProviderNPINumber'] == gridData[i]['ProviderNPINumber'] &&
+                                ((args.data['PrimaryKeyID'] == 'undefined') || (args.data['PrimaryKeyID'] == null) ||
+                                    (args.data['PrimaryKeyID'] !== gridData[i]['PrimaryKeyID']))) {
+                                //debugger;
+                                args.cancel = true;
+                                invalid = true;
+                                StaticAlert({ content: "Duplicate Provider Numbers have been entered, please correct" });
+                                break;
+                            }
+                        }
+                        if (invalid) return;
+
+                        //********************* Validation ********************
+
+                        $.ajax({
+                            async: true,
+                            url: "@Url.AbsoluteAction("SaveDatabaseLookupGroup", "Rate")",
+                            data: JSON.stringify({ value: value, "lookupGroupYearId": lookupGroupYearId, "lookupGroupDate": effectiveDateSelected, annualRateSettingEnum: annualRateSettingEnum }),
+                            type: "POST",
+                            contentType: "application/json;charset=utf-8",
+                            dataType: "json",
+                            success: function (response) {
+                                if (!response.Success) {
+                                    window.localStorage.removeItem("currentPageIndex");
+                                    StaticAlert({ content: "Error Saving Data" });
+                                }
+                                else {
+                                    //Re-bind Grid Data// result.LookupGroupViewModel.DataModel
+                                    var currentPageIndex = parseInt(window.localStorage.getItem("currentPageIndex"), 10);
+                                    $($loaRateTable).ejGrid("dataSource", JSON.parse(response.LookupGroupViewModel.DataModel));
+
+                                    $($loaRateTable).ejGrid({
+                                        pageSettings: { currentPage: currentPageIndex },
+                                    });
+                                    $($loaRateTable).show();
+                                }
+                            },
+                            error: function (errormessage) {
+                                StaticAlert({ content: errormessage.responseText });
+                            }
+                        });
+                    }
+                    else if (args.requestType == "delete") {
+                        var lookupGroupYearId = $($selectedDate).val();
+                        var effectiveDateSelected = $($selectedDate).text();
+                        var value = JSON.stringify(args.data);
+
+                        $.ajax({
+                            async: true,
+                            url: "@Url.AbsoluteAction("DeleteDatabaseLookupGroup", "Rate")",
+                            data: JSON.stringify({ value: value, "lookupGroupYearId": lookupGroupYearId, "fiscalYear": effectiveDateSelected, annualRateSettingEnum: annualRateSettingEnum }),
+                            type: "POST",
+                            contentType: "application/json;charset=utf-8",
+                            dataType: "json",
+                            success: function (response) {
+                                if (!response.Success) {
+                                    StaticAlert({ content: "Error Deleting Data" });
+                                    args.cancel = true;
+                                }
+                                else {
+                                    //Re-bind Grid Data
+                                    $($loaRateTable).ejGrid("dataSource", JSON.parse(response.LookupGroupViewModel.DataModel));
+                                    $($loaRateTable).show();
+                                }
+                            },
+                            error: function (errormessage) {
+                                StaticAlert({ content: errormessage.responseText });
+                                args.cancel = true;
+                            }
+                        });
+                    }
+                }
+            });
+
+            $($loaRateTable).show();
+        }
+
+       function ProcessLOAOccupancyRate() {
+        return StaticConfirm({
+            title: "Occupancy Percentage for LOA Rate",
+            content: "Processing ALL provider cost reports for this SFY will take some time; continue?",
+            buttons: ["Ok", "Cancel"]
+        }).then((response) => {
+            if (response != 0) return;
+            var occupancyPercentageLOARateText = $('#drpDateList option:selected').text();
+            var occupancyPercentageLOARateVal = $('#drpDateList option:selected').val();
+            var occupancyPercentageLOARateEnum = @Html.Raw(Json.Encode(Model.AnnualRateSettingEnum));
+
+            return LoadNotificationDialog("Calculating for SFY " + occupancyPercentageLOARateText).then(() => {
+                return new Promise((resolve, reject) => {
+                    $.ajax({
+                        url: "@Url.AbsoluteAction("ProcessLOAOccupancyRate", "Rate")",
+                        data: JSON.stringify({ "occupancyPercentageLOARateId": occupancyPercentageLOARateVal, annualRateSettingEnum: occupancyPercentageLOARateEnum }),
+                        type: "POST",
+                        contentType: "application/json;charset=utf-8",
+                        dataType: "json",
+                        success: function (result) {
+                            if (!result.Success && result.Message != "") {
+                                StaticAlert({ content: result.Message }).then(() => {
+                                    resolve();
+                                });
+                            }
+                            else {
+                                $("#drpDateList option").filter(function () {
+                                    return this.text == occupancyPercentageLOARateText;
+                                }).attr('selected', true).trigger('change');    // This will reload the grid.
+                                GetDatabaseLookupGroup();
+                                //resolve();
+                            }
+                            resolve();
+                        },
+                        error: function (errormessage) {
+                            StaticAlert({ content: errormessage.Message }).then(() => {
+                                resolve();
+                            });
+                        }
+                    });
+                });
+            }).then(() => {
+                return ClearNotificationDialog();
+            });
+        });
+    }
+    });
+</script>

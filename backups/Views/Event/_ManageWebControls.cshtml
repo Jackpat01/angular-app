@@ -1,0 +1,290 @@
+﻿@*
+    DO NOT MODIFY OUTSIDE OF MSLC.STATLOG
+    This file comes from MSLC.Statlog, any changes to it will be wiped out when the nuget package is updated.
+    Please make the appropriate enhancements to MSLC.Statlog instead of here.
+*@
+
+@using MSLC.Portal.MVC.Utility
+@using MSLC.StatLog.Configuration
+@model MSLC.StatLog.MVC.ViewModels.EventViewModel.Manage
+@{
+    string[] roles = Model.RolePermissions.Keys.ToArray();
+}
+
+<div class="d-flex flex-column">
+    <div class="border px-2 m-2">
+        <div class="d-flex flex-column">
+            <div class="my-2">
+                Controls how a user with a specific ARUM Role can interact with this event.
+            </div>
+            <hr class="m-0" />
+            @if (!roles.Any())
+            {
+                <div>
+                    <div>
+                        Currently there are no active roles for this application.
+                    </div>
+                </div>
+            }
+            else
+            {
+                <div class=" d-flex flex-row">
+                    <div class="nav nav-tabs nav-tabs-column d-flex flex-column" id="nav-tab-2" role="tablist">
+                        @foreach (string role in roles)
+                        {
+                            if (role == roles[0])
+                            {
+                                <div id="nav-permissions-@(role)-tab" href="#nav-permissions-@(role)" class="nav-item nav-link @(roles[0].Equals(role) ? "active" : "")"
+                                     data-toggle="tab" role="tab" aria-selected="@(roles[0].Equals(role) ? "true" : "false")" tabindex="0">
+                                    @(role.Replace('_', ' '))
+                                </div>
+                                continue;
+                            };
+                            <div id="nav-permissions-@(role)-tab" href="#nav-permissions-@(role)" class="nav-item nav-link @(roles[0].Equals(role) ? "active" : "")"
+                                 data-toggle="tab" role="tab" aria-selected="@(roles[0].Equals(role) ? "true" : "false")" tabindex="-1">
+                                @(role.Replace('_', ' '))
+                            </div>
+                        }
+                    </div>
+                    <div class="tab-content px-2 pb-4 pt-2 w-100" id="nav-tabContent">
+                        @foreach (string role in roles)
+                        {
+                            <div id="nav-permissions-@(role)" aria-labelledby="nav-permissions-@(role)-tab" role="tabpanel" class="tab-pane fade @(roles[0].Equals(role) ? "active show" : "")">
+                                @if (Model.RolePermissions[role].AnyPermissions == false)
+                                {
+                                    <div class="row m-2">
+                                        <div class="col-9">
+                                            No Controls Set for Role
+                                        </div>
+                                        <div class="col-2">
+                                            <a onclick="return modalButton(this, 'tallerWidest')" href="@Url.Action("EditRolePermissions", "Event", new
+                                            {
+                                                sEventID = Model.sEventID,
+                                                ApplicationRoleName = role
+                                            })"
+                                               class="btn btn-kyBlue BoldMe">Edit Controls</a>
+                                        </div>
+                                    </div>
+                                }
+                                else
+                                {
+                                    <div>
+                                        <div class="row m-2">
+                                            <div class="col-9">
+                                                Permissions for the ARUM Role '@(role.Replace('_', ' '))'
+                                            </div>
+                                            <div class="col-2">
+                                                <a onclick="return modalButton(this, 'tallerWidest')" href="@Url.Action("EditRolePermissions", "Event", new
+                                                {
+                                                    sEventID = Model.sEventID,
+                                                    ApplicationRoleName = role
+                                                })"
+                                                   class="btn btn-kyBlue BoldMe">Edit Controls</a>
+                                            </div>
+                                        </div>
+                                        @if (!String.IsNullOrEmpty(Model.RolePermissions[role].CanView))
+                                        {
+                                            <hr class="m-0" />
+                                            <div class="row m-2">
+                                                <div class="col-9">
+                                                    <div>
+                                                        <b>Display</b> on the web:
+                                                    </div>
+                                                    <div class="col-2">
+                                                        @Model.RolePermissions[role].CanView
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        }
+                                        @if (!String.IsNullOrEmpty(Model.RolePermissions[role].CanAdd))
+                                        {
+                                            <hr class="m-0" />
+                                            <div class="row m-2">
+                                                <div class="col-9">
+                                                    <div>
+                                                        <b>Manually add</b> this event via the drop down at the bottom of the StatLog page:
+                                                    </div>
+                                                    <div class="col-2">
+                                                        @Model.RolePermissions[role].CanAdd
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        }
+                                        @if (!String.IsNullOrEmpty(Model.RolePermissions[role].CanUpload))
+                                        {
+                                            <hr class="m-0" />
+                                            <div class="row m-2">
+                                                <div class="col-9">
+                                                    <div>
+                                                        <b>Allow Upload</b> of a file to the event:
+                                                    </div>
+                                                    <div class="col-2">
+                                                        @Model.RolePermissions[role].CanUpload
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        }
+                                        @if (!String.IsNullOrEmpty(Model.RolePermissions[role].CanDownload))
+                                        {
+                                            <hr class="m-0" />
+                                            <div class="row m-2">
+                                                <div class="col-9">
+                                                    <div>
+                                                        <b>Allow Download</b> of a file from the event:
+                                                    </div>
+                                                    <div class="col-2">
+                                                        @Model.RolePermissions[role].CanDownload
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        }
+                                        @if (!String.IsNullOrEmpty(Model.RolePermissions[role].CanAcceptReview))
+                                        {
+                                            <hr class="m-0" />
+                                            <div class="row m-2">
+                                                <div class="col-9">
+                                                    <div>
+                                                        <b>Accept Review</b> for both events and uploaded files:
+                                                    </div>
+                                                    <div class="col-2">
+                                                        @Model.RolePermissions[role].CanAcceptReview
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        }
+                                        @if (!String.IsNullOrEmpty(Model.RolePermissions[role].CanRejectReview))
+                                        {
+                                            <hr class="m-0" />
+                                            <div class="row m-2">
+                                                <div class="col-9">
+                                                    <div>
+                                                        <b>Reject Review</b> for both events and uploaded files:
+                                                    </div>
+                                                    <div class="col-2">
+                                                        @Model.RolePermissions[role].CanRejectReview
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        }
+                                        @if (!String.IsNullOrEmpty(Model.RolePermissions[role].CanReleaseReview))
+                                        {
+                                            <hr class="m-0" />
+                                            <div class="row m-2">
+                                                <div class="col-9">
+                                                    <div>
+                                                        <b>Release Review</b> that was made:
+                                                    </div>
+                                                    <div class="col-2">
+                                                        @Model.RolePermissions[role].CanReleaseReview
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        }
+                                        @if (!String.IsNullOrEmpty(Model.RolePermissions[role].CanAssignUser))
+                                        {
+                                            <hr class="m-0" />
+                                            <div class="row m-2">
+                                                <div class="col-9">
+                                                    <div>
+                                                        <b>Assign User</b> to this event:
+                                                    </div>
+                                                    <div class="col-2">
+                                                        @Model.RolePermissions[role].CanAssignUser
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        }
+                                        @if (!String.IsNullOrEmpty(Model.RolePermissions[role].CanHide))
+                                        {
+                                            <hr class="m-0" />
+                                            <div class="row m-2">
+                                                <div class="col-9">
+                                                    <div>
+                                                        <b>Hide Event</b> from other users:
+                                                    </div>
+                                                    <div class="col-2">
+                                                        @Model.RolePermissions[role].CanHide
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        }
+                                        @if (!String.IsNullOrEmpty(Model.RolePermissions[role].CanEditDueDate))
+                                        {
+                                            <hr class="m-0" />
+                                            <div class="row m-2">
+                                                <div class="col-9">
+                                                    <div>
+                                                        <b>Edit Due Date</b> for this event:
+                                                    </div>
+                                                    <div class="col-2">
+                                                        @Model.RolePermissions[role].CanEditDueDate
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        }
+                                        @if (!String.IsNullOrEmpty(Model.RolePermissions[role].CanEditResponseDate))
+                                        {
+                                            <hr class="m-0" />
+                                            <div class="row m-2">
+                                                <div class="col-9">
+                                                    <div>
+                                                        <b>Edit Response Date</b> for this event:
+                                                    </div>
+                                                    <div class="col-2">
+                                                        @Model.RolePermissions[role].CanEditResponseDate
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        }
+                                        @if (!String.IsNullOrEmpty(Model.RolePermissions[role].CanEditEventDate))
+                                        {
+                                            <hr class="m-0" />
+                                            <div class="row m-2">
+                                                <div class="col-9">
+                                                    <div>
+                                                        <b>Edit Event Date</b> for this event:
+                                                    </div>
+                                                    <div class="col-2">
+                                                        @Model.RolePermissions[role].CanEditEventDate
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        }
+                                        @if (!String.IsNullOrEmpty(Model.RolePermissions[role].CanViewMetadata))
+                                        {
+                                            <hr class="m-0" />
+                                            <div class="row m-2">
+                                                <div class="col-9">
+                                                    <div>
+                                                        <b>View Metadata</b> for this event:
+                                                    </div>
+                                                    <div class="col-2">
+                                                        @Model.RolePermissions[role].CanViewMetadata
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        }
+                                        @if (!String.IsNullOrEmpty(Model.RolePermissions[role].CanAddMetadata))
+                                        {
+                                            <hr class="m-0" />
+                                            <div class="row m-2">
+                                                <div class="col-9">
+                                                    <div>
+                                                        <b>Add Metadata</b> for this event:
+                                                    </div>
+                                                    <div class="col-2">
+                                                        @Model.RolePermissions[role].CanAddMetadata
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        }
+                                    </div>
+                                }
+                            </div>
+                        }
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+</div>

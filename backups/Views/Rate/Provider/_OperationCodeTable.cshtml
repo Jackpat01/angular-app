@@ -1,0 +1,73 @@
+﻿<h1>Operation Code Table</h1>
+<center>
+    <div id="operationCodeTable"></div>
+</center>
+
+<script>
+    $(function () {
+        const opGrid = '#operationCodeTable';
+
+        //========== Logic that Fires when Page Loads ==========
+        LoadNotificationDialog('Loading').then(() => {
+            GetOperationCodes().then((data) => {
+                if (data !== undefined)
+                    RenderOperationTable(data);
+            });
+        }).then(() => {
+            return ClearNotificationDialog();
+        });
+
+        //========== Ajax Requests ==========
+        function GetOperationCodes() {
+            return new Promise((resolve, reject) => {
+                $.ajax({
+                    async: true,
+                    url: '@Url.AbsoluteAction("GetOperationCodeTable", "Rate")',
+                    type: 'GET',
+                    cache: false,
+                    success: (response) => resolve(response.Data),
+                    error: function (errorMessage) {
+                        StaticAlert({ content: `Narrative Code Table Error: ${errorMessage.responseText}` }).then(() => {
+                            resolve();
+                        });
+                    }
+                });
+            });
+        }
+
+        //========== Table Functionality ==========
+        function RenderOperationTable(data) {
+            var cols = [];
+            for (const col of data.Columns) {
+                cols.push({
+                    field: col.Field, headerText: col.HeaderText, isPrimaryKey: col.IsPrimaryKey, isIdentity: col.IsIdentity, visible: col.Visible,
+                    textAlign: col.TextAlign, allowEditing: col.AllowEditing, allowFiltering: col.AllowFiltering, allowSorting: col.AllowSorting,
+                    width: col.Width, template: col.Template
+                });
+            }
+
+            const toolbarSettings = { showToolbar: true, toolbarItems: [ej.Grid.ToolBarItems.Search] };
+            const pageSettings = { pageSize: 5, pageSizeList: [5, 10, 15, 20] };
+            const textWrapSettings = { wrapMode: ej.Grid.WrapMode.Both };
+            const filterSettings = { filterType: 'menu', showPredicate: false };
+
+            $(opGrid).ejGrid({
+                dataSource: data.Records,
+                columns: cols,
+                toolbarSettings: toolbarSettings,
+                pageSettings: pageSettings,
+                allowPaging: true,
+                enableRowHover: false,
+                allowSelection: true,
+                allowSorting: true,
+                allowTextWrap: true,
+                allowFiltering: true,
+                allowSearching: true,
+                textWrapSettings: textWrapSettings,
+                cssClass: 'mslcTable',
+                filterSettings: filterSettings
+            });
+        }
+    });
+</script>
+

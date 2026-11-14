@@ -1,0 +1,54 @@
+﻿@*
+    DO NOT MODIFY OUTSIDE OF MSLC.STATLOG
+    This file comes from MSLC.Statlog, any changes to it will be wiped out when the nuget package is updated.
+    Please make the appropriate enhancements to MSLC.Statlog instead of here.
+*@
+
+@using MSLC.Portal.MVC.Utility
+@using MSLC.StatLog.MVC.ViewModels
+@model MSLC.StatLog.MVC.ViewModels.EventViewModel.Manage
+
+<div class="d-flex flex-column">
+    <div class="button-box">
+        <a onclick="return modalButton(this, 'tallerWidest')" href="@Url.Action("EditMetadata", "Event", new
+            {
+                sEventID = Model.sEventID
+            })"
+           class="btn btn-kyBlue BoldMe">Edit Metadata</a>
+    </div>
+    <div>
+        @(Html.EJ().Grid<MetadataViewModel.SelectList>("tblMetadata")
+            .CssClass("mslcTable")
+            .Datasource(Model.MetadataSelectList)
+            .AllowPaging()
+            .EnableRowHover(true)
+            .AllowSelection(false)
+            .AllowSorting(true)
+            .AllowFiltering(true)
+            .AllowTextWrap(true)
+            .TextWrapSettings(wrap => { wrap.WrapMode(WrapMode.Both); })
+            .FilterSettings(filter =>
+            {
+                filter.FilterType(FilterType.Menu);
+                filter.ShowPredicate(false);
+            })
+
+            .ToolbarSettings(toolbar =>
+            {
+                toolbar.ShowToolbar().ToolbarItems(items =>
+                {
+                    items.AddTool(ToolBarItems.Search);
+                });
+            })
+            .Columns(col =>
+            {
+                col.Field(e => e.ID).HeaderText("ID").TextAlign(TextAlign.Center).Width(30).Add();
+                col.Field(e => e.Name).HeaderText("Name").TextAlign(TextAlign.Center).Width(30).Add();
+                col.Field(e => e.VersionNumber).HeaderText("Version Number").TextAlign(TextAlign.Center).Width(30).Add();
+            })
+            .ClientSideEvents(events =>
+            {
+                events.TemplateRefresh("loadIcons");
+            }))
+    </div>
+</div>

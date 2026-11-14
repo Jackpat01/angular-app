@@ -1,0 +1,96 @@
+﻿@using MSLC.StatLog.MVC.MVC
+@using MSLC.Portal.MVC.Utility
+@model WebPortal_OH_FI.Models.ViewModels.ViewStatusViewModel
+@{
+    Layout = null;
+}
+
+@* @Html.Script("~/Scripts/Pages/Event/Edit.js", "jquery") *@
+<div class="modal-content">
+    <div class="modal-header">
+        <h3 id="myModalLabel" style="text-align: left;">
+            View Status for Job: @Model.JobName
+        </h3>
+        <button href="#" class="close" data-dismiss="modal">&times;</button>
+    </div>
+    <div class="modal-body">
+        @* @(Html.EJ().TreeGrid("TreeGridContainer") *@
+        @*     // .CssClass("mslcTable") *@
+        @*     .Datasource(new[] {new { FileName = "test"}}) *@
+        @*     // .ParentIdMapping("ParentID") *@
+        @*     // .IdMapping("ID") *@
+        @*     // .Locale("en-US") *@
+        @*     // .AllowSelection(false) *@
+        @*     // .AllowSorting(true) *@
+        @*     // .AllowFiltering(true) *@
+        @*     // .EnableCollapseAll(true) *@
+        @*     // .AllowTextWrap(false) *@
+        @*     .Columns(col => *@
+        @*     { *@
+        @*         col.Field("FileName").HeaderText("File Name").TextAlign(TextAlign.Center).Width(10).Add(); *@
+        @*         // col.Field("Status").HeaderText("Status").TextAlign(TextAlign.Left).Width(10).Add(); *@
+        @*         // col.Field("CreateDate").HeaderText("Create Date").Format("{0:MM/dd/yyyy}").TextAlign(TextAlign.Center).Width(6).Add(); *@
+        @*         // col.Field("CreatedBy").HeaderText("Created By").Format("{0:MM/dd/yyyy}").TextAlign(TextAlign.Center).Width(8).Add(); *@
+        @*         // col.Field("FirstMessage").HeaderText("Message").TextAlign(TextAlign.Center).Width(10).Add(); *@
+        @*         // col.IsTemplateColumn(true).TemplateID("actionHtml").HeaderText("Action").TextAlign(TextAlign.Center).Width(7).Add(); *@
+        @*         // col.IsTemplateColumn(true).TemplateID("notesHtml").HeaderText("Details").TextAlign(TextAlign.Center).Width(6).Add(); *@
+        @*     }) *@
+        @*     // .ClientSideEvents(events => *@
+        @*     // { *@
+        @*     //     events.RowDataBound("loadIcons"); *@
+        @*     // }) *@
+        @*     ) *@
+
+        @(Html.EJ().Grid<object>("tblViewStatus")
+              .CssClass("mslcTable")
+              .Datasource(Model.Items)
+              .AllowPaging()
+              .Locale("en-US")
+              .AllowSelection(false)
+              .AllowSorting(true)
+              .AllowFiltering(true)
+              .AllowTextWrap(true)
+              .MinWidth(100)
+              .TextWrapSettings(wrap => { wrap.WrapMode(WrapMode.Both); })
+              .FilterSettings(filter =>
+              {
+                  filter.FilterType(FilterType.Menu);
+                  filter.ShowPredicate(false);
+              })
+              .ToolbarSettings(toolbar =>
+              {
+                  toolbar.ShowToolbar().ToolbarItems(items =>
+                  {
+                      items.AddTool(ToolBarItems.Search);
+                  });
+              })
+              .Columns(col =>
+              {
+                  col.Field("Status").HeaderText("Status").TextAlign(TextAlign.Center).Width(10).Add();
+                  col.Field("CreateDate").HeaderText("Create Date").Format("{0:MM/dd/yyyy}").TextAlign(TextAlign.Center).Width(6).Add();
+                  col.Field("CreatedBy").HeaderText("Created By").Format("{0:MM/dd/yyyy}").TextAlign(TextAlign.Center).Width(8).Add();
+                  col.Field("FirstMessage").HeaderText("Message").TextAlign(TextAlign.Center).Width(10).Add();
+              }).ClientSideEvents(events =>
+              {
+                  events.TemplateRefresh("loadIcons");
+              }))
+    </div>
+
+    <div class="modal-footer mslcModalFooter" id="dvFooter" style="text-align: left !important;">
+        <div class="myControls">
+            <button id="btnClose" class="btn btn-basic BoldMe" data-dismiss="modal" aria-hidden="true">Close</button>&nbsp;&nbsp;
+            @*@if (Model.IsActive && Model.EventID != 0)
+                {
+                    <button type="submit" class="btn btn-danger BoldMe" name="Command" value="Deactivate">Deactivate</button>
+                }
+                else if (!Model.IsActive && Model.EventID != 0)
+                {
+                    <button type="submit" class="btn btn-success BoldMe" name="Command" value="Activate">Activate</button>
+                }*@
+        </div>
+    </div>
+</div>
+
+<div id="SyncFusionScript">
+    <script src="@Url.AbsoluteContent("~/Scripts/ej/common/ej.unobtrusive.min.js")"></script>
+</div>

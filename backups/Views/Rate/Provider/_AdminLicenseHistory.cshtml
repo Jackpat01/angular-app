@@ -1,0 +1,103 @@
+﻿<style type="text/css">
+    .e-grid .e-pager .e-pagercontainer {
+        float: left;
+    }
+
+    .e-grid .e-pager .e-pager-itemsinterval {
+        float: left;
+    }
+</style>
+
+<div id="window_adminLicensehistory" class="modal fade" data-backdrop="static" role="dialog">
+    ﻿
+    <div class="modal-dialog modal-lg" role="document" style="max-width:1200px">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>License Admin History</h3>
+                <button type="button" class="close" data-dismiss="modal" onclick="closeAdminHistoryWindow()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <table style="width: 100%;">
+                    <colgroup>
+                        <col />
+                    </colgroup>
+                    <tbody>
+                        <tr>
+                            <td>
+                                <div id="tblAdminLicenseHistory"></div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<script>
+    $(document).ready(function () {
+        LoadNotificationDialog("Loading").then(() => {
+            return new Promise((resolve, reject) => {
+                //debugger;
+                let licenseAdminId = $("#hdnLicenseAdminId").val();
+                $.ajax({
+                    async: true,
+                    url: "@Url.AbsoluteAction("GetAdminLicenseHistory", "Rate")",
+                    data: JSON.stringify({ 'licenseAdminId': licenseAdminId }),
+                    type: "POST",
+                    cache: false,
+                    contentType: "application/json;charset=utf-8",
+                    success: function (result) {
+                        if (result.Success) {
+                            var cols = [];
+                            cols.push({ field: 'LicenseAdminHistoryId', headerText: 'LicenseAdminHistoryId', visible: false });
+                            cols.push({ field: 'LicenseAdminId', headerText: 'LicenseAdminId', visible: false });
+                            cols.push({ field: 'HistoryAction', headerText: 'Action' }); //width: "130px"
+                            cols.push({ field: 'AdminUserNumber', headerText: 'SSN' });
+                            cols.push({ field: 'AdminLicenseNumber', headerText: 'Lic Num' });
+                            cols.push({ field: 'AdminFirstName', headerText: 'Admin FirstName' });
+                            cols.push({ field: 'AdminLastName', headerText: 'Admin LastName' });
+                            cols.push({ field: 'HistoryActionUser', headerText: 'HistoryActionUser' });
+                            cols.push({ field: 'HistoryActionDate', headerText: 'HistoryActionDate' });
+
+                            $("#tblAdminLicenseHistory").ejGrid({
+                                dataSource: result.licenseHistoryAdminViewModel,
+                                columns: cols,
+                                toolbarSettings: {
+                                    showToolbar: false
+                                },
+                                pageSettings: { pageSize: 5, pageSizeList: [5, 10, 15, 20] },
+                                allowPaging: true,
+                                enableRowHover: false,
+                                allowSelection: false,
+                                allowSorting: true,
+                                allowTextWrap: true,
+                                editSettings: { allowEditing: false, allowAdding: false, allowDeleting: false, showDeleteConfirmDialog: false },
+
+                            });
+
+                            resolve();
+                        }
+                    },
+                    error: function (errormessage) {
+                        StaticAlert({ content: "Admin License Error: " + errormessage.responseText }).then(() => {
+                            resolve();
+                        });
+                    }
+                });
+            });
+
+        }).then(() => {
+            return ClearNotificationDialog();
+        });
+    });
+
+    function closeAdminHistoryWindow() {
+        LoadNotificationDialog("Closing Staff History...").then(() => {
+            $("#window_adminLicensehistory").hide();
+        }).then(() => {
+            return ClearNotificationDialog();
+        });
+    }
+</script>

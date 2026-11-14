@@ -1,0 +1,67 @@
+﻿
+<div id="window_costreportdetailsstatlog" class="modal fade" data-backdrop="static" role="dialog">
+    ﻿
+    <div class="modal-dialog modal-lg" role="document" style="max-width:1200px">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Event Notes</h3>
+                <button type="button" class="close" data-dismiss="modal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <table style="width: 100%;">
+                    <colgroup>
+                        <col />
+                    </colgroup>
+                    <tbody>
+                        <tr>
+                            <td width="20%" valign="top" align="right">
+                                Notes:
+                            </td>
+                            <td width="80%" align="left">
+                                <textarea rows="10" cols="1" id="txtDetailsNotes" readonly style="width: 95% !important; text-align: left;" aria-label="Notes"></textarea>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td colspan="2" align="center">
+                                <button class="btn btn-primary BoldMe" data-dismiss="modal" aria-hidden="true">Close</button>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+   $(document).ready(function () {
+        LoadNotificationDialog("Loading").then(() => {
+            return new Promise((resolve, reject) => {
+                let providerCostReportStatlogId = $("#hdnStatlogId").val();
+                let providerCostReportId = $("#hdnCostReportId").val();
+                $.ajax({
+                    async: true,
+                    url: "@Url.AbsoluteAction("GetReviewCostReportStatlog", "Rate")",
+                    data: JSON.stringify({
+                        'providerCostReportStatlogId': providerCostReportStatlogId,
+                        'costReportId': providerCostReportId
+                    }),
+                    type: "POST",
+                    cache: false,
+                    contentType: "application/json;charset=utf-8",
+                    success: function (result) {
+                        if (result.Success) {
+                            $("#txtDetailsNotes").text(result.ProviderCostReportReviewViewModel.RevNotes);
+                            resolve();
+                        }
+                    },
+                    error: function (errormessage) {
+                        alert(errormessage.responseText);
+                        resolve();
+                    }
+                });
+            });
+        }).then(() => {
+            return ClearNotificationDialog();
+        });
+    });
+</script>

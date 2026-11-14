@@ -1,0 +1,19 @@
+﻿@using MSLC.Portal.Configuration
+@using WebPortal_OH_FI.Common
+@{
+	Layout = "~/Views/Shared/_LayoutWithMenu.cshtml";
+	ViewBag.Title = PortalConfiguration.Application + " - Secure - Index";
+}
+<div>
+    Please select an option from the above menu.
+
+    @if (TempData["Message"] != null)
+    {
+        <br /><br />
+        <div class="errorLabel">
+            @Html.Raw(TempData["Message"].ToString())
+        </div>
+        <br /><br />
+    }
+</div>
+

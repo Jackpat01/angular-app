@@ -1,0 +1,21 @@
+﻿@{ 
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div>
+    <center>
+        <br />
+        @if (TempData["Message"] != null)
+        {
+            <div class="errorLabel" style="margin-bottom: 50px;">
+                @Html.Raw(TempData["Message"].ToString())
+            </div>
+        }
+        else
+        {
+            <div class="errorLabel" style="margin-bottom: 50px;">
+                Error detected please contact support.
+            </div>
+        }
+        </center>
+</div>

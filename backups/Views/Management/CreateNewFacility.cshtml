@@ -1,0 +1,104 @@
+﻿@model  WebPortal_OH_FI.Models.ManagementViewModel
+@{ 
+    bool isChangeButtonDisabled = !Model.CanCreateNewFacility || !Model.CanCreateCostReport;
+}
+
+<div data-resize='100' style='border: solid thin black; overflow: auto; padding: 1rem;'>
+    <div style='width: 100%; font-weight: bold;'>
+    </div>
+    <table>
+        <tbody>
+            <tr>
+                <td>
+                    <button id="CreateNewFacilityVersion" class="btn btn-success" disabled=@isChangeButtonDisabled>Create New Facility Version</button>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+</div>
+<script>
+    $(document).ready(function () {
+        if (document.getElementById('CreateNewFacilityVersion').disabled == false) {
+            $.ajax({
+                async: true,
+                url: '@Url.AbsoluteAction("CheckSubmittedVersion", "Management")',
+                cache: false,
+                type: "POST",
+                dataType: "json",
+                success: function (response) {
+                    if (response.Success) {
+                        if (response.Submitted == true) {
+                            $('#CreateNewFacilityVersion').attr('disabled', true);
+                        }
+                    }
+                },
+                error: function (a, b, c) {
+                    StaticAlert({ content: "AJAX callback error, Check Submitted Version: " + a.responseText });
+                }
+            });
+        }
+        else {
+            $('#CreateNewFacilityVersion').attr('disabled', true);
+        }
+
+        $("#CreateNewFacilityVersion").click(function () {
+            let contentText = "";
+            switch (@Model.CostReportTypeId) {
+                case 4.90:
+                case 4.91:
+                case 4.92:
+                    contentText = `Do you want to copy the last submitted @Model.LastSubmittedCostReportTypeCode cost report data for @Model.PeriodId, document number @Model.LastSubmittedDocumentNumber for @Model.ProviderName?`;
+                    break;
+                default:
+                    contentText = `Do you want to copy last submitted cost report data for @Model.PeriodId and @Model.ProviderName to this cost report?`;
+            }
+
+            StaticConfirm({
+                title: "Copy Confirm",
+                content: contentText,
+                buttons: ["Ok", "Cancel"]
+            }).then((key) => {
+                if (key != 0) {
+                    this.close();
+                    return;
+                }
+
+                return LoadNotificationDialog("Copying ...").then(() => {
+                    return new Promise((resolve, reject) => {
+                        $.ajax({
+                            async: true,
+                            url: '@Url.AbsoluteAction("CreateNewFacilityVersion", "Management")',
+                            cache: false,
+                            type: "POST",
+                            dataType: "json",
+                            success: function (response) {
+                                if (response.Success) {
+                                    Promise.all([
+                                        window.CostReport.Selected.LoadModelOCRT(),
+                                        window.CostReport.Selected.LoadModelTB()
+                                    ]).then(() => {
+                                        return StaticAlert({ content: "Copied cost report data previously submitted this CY successfully." });
+                                    }).then(() => {
+                                        resolve();
+                                    });
+                                }
+                                else {
+                                    StaticAlert({ content: "Create New Facility Version Data: " + response.Message }).then(() => {
+                                        resolve();
+                                    });
+                                }
+                            },
+                            error: function (a, b, c) {
+                                StaticAlert({ content: "AJAX callback error, Create New Facility Version Data: " + a.responseText }).then(() => {
+                                    resolve();
+                                });
+                            }
+                        });
+                    });
+                }).then(() => {
+                    return ClearNotificationDialog();
+                });
+            });
+        });
+    });
+</script>

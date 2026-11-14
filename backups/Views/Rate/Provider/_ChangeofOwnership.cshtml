@@ -1,0 +1,407 @@
+﻿<style type="text/css">
+
+    .flexBox {
+        display: flex;
+        flex-flow: row;
+        justify-content: center;
+        gap: 10px;
+    }
+
+    .tab-content {
+        display: flex;
+    }
+
+    .tab-content > .tab-pane {
+        visibility: hidden;
+        margin-right: -100%;
+        width: 100%;
+    }
+
+    .tab-content > .active {
+        visibility: visible;
+    }
+
+    #nav-ownerComments {
+        display: flex;
+        flex-direction: column;
+        gap: 10px
+    }
+
+    #nav-ownerComments:nth-child(2) {
+        width: 100px;
+    }
+</style>
+
+<div id="window_ChangeofOwnership" class="modal fade" data-backdrop="static" role="dialog">
+    <div class="modal-dialog modal-xl" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Change of Ownership</h3>
+                <button type="button" class="close" data-dismiss="modal" onclick="closeChangeofOwnership()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <table style="width: 100%;">
+                    <colgroup>
+                        <col />
+                    </colgroup>
+                    <tbody>
+                        <tr>
+                            <td>
+                                <div id="tblChangeofOwnership"></div>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <div class="tab-panel m-2 p-2">
+                                    <div class="nav nav-tabs m-0 d-flex fs-5" id="nav-tab" role="tablist">
+                                        <div id="nav-ownerData-tab" href="#nav-ownerData" class="nav-item nav-link active btn"
+                                             data-toggle="tab" role="tab" aria-selected="true">Data</div>
+                                        <div id="nav-ownerComments-tab" href="#nav-ownerComments" class="nav-item nav-link btn"
+                                             data-toggle="tab" role="tab" aria-selected="false">Comments</div>
+                                    </div>
+                                    <div class="tab-content px-4 pb-4 pt-2" id="nav-tabContent">
+
+                                        <div id="nav-ownerData" aria-labelledby="nav-ownerData-tab" role="tabpanel" class="tab-pane fade show active">
+                                            <div class="flexBox">
+                                                <input id="btnEntering" value="Entering" type="submit" onclick="CHOPEntering()" class="btn btn-success" />
+                                                <input id="btnExiting" value="Exiting" type="submit" onclick="CHOPExiting()" class="btn btn-success" />
+                                            </div>
+
+                                            <table class="table table-borderless bold-every-other-column" style="table-layout: fixed;border:1px solid;width:100%">
+                                                <tr>
+                                                    <td width="35%">
+                                                        Chop Date
+                                                    </td>
+                                                    <td width="15%">
+                                                        <label id="lblChopDate"></label>
+                                                    </td>
+                                                    <td width="30%">
+                                                        Organization (optional)
+                                                    </td>
+                                                    <td width="20%">
+                                                        <label id="lblOrganizationName"></label>
+                                                    </td>
+                                                </tr>
+                                                <tr>
+                                                    <td>
+                                                        Transaction Type
+                                                    </td>
+                                                    <td>
+                                                        <label id="lblTransactionType"></label>
+                                                    </td>
+                                                    <td>
+                                                        Contact Person (optional)
+                                                    </td>
+                                                    <td>
+                                                        <label id="lblContactPerson"></label>
+                                                    </td>
+                                                </tr>
+                                                <tr>
+                                                    <td>
+                                                        Purchase/ Sale
+                                                    </td>
+                                                    <td>
+                                                        <label id="lblPurchaseType"></label>
+                                                    </td>
+                                                    <td>
+                                                        Address
+                                                    </td>
+                                                    <td>
+                                                        <label id="lblAddressLineOne"></label>
+                                                    </td>
+                                                </tr>
+                                                <tr>
+                                                    <td>
+                                                        Other Provider
+                                                    </td>
+                                                    <td>
+                                                        <label id="lblOtherProviderNumber"></label>
+                                                    </td>
+                                                    <td>
+                                                    </td>
+                                                    <td>
+                                                        <label id="lblAddressLineTwo"></label>
+                                                    </td>
+                                                </tr>
+                                                <tr>
+                                                    <td>
+                                                        Total Purchase Price
+                                                    </td>
+                                                    <td>
+                                                        <label id="lblPurchaseAmount"></label>
+                                                    </td>
+                                                    <td>
+                                                        City, State
+                                                    </td>
+                                                    <td>
+                                                        <label id="lblAddressCity"></label>
+                                                        <label id="lblAddressState"></label>
+                                                    </td>
+                                                </tr>
+                                                <tr>
+                                                    <td>
+                                                        Total Initial Annual Master Lease Amount
+                                                    </td>
+                                                    <td>
+                                                        <label id="lblMasterLeaseAmount"></label>
+                                                    </td>
+                                                    <td>
+                                                        Zip, County
+                                                    </td>
+                                                    <td>
+                                                        <label id="lblAddressZip"></label>
+                                                        <label id="lblAddressCounty"></label>
+                                                    </td>
+
+                                                </tr>
+                                                <tr>
+                                                    <td>
+                                                        Total Initial Annual Sub Lease Amount
+                                                    </td>
+                                                    <td>
+                                                        <label id="lblSubLeaseAmount"></label>
+                                                    </td>
+                                                    <td>
+                                                        Phone, Fax
+                                                    </td>
+                                                    <td>
+                                                        <label id="lblAddressPhone"></label>
+                                                        <label id="lblAddressFax"></label>
+                                                    </td>
+
+                                                </tr>
+                                                <tr>
+                                                    <td></td>
+                                                    <td></td>
+                                                    <td>
+                                                        Email
+                                                    </td>
+                                                    <td>
+                                                        <label class="text-break" id="lblAddressEmail"></label>
+                                                    </td>
+                                                </tr>
+
+                                            </table>
+                                        </div>
+
+                                        <div id="nav-ownerComments" aria-labelledby="nav-ownerComments-tab" role="tabpanel" class="tab-pane fade">
+                                            <textarea id="comments" name="comments" rows="4" style="width: 500px" maxlength="100"></textarea>
+                                            <input id="btnComment" value="Save" type="submit" class="btn btn-success" onclick="SaveComments()" />
+                                        </div>
+                                    </div>
+                                </div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+    var viewmodelResult;
+    var rowIndex;
+    $(document).ready(function () {
+
+        LoadNotificationDialog("Loading").then(() => {
+            return new Promise((resolve, reject) => {
+                $.ajax({
+                    async: true,
+                    url: "@Url.AbsoluteAction("GetAllCHOPTransactions", "Rate")",
+                    type: "POST",
+                    cache: false,
+                    contentType: "application/json;charset=utf-8",
+                    success: function (result) {
+                        if (result.Success) {
+                            viewmodelResult = result.CHOPTransactionsListViewModel;
+                            var cols = [];
+                            cols.push({ field: 'ChowReviewID', headerText: 'ChowReviewID', isPrimaryKey: true, isIdentity: true, visible: false });
+                            cols.push({ field: 'EffectiveDate', headerText: 'Eff Date', width: '20' });
+                            cols.push({ field: 'TransactionType', headerText: 'Type', width: '40' });
+                            cols.push({ field: 'PurchaseAmount', headerText: 'Purchase Amount', width: '25' });
+                            cols.push({ field: 'MasterLeaseAmount', headerText: 'Master Lease Amount', width: '30' });
+                            cols.push({ field: 'SubLeaseAmount', headerText: 'Sub Lease Amount', width: '25' });
+
+                            $("#tblChangeofOwnership").ejGrid({
+                                dataSource: result.CHOPTransactionsListViewModel,
+                                columns: cols,
+                                pageSettings: { pageSize: 5, pageSizeList: [5, 10, 15, 20] },
+                                allowPaging: true,
+                                enableRowHover: true,
+                                allowSelection: true,
+                                allowTextWrap: true,
+                                rowSelected: onRowSelected
+                            });
+
+                            if (result.CHOPTransactionsListViewModel != null && result.CHOPTransactionsListViewModel.length > 0) {
+                                var chopTransaction = result.CHOPTransactionsListViewModel[0];
+                                var enteringAddress = chopTransaction.EnteringAddress;
+
+                                $('#lblChopDate').text(chopTransaction.EffectiveDate);
+                                $('#lblTransactionType').text(chopTransaction.TransactionType);
+                                $('#lblPurchaseType').text("Purchase");
+                                $('#lblOtherProviderNumber').text(enteringAddress.OtherProviderNumber);
+                                $('#lblPurchaseAmount').text(chopTransaction.PurchaseAmount);
+                                $('#lblMasterLeaseAmount').text(chopTransaction.MasterLeaseAmount);
+                                $('#lblSubLeaseAmount').text(chopTransaction.SubLeaseAmount);
+
+                                //Entering address
+                                $('#lblOrganizationName').text(enteringAddress.OrganizationName);
+                                $('#lblContactPerson').text(enteringAddress.ContactPerson);
+                                $('#lblAddressLineOne').text(enteringAddress.AddressLineOne);
+                                $('#lblAddressLineTwo').text(enteringAddress.AddressLineTwo);
+                                $('#lblAddressCity').text(enteringAddress.AddressCity);
+                                $('#lblAddressState').text(enteringAddress.AddressState);
+                                $('#lblAddressZip').text(enteringAddress.AddressZip);
+                                $('#lblAddressCounty').text(enteringAddress.AddressCounty);
+                                $('#lblAddressPhone').text(enteringAddress.AddressPhone);
+                                $('#lblAddressFax').text(enteringAddress.AddressFax);
+                                $('#lblAddressEmail').text(enteringAddress.AddressEmail);
+                                $('#comments').val(chopTransaction.Comments)
+                            }
+                            resolve();
+                        }
+                    },
+                    error: function (errormessage) {
+                        StaticAlert({ content: errormessage.responseText }).then(() => {
+                            resolve();
+                        });
+                    }
+
+                });
+            });
+        }).then(() => {
+            return ClearNotificationDialog();
+        });
+
+        function onRowSelected(args) {
+            var selectedData = args.data;
+            var enteringAddress;
+            rowIndex = args.rowIndex;
+            $('#lblChopDate').text(selectedData.EffectiveDate);
+            $('#lblTransactionType').text(selectedData.TransactionType);
+            $('#lblPurchaseType').text("Purchase");
+            $('#lblPurchaseAmount').text(selectedData.PurchaseAmount);
+            $('#lblMasterLeaseAmount').text(selectedData.MasterLeaseAmount);
+            $('#lblSubLeaseAmount').text(selectedData.SubLeaseAmount);
+            if (rowIndex != null) {
+                enteringAddress = viewmodelResult[rowIndex].EnteringAddress;
+            }
+            else {
+                enteringAddress = viewmodelResult[0].EnteringAddress;
+            }
+            $('#lblOtherProviderNumber').text(enteringAddress.OtherProviderNumber);
+            $('#lblOrganizationName').text(enteringAddress.OrganizationName);
+            $('#lblContactPerson').text(enteringAddress.ContactPerson);
+            $('#lblAddressLineOne').text(enteringAddress.AddressLineOne);
+            $('#lblAddressLineTwo').text(enteringAddress.AddressLineTwo);
+            $('#lblAddressCity').text(enteringAddress.AddressCity);
+            $('#lblAddressState').text(enteringAddress.AddressState);
+            $('#lblAddressZip').text(enteringAddress.AddressZip);
+            $('#lblAddressCounty').text(enteringAddress.AddressCounty);
+            $('#lblAddressPhone').text(enteringAddress.AddressPhone);
+            $('#lblAddressFax').text(enteringAddress.AddressFax);
+            $('#lblAddressEmail').text(enteringAddress.AddressEmail);
+            $('#comments').val(selectedData.Comments);
+        }
+    });
+
+    function CHOPEntering() {
+        var enteringAddress;
+        if (rowIndex != null) {
+            enteringAddress = viewmodelResult[rowIndex].EnteringAddress;
+        }
+        else {
+            enteringAddress = viewmodelResult[0].EnteringAddress;
+        }
+        $('#lblPurchaseType').text("Purchase");
+        $('#lblOtherProviderNumber').text(enteringAddress.OtherProviderNumber);
+        $('#lblOrganizationName').text(enteringAddress.OrganizationName);
+        $('#lblContactPerson').text(enteringAddress.ContactPerson);
+        $('#lblAddressLineOne').text(enteringAddress.AddressLineOne);
+        $('#lblAddressLineTwo').text(enteringAddress.AddressLineTwo);
+        $('#lblAddressCity').text(enteringAddress.AddressCity);
+        $('#lblAddressState').text(enteringAddress.AddressState);
+        $('#lblAddressZip').text(enteringAddress.AddressZip);
+        $('#lblAddressCounty').text(enteringAddress.AddressCounty);
+        $('#lblAddressPhone').text(enteringAddress.AddressPhone);
+        $('#lblAddressFax').text(enteringAddress.AddressFax);
+        $('#lblAddressEmail').text(enteringAddress.AddressEmail);
+    }
+
+    function CHOPExiting() {
+        var exitingAddress;
+        if (rowIndex != null) {
+            exitingAddress = viewmodelResult[rowIndex].ExitingAddress;
+        }
+        else {
+            exitingAddress = viewmodelResult[0].ExitingAddress;
+        }
+        $('#lblPurchaseType').text("Sale");
+        $('#lblOtherProviderNumber').text(exitingAddress.OtherProviderNumber);
+        $('#lblOrganizationName').text(exitingAddress.OrganizationName);
+        $('#lblContactPerson').text(exitingAddress.ContactPerson);
+        $('#lblAddressLineOne').text(exitingAddress.AddressLineOne);
+        $('#lblAddressLineTwo').text(exitingAddress.AddressLineTwo);
+        $('#lblAddressCity').text(exitingAddress.AddressCity);
+        $('#lblAddressState').text(exitingAddress.AddressState);
+        $('#lblAddressZip').text(exitingAddress.AddressZip);
+        $('#lblAddressCounty').text(exitingAddress.AddressCounty);
+        $('#lblAddressPhone').text(exitingAddress.AddressPhone);
+        $('#lblAddressFax').text(exitingAddress.AddressFax);
+        $('#lblAddressEmail').text(exitingAddress.AddressEmail);
+    }
+
+    function SaveComments() {
+        var comment = $('#comments').val();
+        var chowReviewID = 0;
+        if (rowIndex != null) {
+            chowReviewID = viewmodelResult[rowIndex].ChowReviewID;
+            viewmodelResult[rowIndex].Comments = comment;
+        }
+        else {
+            chowReviewID = viewmodelResult[0].ChowReviewID;
+            viewmodelResult[0].Comments = comment;
+        }
+
+        LoadNotificationDialog("Loading").then(() => {
+            return new Promise((resolve, reject) => {
+                $.ajax({
+                    async: true,
+                    url: "@Url.AbsoluteAction("SaveChopData", "Rate")",
+                    data: JSON.stringify({ "chowReviewID": chowReviewID, "comment": comment }),
+                    type: "POST",
+                    cache: false,
+                    contentType: "application/json;charset=utf-8",
+                    success: function (result) {
+                        if (result.Success) {
+                            StaticAlert({ content: result.Message }).then(() => {
+                                resolve();
+                            });
+                        } else {
+                            StaticAlert({ content: result.Message }).then(() => {
+                                resolve();
+                            });
+                        }
+                    },
+                    error: function (errormessage) {
+                        StaticAlert({ content: errormessage.responseText }).then(() => {
+                            resolve();
+                        });
+                    }
+
+                });
+            });
+        }).then(() => {
+            return ClearNotificationDialog();
+        });
+    }
+
+    function closeChangeofOwnership() {
+        LoadNotificationDialog("Closing CHOP Data...").then(() => {
+            $("#window_ChangeofOwnership").hide();
+        }).then(() => {
+            return ClearNotificationDialog();
+        });
+    }
+</script>

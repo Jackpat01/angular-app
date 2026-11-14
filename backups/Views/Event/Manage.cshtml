@@ -1,0 +1,128 @@
+﻿@*
+    DO NOT MODIFY OUTSIDE OF MSLC.STATLOG
+    This file comes from MSLC.Statlog, any changes to it will be wiped out when the nuget package is updated.
+    Please make the appropriate enhancements to MSLC.Statlog instead of here.
+*@
+
+@using MSLC.Portal.Configuration
+@using MSLC.Portal.MVC.Utility
+@using MSLC.StatLog.Configuration
+@Styles.Render("~/Content/StatLog.css")
+@model MSLC.StatLog.MVC.ViewModels.EventViewModel.Manage
+@{
+    Layout = PortalConfiguration.DetermineLayout("Menu");
+    ViewBag.Title = "Event Management";
+    var hideMetadata = StatlogARUMConfiguration.HideMetaDataManagement(RetrieveSession.Classification);
+}
+
+<script src="~/Scripts/jquery.validate.js" type="text/javascript"></script>
+<script src="~/Scripts/jquery.validate.unobtrusive.js" type="text/javascript"></script>
+<link href="~/Content/south-street/jquery-ui-1.9.2.custom.min.css" rel="stylesheet" />
+
+
+<script src="~/Scripts/jHtmlArea-0.8.js" type="text/javascript"></script> @*Used for editing bulletin boards*@
+<script src="~/Scripts/jHtmlArea.ColorPickerMenu-0.8.js" type="text/javascript"></script> @*Used for editing bulletin boards*@
+
+<link href="~/Content/jHtmlArea/jHtmlArea.ColorPickerMenu.css" rel="stylesheet" type="text/css" />
+<link href="~/Content/jHtmlArea/jHtmlArea.css" rel="stylesheet" type="text/css" />
+<link href="~/Content/jHtmlArea/jHtmlArea.Editor.css" rel="stylesheet" type="text/css" />
+@Html.Script("~/Scripts/Pages/Event/Edit.js", "jquery")
+
+@Html.HiddenFor(m => m.sEventID, new { id = "hdnEventID" })
+
+<div class="d-flex">
+    <a href="@Url.Action("Index", "Event")" class="btn btn-kyBlue BoldMe" aria-label="Back"><i data-feather='arrow-left'></i></a>
+    <h3 style="margin-left: 10px">Editing @Model.Name</h3>
+</div>
+
+<div id="errorDiv" class="errorLabel">
+    @{
+        var message = TempData["Message"] != null && !String.IsNullOrEmpty(TempData["Message"].ToString()) ? TempData["Message"].ToString() : String.Empty;
+        if (!string.IsNullOrEmpty(message))
+        {
+            <p class="text-danger" style="text-align: center; display: block">@Html.Raw(message)</p>
+        }
+        else
+        {
+            <p style="text-align: center; display: none"></p>
+        }
+
+
+}
+</div>
+
+<div id="dialogDiv" class="modal fade" tabindex="-1" aria-labelledby="windowTitleLabel" aria-hidden="true" role="dialog">
+    <div id="modal-dialog" class="modal-dialog" role="document">
+        <div id="dialogContent" style="font-size: 14px; width:100%"></div>
+        <div id="dialogMessage" style="font-size: 14px; width:100%"></div>
+    </div>
+</div>
+
+<div class="tab-panel m-2 p-2">
+    <div class="nav nav-tabs m-0 d-flex" id="nav-tab" role="tablist">
+        <div id="nav-files-tab" href="#nav-files" class="nav-item nav-link active"
+             data-toggle="tab" role="tab" aria-selected="true" onclick="return ToggleTab(this)" tabindex="0">Files</div>
+        <div id="nav-review-tab" href="#nav-review" class="nav-item nav-link"
+             data-toggle="tab" role="tab" aria-selected="false" onclick="return ToggleTab(this)" tabindex="-1">Review</div>
+        <div id="nav-due-dates-tab" href="#nav-due-dates" class="nav-item nav-link"
+             data-toggle="tab" role="tab" aria-selected="false" onclick="return ToggleTab(this)" tabindex="-1">Due Dates</div>
+        <div id="nav-lifecycles-tab" href="#nav-lifecycles" class="nav-item nav-link"
+             data-toggle="tab" role="tab" aria-selected="false" onclick="return ToggleTab(this)" tabindex="-1">Lifecycle</div>
+        @if (!hideMetadata) 
+        { 
+            <div id="nav-metadata-tab" href="#nav-metadata" class="nav-item nav-link"
+                 data-toggle="tab" role="tab" aria-selected="false" onclick="return ToggleTab(this)" tabindex="-1">MetaData</div>
+        }
+        <div id="nav-web-controls-tab" href="#nav-web-controls" class="nav-item nav-link"
+             data-toggle="tab" role="tab" aria-selected="false" onclick="return ToggleTab(this)" tabindex="-1">Web Controls</div>
+        <div id="nav-assign-user-tab" href="#nav-assign-user" class="nav-item nav-link"
+             data-toggle="tab" role="tab" aria-selected="false" onclick="return ToggleTab(this)" tabindex="-1">Assign User</div>
+        <div id="nav-other-options-tab" href="#nav-other-options" class="nav-item nav-link"
+             data-toggle="tab" role="tab" aria-selected="false" onclick="return ToggleTab(this)" tabindex="-1">Other</div>
+    </div>
+    <div class="tab-content px-4 pb-4 pt-2" id="nav-tabContent">
+
+        <div id="nav-files" aria-labelledby="nav-files-tab" role="tabpanel" class="tab-pane fade show active">
+            @Html.Partial("_ManageFiles", Model)
+        </div>
+
+        <div id="nav-review" aria-labelledby="nav-review-tab" role="tabpanel" class="tab-pane fade">
+            @Html.Partial("_ManageReview", Model)
+        </div>
+
+        <div id="nav-due-dates" aria-labelledby="nav-due-dates-tab" role="tabpanel" class="tab-pane fade">
+            @Html.Partial("_ManageDueDates", Model)
+        </div>
+
+        <div id="nav-lifecycles" aria-labelledby="nav-lifecycles-tab" role="tabpanel" class="tab-pane fade">
+            @Html.Partial("_ManageLifecycles", Model)
+        </div>
+
+        @if (!hideMetadata)
+        {
+            <div id="nav-metadata" aria-labelledby="nav-metadata-tab" role="tabpanel" class="tab-pane fade">
+                @Html.Partial("_ManageMetaData", Model)
+            </div>
+        }
+
+        <div id="nav-web-controls" aria-labelledby="nav-web-controls-tab" role="tabpanel" class="tab-pane fade">
+            @Html.Partial("_ManageWebControls", Model)
+        </div>
+
+        <div id="nav-assign-user" aria-labelledby="nav-assign-user-tab" role="tabpanel" class="tab-pane fade">
+            @Html.Partial("_ManageAssignUser", Model)
+        </div>
+
+        <div id="nav-other-options" aria-labelledby="nav-other-options-tab" role="tabpanel" class="tab-pane fade">
+            @Html.Partial("_ManageOtherOptions", Model)
+        </div>
+
+    </div>
+</div>
+
+<div id="SyncFusionScript">
+    <script src="@Url.AbsoluteContent("~/Scripts/ej/common/ej.unobtrusive.min.js")"></script>
+</div>
+<script>
+    feather.replace()
+</script>

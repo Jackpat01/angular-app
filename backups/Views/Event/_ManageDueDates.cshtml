@@ -1,0 +1,87 @@
+﻿@*
+    DO NOT MODIFY OUTSIDE OF MSLC.STATLOG
+    This file comes from MSLC.Statlog, any changes to it will be wiped out when the nuget package is updated.
+    Please make the appropriate enhancements to MSLC.Statlog instead of here.
+*@
+
+@using MSLC.Portal.MVC.Utility
+@model MSLC.StatLog.MVC.ViewModels.EventViewModel.Manage
+
+<div class="d-flex flex-column">
+    <div class="border p-2 m-2">
+        <div class="row mb-3">
+            <div class="col-2">
+                Needs Response:
+            </div>
+            <div class="col-9">
+                @Model.NeedsResponse
+            </div>
+        </div>
+        @if (Model.NeedsResponse != "False")
+        {
+            <div class="row mb-3">
+                <div class="col-2">
+                    Due Date Trigger:
+                </div>
+                <div class="col-9">
+                    @Model.DueDateTrigger
+                </div>
+            </div>
+            <div class="row mb-3">
+                <div class="col-2">
+                    Due Date Set By:
+                </div>
+                <div class="col-9">
+                    @Model.DueDateType
+                </div>
+            </div>
+            <div class="row mb-3">
+                <div class="col-2">
+                    Manual Due Date Changes Will Cascade Through Workflow:
+                </div>
+                <div class="col-9">
+                    @Model.CascadeManualDueDate
+                </div>
+            </div>
+            <div class="row mb-3">
+                <div class="col-2">
+                    Due Date Can be Modified by Event Date Changes:
+                </div>
+                <div class="col-9">
+                    @Model.EventDateEditRefreshDueDate
+                </div>
+            </div>
+            <div class="row mb-3">
+                <div class="col-2">
+                    Additional Days to Add to Calculation:
+                </div>
+                <div class="col-9">
+                    @Model.DaysToWait
+                </div>
+            </div>
+            <div class="row mb-3">
+                <div class="col-2">
+                    Set Due Date on File Upload:
+                </div>
+                <div class="col-9">
+                    @Model.AddFileDueDate
+                </div>
+            </div>
+            <div class="row mb-3">
+                <div class="col-2">
+                    Allow Due Date to be Modified by Bulk Update:
+                </div>
+                <div class="col-9">
+                    @Model.BulkUpdatable
+                </div>
+            </div>
+        }
+        <div class="button-box">
+            <a onclick="return modalButton(this, 'tallerWidest')" href="@Url.Action("EditDueDates", "Event", new
+            {
+                sEventID = Model.sEventID
+            })"
+               class="btn btn-kyBlue BoldMe">Edit Due Date Options</a>
+        </div>
+    </div>
+</div>

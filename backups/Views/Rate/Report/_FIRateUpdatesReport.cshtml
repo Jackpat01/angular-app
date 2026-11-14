@@ -1,0 +1,126 @@
+﻿@using WebPortal_OH_FI.Web
+@model WebPortal_OH_FI.BL.MappedObjects.FIRateUpdatesReportModel
+<style type="text/css">
+    .nav-tabs .nav-item.show .nav-link, .nav-tabs .nav-link.active {
+        background: moccasin;
+        border-bottom: 2px solid green;
+    }
+
+    th, td {
+        padding: 10px;
+    }
+
+    .e-grid .e-pager .e-pagercontainer {
+        float: left;
+    }
+
+    .e-grid .e-pager .e-pager-itemsinterval {
+        float: left;
+    }
+
+    .e-pager-itemsinterval {
+        direction: rtl;
+        float: left;
+    }
+</style>
+<script>
+    $(document).ready(function () {
+        $("#reportButton").on("click", function () {
+            $("#ratesetting-reports").show();
+            $("#report-details").hide();
+        });
+    });
+</script>
+<div>
+    <button class="btn btn-success" id="reportButton">Back to Reports</button>
+</div>
+<div id="reportPanel">
+    <table>
+        <tr>
+            <td><b>@Model.ReportName</b></td>
+        </tr>
+        <tr>
+            <td>Finalized Date of Rate:</td>
+            <td>
+                @Html.TextBoxFor(x => x.FinalizedDate, new { @placeholder = "Finalized Date", id = "finalizedDate", maxlength = 10, autocomplete = "off", @class = "datefield", @style = "width: 125px; margin: 4px 6px;", aria_label="Finalized Date" })
+            </td>
+        </tr>
+        <tr>
+            <td><input id="btnGenerateFIReport" value="Generate Report" type="submit" class="btn btn-success" onclick="GenerateFIRateReport()" /></td>
+        </tr>
+    </table>
+</div>
+<script type="text/javascript">
+    $(document).ready(function () {
+        $("#btnGenerateFIReport").prop("disabled", true);
+        $("#finalizedDate").change(function () { setEnabled() });
+        $("#finalizedDate").val(undefined);
+    });
+    $('.datefield').datepicker(
+    {
+        format: 'mm/dd/yyyy',
+        todayHighlight: true,
+        autoclose: true,
+        clearBtn: true
+    });
+
+    function setEnabled() {
+        if ($("#finalizedDate").val() == undefined || $("#finalizedDate").val() == '') {
+            $('#btnGenerateFIReport').prop("disabled", true);
+        } else {
+            $('#btnGenerateFIReport').prop("disabled", false);
+        }
+    }
+
+    function GenerateFIRateReport() {
+        var finalizedDate = $("#finalizedDate").data('datepicker').getFormattedDate('yyyy-mm-dd');
+
+        return LoadNotificationDialog("Generating FI NF Rate Report...").then(() => {
+            return new Promise((resolve, reject) => {
+                $.ajax({
+                    async: true,
+                    url: "@Url.AbsoluteAction("GenerateFIRateReport", "Rate")",
+                    data: JSON.stringify({ "finalizedDate": finalizedDate }),
+                    type: "POST",
+                    contentType: "application/json;charset=utf-8",
+                    dataType: "json",
+                    success: function (result) {
+                        if (result.Success) {
+                            //get the file name for download
+                            if (result.FileName !== undefined) {
+                                //use window.location.href for redirect to download action for download the file
+                                window.location.href = "@Url.AbsoluteAction("Download", "Rate")/?fileName=" + result.FileName;
+                                ClearNotificationDialog();
+                            }
+                        } else {
+                            StaticAlert({ content: result.Message }).then(() => {
+                                ClearNotificationDialog();
+                                resolve();
+                            });
+                        }
+
+                        resolve();
+                    },
+                    error: function (result) {
+                        if (result.Message === '') {
+                            result.Message = 'Unable to connect to Server.';
+                        }
+                        StaticAlert({ content: result.Message }).then(() => {
+                            resolve();
+                        });
+                    }
+                });
+                function error(result) {
+                    if (result.Message === '') {
+                        result.Message = 'Unable to connect to Server.';
+                    }
+                    StaticAlert({ content: result.Message }).then(() => {
+                        resolve();
+                    });
+                }
+            });
+        }).then(() => {
+            return ClearNotificationDialog();
+        });
+    }
+</script>

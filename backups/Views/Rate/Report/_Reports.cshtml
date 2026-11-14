@@ -1,0 +1,338 @@
+﻿@using WebPortal_OH_FI.Web
+<style type="text/css">
+    #divReports {
+        padding: 1px 1px 1px 40px;
+    }
+    .flex-container {
+        display: flex; /* Aligns child divs horizontally */
+        gap: 20px; /* Adds space between the columns */
+    }
+
+    .column {
+        flex: 1; /* Distributed evenly; makes all columns equal width */
+        padding: 15px;
+        background-color: #ffffff;
+    }
+</style>
+<div id="ratesetting-reports">
+    <div style='width: 100%; font-weight: bold;'>
+        <div>
+            <h1>Reports</h1>
+        </div>
+    </div>
+    <div id="divReports" class="flex-container">
+		<div class="column">
+			@* Put reports in alphabetical order. *@
+
+			@*<div id="UploadDownloadReportURL" data-url="@Url.AbsoluteAction("GenerateStatLogMassUploadReport", "Reports")"></div>*@
+
+			<a href="#" onclick="ShowReportPage('CertifiedBedCountReport')">Certified Bed Count Report</a>
+			<br />
+			<br />
+			<a href="#" onclick="ShowReportPage('ChopReport')">Chop Report</a>
+			<br />
+			<br />
+			<a href="#" onclick="ShowReportPage('ClosedFacilitiesReport')">Closed Facilities Report</a>
+			<br />
+			<br />
+			<a href="#" onclick="ShowReportPage('CMIAuditReport')">CMI Audit Report</a>
+			<br />
+			<br />
+			<a href="#" onclick="ShowReportPage('CMIOverrideReport')">CMI Override Report</a>
+			<br />
+			<br />
+			<a href="#" onclick="ShowReportPage('CostReportSummaryReport')">Cost Report Summary Report</a>
+			<br />
+			<br />
+			<a href="#" onclick="GenerateCurrentActiveProviderFacilityAndBedCountsReport()">Current Active Provider Facility and Bed Counts</a>
+			<br />
+			<br />
+			@if (OHFISession.IsNF)
+			{
+				<a href="#" onclick="ShowReportPage('FIRateUpdatesReport')">FI NF Rate Updates</a>
+				<br />
+				<br />
+				<a href="#" onclick="ShowReportPage('InitialRatesForCHOPReport')">Initial Rates for CHOP/New Providers</a>
+				<br />
+				<br />
+			}
+			@if (OHFISession.IsICF)
+			{
+				<a href="#" onclick="ShowReportPage('FIRateUpdatesReport')">FI ICF Rate Updates</a>
+				<br />
+				<br />
+				<a href="#" onclick="GenerateActiveProviderDetailsReport()">ICF Active Providers</a>
+				<br />
+				<br />
+				<a href="#" onclick="ShowReportPage('AuditedRateFileCPAOReport')">ICF Audited Rate File to CPAO</a>
+				<br />
+				<br />
+			}
+			<a href="#" onclick="ShowReportPage('LicensedBedCountReport')">Licensed Bed Count Report</a>
+			<br />
+			<br />
+
+			<a href="#" onclick="ShowReportPage('NewFacilitiesReport')">New Facilities Report</a>
+			<br />
+			<br />
+
+			@if (OHFISession.IsNF)
+			{
+				<a href="#" onclick="ShowReportPage('NFOccupancyDataReport')">NF Occupancy Data</a>
+				<br />
+				<br />
+				<a href="#" onclick="GenerateActiveProviderDetailsReport()">NF Active Providers</a>
+				<br />
+				<br />
+				<a href="#" onclick="ShowReportPage('AuditedRateFileCPAOReport')">NF Audited Rate File to CPAO</a>
+				<br />
+				<br />
+			}
+			<a href="#" onclick="GeneratePendingChangeOfOwnershipAndPendingClosuresReport()">Pending Change of Ownership Providers / Pending Closure Providers Report</a>
+			<br />
+			<br />
+			<a href="#" onclick="ShowReportPage('ProviderAddressListReport')">Provider Address List</a>
+			<br />
+			<br />
+			<a href="#" onclick="GenerateCurrentCertifiedAndLicensedBedCountReport()">Provider Current Certified and Licensed Bed Count Report</a>
+			<br />
+			<br />
+			<a href="#" onclick="ShowReportPage('ProviderMedicareNumbersReport')">Provider Medicare Number Report</a>
+			<br />
+			<br />
+			<a href="#" onclick="ShowReportPage('ProviderRateComponentDataReport')">Provider Rate Component Data Report</a>
+			<br />
+			<br />
+			<a href="#" onclick="ShowReportPage('AnnualRatePackagesReport')">Rate Packages</a>
+			<br />
+			<br />
+			@if (OHFISession.IsICF)
+			{
+				<a href="#" onclick="ShowReportPage('CostReportsUsedCeilingMediansReport')">Cost Reports Data Used for Ceilings/Medians Report</a>
+				<br />
+				<br />
+				<a href="#" onclick="ShowReportPage('CostReportsNotUsedCeilingMediansReport')">Cost Reports Data Not Used for Ceilings/Medians Report</a>
+				<br />
+				<br />
+			}
+		</div>
+		<div class="column">
+			@if (OHFISession.IsICF)
+			{
+				<a href="#" onclick="ShowReportPage('CYyyyyIMRDDReport')">CYyyyyIMRDD Report</a>
+				<br />
+				<br />
+				<a href="#" onclick="ShowReportPage('CRyyRevICFReport')">CRyyRevICF Report</a>
+				<br />
+				<br />
+				<a href="#" onclick="ShowReportPage('WGHRCYyyATT1Report')">WGHRCYyy_ATT1 Report</a>
+				<br />
+				<br />
+				<a href="#" onclick="ShowReportPage('ICFCYyyyyATT1OtherRevenueReport')">ICF_CYyyyy_ATT1_Other Revenue Report</a>
+				<br />
+				<br />
+				<a href="#" onclick="ShowReportPage('WGHRCYyyICFATT6Report')">WGHRCYyyICF_ATT6 Report</a>
+				<br />
+				<br />
+				<a href="#" onclick="ShowReportPage('WGHRCYyySchedD1E1EReport')">WGHRCYyySched_D1_E1_E Report</a>
+				<br />
+				<br />
+			}
+			@if (OHFISession.IsNF)
+			{
+				<a href="#" onclick="ShowReportPage('CYyyyyNFDDReport')">CYyyyyNFDD Report</a>
+				<br />
+				<br />
+				<a href="#" onclick="ShowReportPage('CRyyRevNFReport')">CRyyRevNF Report</a>
+				<br />
+				<br />
+				<a href="#" onclick="ShowReportPage('WGHRCYyyNFReport')">WGHRCYyyNF Report</a>
+				<br />
+				<br />
+				<a href="#" onclick="ShowReportPage('NFCYyyyyAllClearedATT1Report')">NF_CYyyyy_All_Cleared_ATT1 Report</a>
+				<br />
+				<br />
+				<a href="#" onclick="ShowReportPage('NFCYyyyyAllClearedATT1Line61Report')">NF_CYyyyy_All_Cleared_ATT1_Line_61 Report</a>
+				<br />
+				<br />
+			}
+		</div>
+
+    </div>
+</div>
+<div id="report-details" style="display:none"></div>
+<script>
+    function ShowReportPage(reportName) {
+        var url2 = "@Html.Raw(Url.AbsoluteAction("actionName", "Rate"))";
+        url2 = url2.replace("actionName", reportName);
+        LoadNotificationDialog("Loading...").then(() => {
+            return new Promise((resolve, reject) => {
+                $.ajax({
+                    async: true,
+                    url: url2,
+                    cache: false,
+                    contentType: "application/json;charset=utf-8",
+                    success: function(result) {
+                        $("#ratesetting-reports").hide();
+                        $("#report-details").show();
+                        $("#report-details").html(result);
+                        resolve();
+                    },
+                    error: function(errormessage) {
+                        StaticAlert({ content: "Report Error: " + errormessage.responseText }).then(() => {
+                            resolve();
+                        });
+                    }
+                });
+            });
+        }).then(() => {
+            return ClearNotificationDialog();
+        });
+    }
+
+    function GenerateActiveProviderDetailsReport() {
+        return LoadNotificationDialog("Generate Active Provider Details Report, please wait...").then(() => {
+            return new Promise((resolve, reject) => {
+                $.ajax({
+                    async: true,
+                    url: "@Url.AbsoluteAction("GenerateActiveProviderDetailsReport", "Rate")",
+                    cache: false,
+                    type: "POST",
+                    dataType: "json",
+                    success: function (response) {
+                        if (response.Success) {
+                            //get the file name for download
+                            if (response.fileName != "") {
+                                //use window.location.href for redirect to download action for download the file
+                                window.location.href = "@Url.AbsoluteAction("Download", "Rate")/?fileName=" + response.fileName;
+                            }
+                        }
+                        else {
+                            StaticAlert({ content: "Generate Active Provider Details Report: " + response.Message }).then(() => {
+                                resolve();
+                            });
+                        }
+                        resolve();
+                    },
+                    error: function (a, b, c) {
+                        StaticAlert({ content: "AJAX callback error, Generate Active Provider Details Report: " + a.responseText }).then(() => {
+                            resolve();
+                        });
+                    }
+                });
+            });
+        }).then(() => {
+            return ClearNotificationDialog();
+        });
+    }
+
+    function GenerateCurrentCertifiedAndLicensedBedCountReport() {
+    return LoadNotificationDialog("Generate Certified and Licensed Bed Count Report, please wait...").then(() => {
+        return new Promise((resolve, reject) => {
+            $.ajax({
+                async: true,
+                url: "@Url.AbsoluteAction("CurrentCertifiedAndLicensedBedCountReport", "Rate")",
+                cache: false,
+                type: "POST",
+                dataType: "json",
+                success: function(response) {
+                    if (response.Success) {
+                        //get the file name for download
+                        if (response.FileName != "") {
+                            //use window.location.href for redirect to download action for download the file
+                            window.location.href = "@Url.AbsoluteAction("Download", "Rate")/?fileName=" + response.FileName;
+                        }
+                    } else {
+                        StaticAlert({ content: "Generate Certified and Licensed Bed Count Report: " + response.Message }).then(() => {
+                            resolve();
+                        });
+                    }
+                    resolve();
+                },
+                error: function(a, b, c) {
+                    StaticAlert({ content: "AJAX callback error, Certified and Licensed Bed Count Report: " + a.Message }).then(() => {
+                        resolve();
+                    });
+                }
+            });
+        });
+    }).then(() => {
+        //debugger;
+        return ClearNotificationDialog();
+    });
+    }
+
+    function GeneratePendingChangeOfOwnershipAndPendingClosuresReport() {
+        return LoadNotificationDialog("Generating Pending Change of Ownership Providers / Pending Closure Providers Report, please wait...").then(() => {
+            return new Promise((resolve, reject) => {
+                $.ajax({
+                    async: true,
+                    url: "@Url.AbsoluteAction("PendingChangeOfProviderOwnershipAndPendingClosuresReport", "Rate")",
+                    cache: false,
+                    type: "POST",
+                    dataType: "json",
+                    success: function(response) {
+                        if (response.Success) {
+                            //get the file name for download
+                            if (response.FileName != "") {
+                                //use window.location.href for redirect to download action for download the file
+                                window.location.href = "@Url.AbsoluteAction("Download", "Rate")/?fileName=" + response.FileName;
+                            }
+                        } else {
+                            StaticAlert({ content: "Generate Pending Change of Ownership Providers / Pending Closures Report: " + response.Message }).then(() => {
+                                resolve();
+                            });
+                        }
+                        resolve();
+                    },
+                    error: function(a, b, c) {
+                        StaticAlert({ content: "AJAX callback error, Pending Change of Provider Ownership / Pending Closures Report: " + a.Message }).then(() => {
+                            resolve();
+                        });
+                    }
+                });
+            });
+        }).then(() => {
+            //debugger;
+            return ClearNotificationDialog();
+        });
+    }
+
+    function GenerateCurrentActiveProviderFacilityAndBedCountsReport() {
+        return LoadNotificationDialog("Generating Current Active Provider Facility and Bed Count Report, please wait...").then(() => {
+            return new Promise((resolve, reject) => {
+                $.ajax({
+                    async: true,
+                    url: "@Url.AbsoluteAction("GenerateCurrentActiveProviderFacilityAndBedCountsReport", "Rate")",
+                    cache: false,
+                    type: "POST",
+                    dataType: "json",
+                    success: function(response) {
+                        if (response.Success) {
+                            //get the file name for download
+                            if (response.FileName != "") {
+                                //use window.location.href for redirect to download action for download the file
+                                window.location.href = "@Url.AbsoluteAction("Download", "Rate")/?FileName=" + response.FileName;
+                                }
+                            }
+                            else {
+                                StaticAlert({ content: "Generate Current Active Provider Facility and Bed Count Report: " + response.Message }).then(() => {
+                                    resolve();
+                                });
+                            }
+                            resolve();
+                        },
+                        error: function (a, b, c) {
+                            StaticAlert({ content: "AJAX callback error, Generate Current Active Provider Facility and Bed Count Report:  " + a.Message }).then(() => {
+                                resolve();
+                            });
+                        }
+                    });
+                });
+            }).then(() => {
+                //debugger;
+                return ClearNotificationDialog();
+            });
+
+    }
+</script>

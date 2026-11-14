@@ -1,0 +1,178 @@
+﻿@using MSLC.Portal.MVC.Utility
+@model  WebPortal_OH_FI.Models.UsersListViewModel
+@{
+    bool canEdit = RetrieveSession.CanAccessFeature("RateSetting:CRStaff:Edit");
+}
+
+<h1>Cost Report Staff Table</h1>
+
+<center>
+    <div id="crStaffTable">
+        @(Html.EJ().Grid<object>("tblCRStaffTable")
+                        .CssClass("mslcTable")
+                        .Datasource(ds => ds.Json(Model.Users))
+                        .AllowPaging()
+                        .Locale("en-US")
+                        .EnableRowHover(true)
+                        .AllowSelection(true)
+                        .AllowSorting(true)
+                        .AllowFiltering(true)
+                        .AllowTextWrap(true)
+                        .TextWrapSettings(wrap => { wrap.WrapMode(WrapMode.Both); })
+                        .FilterSettings(filter => { filter.FilterType(FilterType.Menu); filter.ShowPredicate(false); })
+                        .PageSettings(p =>
+                        {
+                            p.PageSize(5);
+                            p.PageSizeList(new List<int>
+    () { 5, 10, 15, 20 });
+                        })
+    .TextWrapSettings(wrap => { wrap.WrapMode(WrapMode.Both); })
+    .FilterSettings(filter =>
+    {
+        filter.FilterType(FilterType.Menu);
+        filter.ShowPredicate(false);
+    })
+    .EditSettings(edit =>
+    {
+        if (canEdit)
+        {
+            edit.AllowEditing();
+            edit.AllowAdding();
+        }
+    })
+    .ToolbarSettings(toolbar =>
+    {
+        toolbar.ShowToolbar().ToolbarItems(items =>
+        {
+            items.AddTool(ToolBarItems.Search);
+            if (canEdit)
+            {
+                items.AddTool(ToolBarItems.Add);
+                items.AddTool(ToolBarItems.Edit);
+                items.AddTool(ToolBarItems.Update);
+                items.AddTool(ToolBarItems.Cancel);
+            }
+
+        });
+    })
+    .Columns(col =>
+    {
+        col.Field("UserId").HeaderText("UserId").IsPrimaryKey(true).Visible(false).TextAlign(TextAlign.Left).Width(25).Add();
+        col.Field("Mnemonic").HeaderText("User Type").EditType(EditingType.DropdownEdit).ValidationRules(v => v.AddRule("required", true)).TextAlign(TextAlign.Left).Width(25).Add();
+        col.Field("FirstName").HeaderText("First Name").ValidationRules(v => v.AddRule("required", true)).TextAlign(TextAlign.Left).Width(25).Add();
+        col.Field("LastName").HeaderText("Last Name").ValidationRules(v => v.AddRule("required", true)).TextAlign(TextAlign.Left).Width(25).Add();
+        col.Field("Email").HeaderText("Email").TextAlign(TextAlign.Left).Width(25).Add();
+        col.Field("PhoneNumber").HeaderText("Phone Number").ValidationRules(v => v.AddRule("maxlength", 10)).TextAlign(TextAlign.Left).Width(25).Add();
+        col.Field("ActiveFlag").HeaderText("Active Flag").EditType(EditingType.DropdownEdit).DefaultValue("Yes").TextAlign(TextAlign.Left).Width(25).Add();
+        col.Field("LegacyStaffId").HeaderText("CR Staff Id").TextAlign(TextAlign.Left).AllowEditing(false).Width(25).Add();
+        col.Field("CreatedBy").HeaderText("Created By").TextAlign(TextAlign.Left).AllowEditing(false).Width(25).Add();
+        col.Field("CreatedOn").HeaderText("Created Date").TextAlign(TextAlign.Left).Width(25).AllowEditing(false).Add();
+        col.Field("History").HeaderText("History").Template("#history").CssClass("icon").TextAlign(TextAlign.Center).Width(20).AllowEditing(false).AllowFiltering(false).Add();
+    }).ClientSideEvents(events =>
+    {
+        events.TemplateRefresh("loadIcons");
+        events.ActionComplete("actionComplete");
+        events.ActionBegin("actionBeginCRStaff");
+    }))
+    </div>
+</center>
+
+<script id="history" type="text/x-jsrender">
+    <div>
+        <a aria-label="History" data-toggle="modal" href="" data-target="#window_crstafftablehistory" onclick="LoadCRStaffHistory('{{:UserId}}')">
+            <i data-feather='rotate-ccw' class='history-info' aria-label="History"></i>
+        </a>
+    </div>
+</script>
+
+<div id="SyncFusionScript">
+    <script src="@Url.AbsoluteContentUri("~/Scripts/ej/common/ej.unobtrusive.min.js")"></script>
+</div>
+
+<div id="divCRStaffHistory"></div>
+<input type="hidden" id="hdnUserId" />
+
+@if (canEdit)
+{
+    <script>
+        function actionComplete(args) {
+            //while editing the grid
+            if (args.requestType == "beginedit" || args.requestType == "add") {
+                var dpDataSource = [{ value: "Yes", text: "Yes" }, { value: "No", text: "No" }];
+                $("#tblCRStaffTableActiveFlag").ejDropDownList({
+                    dataSource: dpDataSource,
+                    fields: { text: "text", value: "value" },
+                }).data("ejDropDownList").selectItemByText(args.rowData.ActiveFlag == "Yes" ? "Yes" : "No"); //Set the new Dropdown datasource
+
+                var dpUserTypes =  @Html.Raw(Json.Encode(Model.UserTypes));
+                $("#tblCRStaffTableMnemonic").ejDropDownList({
+                    dataSource: dpUserTypes,
+                }).data("ejDropDownList").selectItemByValue(args.rowData.Mnemonic != "" ? args.rowData.Mnemonic : ""); //Set the new Dropdown datasource
+            }
+        }
+
+        function actionBeginCRStaff(args) {
+            if (args.requestType == "save") {
+                //Update
+                LoadNotificationDialog("Saving CR Staff Table Data...").then(() => {
+                    return new Promise((CRStaffResolve, CRStaffReject) => {
+                        $.ajax({
+                            async: true,
+                            url: "@Url.AbsoluteAction("SaveCRStaffTable", "Rate")",
+                            data: JSON.stringify(args.data),
+                            dataType: 'json',
+                            type: "POST",
+                            contentType: "application/json;charset=utf-8",
+                            success: function (result) {
+                                $("#tblCRStaffTable").ejGrid("dataSource", result.UsersListViewModel.Users);
+                                CRStaffResolve();
+                            },
+                            error: function (errormessage) {
+                                StaticAlert({ content: "CR Staff Table Error: " + errormessage.responseText}).then(() => {
+                                    CRStaffResolve();
+                                });
+                            }
+                        });
+                    });
+                }).then(() => {
+                    return ClearNotificationDialog();
+                });
+            }
+        }
+    </script>
+}
+else
+{
+    <script>
+        function actionComplete(args) { }
+        function actionBeginCRStaff(args) { }
+    </script>
+}
+
+<script>
+    function LoadCRStaffHistory(userId) {
+        $("#divCRStaffHistory").empty();
+        $("#hdnUserId").val(userId);
+        LoadNotificationDialog("Loading CR Staff Table History...").then(() => {
+            return new Promise((CRStaffResolve, CRStaffReject) => {
+                $.ajax({
+                    url: "@Url.AbsoluteAction("LoadCrStaffTableHistory", "Rate")",
+                    cache: false,
+                    type: 'POST',
+                    success: function (result) {
+                        $("#divCRStaffHistory").html(result);
+                        $("#window_crstafftablehistory").modal('show');
+                        CRStaffResolve();
+                    },
+                    error: function (errormessage) {
+                        StaticAlert({ content: "CR Staff Table Error: " + errormessage.responseText }).then(() => {
+                            CRStaffResolve();
+                        });
+                    }
+                });
+            });
+        }).then(() => {
+            return ClearNotificationDialog();
+        })
+    }
+</script>

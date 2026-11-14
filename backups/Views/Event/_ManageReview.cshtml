@@ -1,0 +1,63 @@
+﻿@*
+    DO NOT MODIFY OUTSIDE OF MSLC.STATLOG
+    This file comes from MSLC.Statlog, any changes to it will be wiped out when the nuget package is updated.
+    Please make the appropriate enhancements to MSLC.Statlog instead of here.
+*@
+
+@using MSLC.Portal.MVC.Utility
+@using MSLC.StatLog.Configuration
+@model MSLC.StatLog.MVC.ViewModels.EventViewModel.Manage
+
+<div class="d-flex flex-column">
+    <div class="row m-2">
+        <div class="col-2">
+            Review Type for Event:
+        </div>
+	    <div class="col-9">
+		    @Model.ReviewType
+	    </div>
+	    @if (Model.ReviewType == "File" && Model.DisableUploaderReview)
+	    {
+		    <div class="row m-2 ml-4 text-danger">
+			    Reviewer can't be uploader
+		    </div>
+	    }
+    </div>
+    @if (Model.ReviewType != "Reviews Disabled")
+    {
+        <div class="row m-2">
+            <div class="col-2">
+                Review Accept Button Text:
+            </div>
+            <div class="col-9">
+                @Model.AcceptReviewText
+            </div>
+        </div>
+
+        <div class="row m-2">
+            <div class="col-2">
+                Review Reject Button Text:
+            </div>
+            <div class="col-9">
+                @Model.RejectReviewText
+            </div>
+        </div>
+
+        <div class="row m-2">
+            <div class="col-2">
+                Event Review Text:
+            </div>
+            <div class="col-9">
+                @Model.EventReviewText
+            </div>
+        </div>
+    }
+
+    <div class="button-box">
+        <a onclick="return modalButton(this, 'tallerWidest')" href="@Url.Action("EditReview", "Event", new
+            {
+                sEventID = Model.sEventID
+            })"
+           class="btn btn-kyBlue BoldMe">Edit Event Review Options</a>
+    </div>
+</div>

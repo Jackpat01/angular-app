@@ -1,0 +1,256 @@
+﻿@*
+    DO NOT MODIFY OUTSIDE OF MSLC.STATLOG
+    This file comes from MSLC.Statlog, any changes to it will be wiped out when the nuget package is updated.
+    Please make the appropriate enhancements to MSLC.Statlog instead of here.
+*@
+
+@using MSLC.Portal.MVC.Utility
+@using MSLC.StatLog.BL.Email
+@using MSLC.StatLog.Enumerations
+@using EnumHelper = MSLC.StatLog.Enumerations.EnumHelper
+@using MSLC.StatLog.Configuration;
+@model MSLC.StatLog.MVC.ViewModels.EventViewModel.Manage
+@{
+    var hideMetadata = StatlogARUMConfiguration.HideMetaDataManagement(RetrieveSession.Classification);
+}
+
+<div class="d-flex flex-row">
+    <div class="nav nav-tabs nav-tabs-column d-flex flex-column" id="nav-tab-2" role="tablist">
+        @foreach (LifeCycleEnum lifeCycle in EnumHelper.LifeCycleList)
+        {
+            if (!(lifeCycle.ToString().ToUpper() == "METADATA_ADDED" && hideMetadata))
+            {
+                if (lifeCycle == EnumHelper.LifeCycleList[0])
+                {
+                    <div id="nav-response-@(lifeCycle.ToString().ToLower())-tab" href="#nav-response-@(lifeCycle.ToString().ToLower())" class="nav-item nav-link @((int)lifeCycle == 0 ? "active" : "")"
+                         data-toggle="tab" role="tab" aria-selected="@((int)lifeCycle == 0 ? "true" : "false")" tabindex="0">
+                        @{
+                            if (lifeCycle == LifeCycleEnum.NA_EVENT_ADDED)
+                            {
+                                //Display 'N/A Event Added' not 'Na Event Added'
+                                @(System.Globalization.CultureInfo.CurrentCulture.TextInfo.ToTitleCase(lifeCycle.ToString().Replace('_', ' ').ToLower()).Replace("Na", "N/A"))
+                            }
+                            else
+                            {
+                                @(System.Globalization.CultureInfo.CurrentCulture.TextInfo.ToTitleCase(lifeCycle.ToString().Replace('_', ' ').ToLower()))
+                            }
+                        }
+                    </div>
+                    continue;
+                }
+                <div id="nav-response-@(lifeCycle.ToString().ToLower())-tab" href="#nav-response-@(lifeCycle.ToString().ToLower())" class="nav-item nav-link @((int)lifeCycle == 0 ? "active" : "")"
+                     data-toggle="tab" role="tab" aria-selected="@((int)lifeCycle == 0 ? "true" : "false")" tabindex="-1">
+                    @{
+                        if (lifeCycle == LifeCycleEnum.NA_EVENT_ADDED)
+                        {
+                            //Display 'N/A Event Added' not 'Na Event Added'
+                            @(System.Globalization.CultureInfo.CurrentCulture.TextInfo.ToTitleCase(lifeCycle.ToString().Replace('_', ' ').ToLower()).Replace("Na", "N/A"))
+                        }
+                        else
+                        {
+                            @(System.Globalization.CultureInfo.CurrentCulture.TextInfo.ToTitleCase(lifeCycle.ToString().Replace('_', ' ').ToLower()))
+                        }
+                    }
+                </div>
+            }
+        }
+    </div>
+    <div class="tab-content px-2 pb-4 pt-2 w-100" id="nav-tabContent">
+        @foreach (LifeCycleEnum lifeCycle in EnumHelper.LifeCycleList)
+        {
+            if (!(lifeCycle.ToString().ToUpper() == "METADATA_ADDED" && hideMetadata))
+            {
+                <div id="nav-response-@(lifeCycle.ToString().ToLower())" aria-labelledby="nav-response-@(lifeCycle.ToString().ToLower())-tab" role="tabpanel" class="tab-pane fade @((int)lifeCycle == 0 ? "active show" : "")">
+                    <div>
+                        <div class="row m-2">
+                            <div class="col-7">
+                                <div class="row m-2">
+                                    <div class="col-3">
+                                        Enable Emails:
+                                    </div>
+                                    <div class="col-7">
+                                        @Model.LifeCycleSummaries[lifeCycle.ToString()].EmailEnabled
+                                    </div>
+                                </div>
+                                @if (Model.LifeCycleSummaries[lifeCycle.ToString()].EmailEnabled == "True")
+                                {
+                                    <div class="row m-2">
+                                        <div class="col-3">
+                                            Email Subject:
+                                        </div>
+                                        <div class="col-7">
+                                            @Model.LifeCycleSummaries[lifeCycle.ToString()].EmailSubject
+                                        </div>
+                                    </div>
+                                    <div class="row m-2">
+                                        <div class="col-3">
+                                            Recipient Roles:
+                                        </div>
+                                        <div class="col-7">
+                                            @Model.LifeCycleSummaries[lifeCycle.ToString()].Recipients
+                                        </div>
+                                    </div>
+                                    <div class="row m-2">
+                                        <div class="col-3">
+                                            Recipient Contacts:
+                                        </div>
+                                        <div class="col-7">
+                                            @Model.LifeCycleSummaries[lifeCycle.ToString()].Contacts
+                                        </div>
+                                    </div>
+                                }
+                            </div>
+                            <div class="col-3">
+                                <a onclick="return modalButton(this, '9080')" href="@Url.Action("EditLifecycleEmailOptions", "Event", new
+                                                                               {
+                                                                                   sEventID = Model.sEventID,
+                                                                                   Lifecycle = lifeCycle
+                                                                               })"
+                                   class="btn btn-kyBlue BoldMe">Edit Email Options</a>
+                            </div>
+                        </div>
+                        <hr class="m-0" />
+                        <div class="row m-2">
+                            <div class="col-7">
+                                @if (Model.LifeCycleSummaries[lifeCycle.ToString()].AnyWorkFlowEnabled == false)
+                                {
+                                    <div class="row m-2">
+                                        <div class="col-10">
+                                            No Workflow Set for Lifecycle
+                                        </div>
+                                    </div>
+                                }
+                                else
+                                {
+                                    if (!String.IsNullOrEmpty(Model.LifeCycleSummaries[lifeCycle.ToString()].NewParentEvents))
+                                    {
+                                        <div class="row m-2">
+                                            <div class="col-3">
+                                                New Parent Events:
+                                            </div>
+                                            <div class="col-7">
+                                                @Model.LifeCycleSummaries[lifeCycle.ToString()].NewParentEvents
+                                            </div>
+                                        </div>
+                                    }
+                                    if (!String.IsNullOrEmpty(Model.LifeCycleSummaries[lifeCycle.ToString()].SiblingEvents))
+                                    {
+                                        <div class="row m-2">
+                                            <div class="col-3">
+                                                New Sibling Events:
+                                            </div>
+                                            <div class="col-7">
+                                                @Model.LifeCycleSummaries[lifeCycle.ToString()].SiblingEvents
+                                            </div>
+                                        </div>
+                                    }
+                                    if (!String.IsNullOrEmpty(Model.LifeCycleSummaries[lifeCycle.ToString()].ChildEvents))
+                                    {
+                                        <div class="row m-2">
+                                            <div class="col-3">
+                                                New Child Events:
+                                            </div>
+                                            <div class="col-7">
+                                                @Model.LifeCycleSummaries[lifeCycle.ToString()].ChildEvents
+                                            </div>
+                                        </div>
+                                    }
+                                }
+                            </div>
+                            <div class="col-3">
+                                <a onclick="return modalButton(this, 'tallerWidest')" href="@Url.Action("EditLifecycleWorkflowOptions", "Event", new
+                                                                                       {
+                                                                                           sEventID = Model.sEventID,
+                                                                                           Lifecycle = lifeCycle
+                                                                                       })"
+                                   class="btn btn-kyBlue BoldMe">Edit Workflow Options</a>
+                            </div>
+                        </div>
+                        @if (!(lifeCycle == LifeCycleEnum.DUE_DATE_HIT || lifeCycle == LifeCycleEnum.DUE_DATE_REMINDER))
+                        {
+                            <hr class="m-0" />
+                            <div class="row m-2">
+                                <div class="col-7">
+                                    @if (Model.LifeCycleSummaries[lifeCycle.ToString()].AnyResponseEnabled == false)
+                                    {
+                                        <div class="row m-2">
+                                            <div class="col-10">
+                                                No Response Behavior Set for Lifecycle
+                                            </div>
+                                        </div>
+                                    }
+                                    else
+                                    {
+                                        if (!String.IsNullOrEmpty(Model.LifeCycleSummaries[lifeCycle.ToString()].FillResponse))
+                                        {
+                                            <div class="row m-2">
+                                                <div class="col-4">
+                                                    Fill Response Date:
+                                                </div>
+                                                <div class="col-6">
+                                                    @Model.LifeCycleSummaries[lifeCycle.ToString()].FillResponse
+                                                </div>
+                                            </div>
+                                        }
+                                        if (!String.IsNullOrEmpty(Model.LifeCycleSummaries[lifeCycle.ToString()].ClearResponse))
+                                        {
+                                            <div class="row m-2">
+                                                <div class="col-4">
+                                                    Clear Response Date:
+                                                </div>
+                                                <div class="col-6">
+                                                    @Model.LifeCycleSummaries[lifeCycle.ToString()].ClearResponse
+                                                </div>
+                                            </div>
+                                        }
+                                        if (!String.IsNullOrEmpty(Model.LifeCycleSummaries[lifeCycle.ToString()].CascadeResponse))
+                                        {
+                                            <div class="row m-2">
+                                                <div class="col-4">
+                                                    Cascade Response Date:
+                                                </div>
+                                                <div class="col-6">
+                                                    @Model.LifeCycleSummaries[lifeCycle.ToString()].CascadeResponse
+                                                </div>
+                                            </div>
+                                        }
+                                        if (!String.IsNullOrEmpty(Model.LifeCycleSummaries[lifeCycle.ToString()].CloseUploads))
+                                        {
+                                            <div class="row m-2">
+                                                <div class="col-4">
+                                                    Close Event Uploads:
+                                                </div>
+                                                <div class="col-6">
+                                                    @Model.LifeCycleSummaries[lifeCycle.ToString()].CloseUploads
+                                                </div>
+                                            </div>
+                                        }
+                                        if (!String.IsNullOrEmpty(Model.LifeCycleSummaries[lifeCycle.ToString()].OpenUploads))
+                                        {
+                                            <div class="row m-2">
+                                                <div class="col-4">
+                                                    Open Event Uploads:
+                                                </div>
+                                                <div class="col-6">
+                                                    @Model.LifeCycleSummaries[lifeCycle.ToString()].OpenUploads
+                                                </div>
+                                            </div>
+                                        }
+                                    }
+                                </div>
+                                <div class="col-3">
+                                    <a onclick="return modalButton(this, 'tallerWidest')" href="@Url.Action("EditLifecycleResponseOptions", "Event", new
+                                                                                           {
+                                                                                               sEventID = Model.sEventID,
+                                                                                               Lifecycle = lifeCycle
+                                                                                           })"
+                                       class="btn btn-kyBlue BoldMe">Edit Response Options</a>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                </div>
+            }
+        }
+        </div>
+</div>

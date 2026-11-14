@@ -1,0 +1,51 @@
+﻿@using MSLC.Portal.MVC.Utility
+@model WebPortal_OH_FI.Models.ViewModels.CRSMonitoringReport
+@{
+    ViewBag.Title = "CRSMonitoringReport";
+    Layout = "~/Views/Shared/_LayoutWithMenu.cshtml";
+}
+@Html.Script("~/Scripts/Pages/Reports/CRSubmissionMonitoringReport.js", "jquery")
+
+<h2>Cost Report Submission Monitoring Report</h2>
+<hr />
+
+@if (TempData["Message"] != null && !string.IsNullOrEmpty(TempData["Message"].ToString()))
+{
+    <br />
+    <br />
+    <center>
+        <div class="errorLabel">
+            @Html.Raw(TempData["Message"].ToString())
+        </div>
+    </center>
+}
+else
+{
+    @Html.Script("~/Scripts/Pages/Event/Edit.js", "jquery")
+
+    <div id="CRSMonitoringReportURL" data-url="@Url.AbsoluteAction("GenerateCRSubmissionMonitoringReport", "Reports")"></div>
+    <div id="DownloadReportURL" data-url="@Url.AbsoluteAction("DownloadReport", "Reports")"></div>
+
+    <div class="d-flex justify-content-around">
+        <div class="d-flex flex-column ui-widget-content rounded m-3 p-2" style="max-width: 800px">
+            <div class="d-flex flex-row my-2" style="min-width: 200px; max-width: 400px;">
+                <label for="Dates">Cost Report Monitoring Date Range</label>
+                @Html.EJ().DateRangePicker("Dates").DateFormat("M/d/yyyy").CssClass("w-100").WatermarkText("Date Range")
+            </div>
+            <div class="d-flex flex-row my-2 align-items-baseline">
+                @Html.EJ().CheckBox("includeFirstAndLastName").Checked(true)
+                <label for="ejincludeFirstAndLastName" style="cursor: pointer;">
+                    Include first and last name for emails in the report. (uncheck for a faster report)
+                </label> 
+            </div>
+            <hr class="m-0 border" />
+            <div>
+                <input id="btnSubmit" type="submit" onclick="GetReport()" class="btn btn-success m-2" value="Run Report">
+                <img id="dvLoading" class="hide align-self-end" src="~/Images/loading.gif" alt="Loading" width="48" height="48" />
+            </div>
+        </div>
+    </div>
+    <div id="SyncFusionScript">
+        <script src="@Url.AbsoluteContent("~/Scripts/ej/common/ej.unobtrusive.min.js")"></script>
+    </div>
+}

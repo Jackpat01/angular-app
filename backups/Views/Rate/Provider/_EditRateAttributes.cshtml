@@ -1,0 +1,218 @@
+﻿
+@model WebPortal_OH_FI.Models.ProviderAttributeViewModel
+
+<div id="generalInformationModal" class="modal" data-backdrop="static">
+    <div class="modal-dialog modal-lg" style="max-width: 550px">
+        <div class="modal-content">
+            <div class="modal-header">
+                <span id="myModalLabel" style="text-align: left; font-size: 1.5em; font-weight: bolder; color: white">
+                    Provider Attribute
+                </span>
+                <button type="button" class="close" data-dismiss="modal" onclick="closeModal();">&times;</button>
+            </div>
+            <div class="modal-body" style="text-align:-webkit-center;">
+                <table>
+                    <tr>
+
+                        <th>
+                            Name :
+                        </th>
+                        <td>
+                            @Html.HiddenFor(modelItem => Model.IsEnabled, new { ID = "hdnIsEnabled", aria_label="Is Enabled" })
+                            @Html.TextBoxFor(modelItem => Model.Name, "", new { ID = "txtName", type = "text", @placeholder = "Enter Name", @style = "width: 200px", @onblur = "validateName()", aria_label="Name" })
+                            @Html.ValidationMessageFor(m => m.Name, "", new { ID = "valName", @class = "text-danger" })
+                        </td>
+                    </tr>
+                    <tr>
+
+                        <th>
+                            Start Date :
+                        </th>
+                        <th>
+                            End Date :
+                        </th>
+                    </tr>
+                    <tr>
+                        <td>
+                            @Html.TextBoxFor(modelItem => Model.StartDate, "{0:MM/dd/yyyy}", new { ID = "txtStartDate", @class = "datefields", @placeholder = "Add Start Date", type = "text", @style = "width: 150px", @onblur = "validateStartDate()", aria_label="Start Date"})
+                            @Html.ValidationMessageFor(m => m.StartDate, "", new { ID = "valStartDate", @class = "text-danger" })
+                        </td>
+                        <td>
+                            @Html.TextBoxFor(modelItem => Model.EndDate, "{0:MM/dd/yyyy}", new { ID = "txtEndDate", @class = "datefields", @placeholder = "Add End Date", type = "text", @style = "width: 150px", @onblur = "validateEndDate()", aria_label="End Date" })
+                            @Html.ValidationMessageFor(m => m.EndDate, "", new {ID = "valEndDate", @class = "text-danger" })
+                        </td>
+                        @Html.HiddenFor(modelItem => Model.ProviderAttributeId, new { id = "providerAttributeId" })
+                    </tr>
+
+                </table>
+            </div>
+            <div class="modal-footer">
+                <button type="submit" id="btnSubmit" class="btn btn-success BoldMe" aria-hidden="true" onclick="return validateBeforeSave();">Save</button>
+                <button class="btn btn-success BoldMe btnClose" aria-hidden="true" data-dismiss="modal" onclick="closeModal();">Cancel</button>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<script>
+    $(document).ready(function () {
+
+        $('.datefields').datepicker('setStartDate', new Date());
+ 
+    });
+    
+    var goodToSave = true;
+    function validateBeforeSave() {
+        
+        goodToSave = true;
+        
+        validateName();
+        validateStartDate();
+        validateEndDate();
+
+        if (goodToSave) {
+            return SaveAttribute();
+        }
+        return false;
+    }
+
+    function validateName() {
+        var text = $('#txtName').val();
+        if (text == "") {
+            $('#txtName').focus();
+            $('#valName').text("Name is Required");
+            goodToSave = false;
+            return false;
+        }
+        if (text != "") {
+            $('#valName').text("");
+        }
+        return (true);
+    }
+
+    function validateStartDate() {
+         var start = $('#txtStartDate').val();
+         var end = $('#txtEndDate').val();
+
+        if (start == "" ) {
+            $('#txtStartDate').focus();
+            $('#valStartDate').text("Start Date is Required");
+            $('#txtStartDate').val($('.datefields').datepicker('getDate', new Date()));
+            goodToSave = false;
+            return false;
+        }
+        if (start != "") {
+            $('#valStartDate').text("");
+            ValidateDates();
+        }
+         return( true );
+    }
+    function validateEndDate() {
+        // commenting out as end date is now allowed to have no value 
+        // keeping code here if this is changed
+        //var start = $('#txtStartDate').val();
+        //var end = $('#txtEndDate').val();
+
+        //if (end == "") {
+        //    $('#txtEndDate').focus();
+        //    $('#valEndDate').text("End Date is Required");
+        //    $('#txtEndDate').val($('.datefields').datepicker('getDate', new Date()));
+        //    goodToSave = false;
+        //    return false;
+        //}
+        //if (end != "") {
+        //    $('#valEndDate').text("");
+        //    ValidateDates();
+        //}
+
+        var end = $('#txtEndDate').val();
+        if (end == "") {
+            $('#valEndDate').text("");
+        }
+        return (true);
+    }
+
+    function ValidateDates() {
+        var endDateSuccess = true;
+        var startDateSuccess = true;
+
+        //Validate End Date
+        //Reset the messages.
+        $("#valEndDate").text('');
+
+        //Do a few string checks
+        var strEndDate = $("#txtEndDate").val();
+
+        //Year four digits
+        if ((strEndDate.split('/').length - 1) == 2) {
+            if (strEndDate.split('/')[2].length !== 4) {
+                $("#valEndDate").text('Four Digit Year Required');
+                endDateSuccess = false;
+            }
+        }
+
+        //make sure the date is valid.  Last thing.
+        if (strEndDate.length > 0) {
+            if (!isValidStringDate(strEndDate)) {
+                $("#valEndDate").text('Invalid Date');
+                endDateSuccess = false;
+            }
+        }
+
+        //$("#valEndDate").text('');
+
+        //Validate Start Date
+        //Reset the messages.
+        $("#valStartDate").text('');
+
+        //Do a few string checks
+        var strStartDate = $("#txtStartDate").val();
+
+        //Year four digits
+        if ((strStartDate.split('/').length - 1) == 2) {
+            if (strStartDate.split('/')[2].length !== 4) {
+                $("#valStartDate").text('Four Digit Year Required');
+                startDateSuccess = false;
+            }
+        }
+
+        //make sure the date is valid.  Last thing.
+        if (strStartDate.length > 0) {
+            if (!isValidStringDate(strStartDate)) {
+                $("#valStartDate").text('Invalid Date');
+                startDateSuccess = false;
+            }
+        }
+
+        //make sure end date after start date
+        var d1 = new Date(strStartDate);
+        var d2 = new Date(strEndDate);
+        // added allowing no end date entry 
+        var dend = $('#txtEndDate').val();
+        if (dend != "") {
+            if (d2 < d1) {
+                $("#valStartDate").text('Start Date after End Date');
+                $("#valEndDate").text('End Date before Start Date');
+                startDateSuccess = false;
+                endDateSuccess = false;
+                goodToSave = false;
+            }
+        }
+
+        if (endDateSuccess && startDateSuccess)
+            return true;
+
+        return false;
+    }
+
+    function isValidStringDate(s) {
+        var bits = s.split('/');
+        var d = new Date(bits[2], bits[0] - 1, bits[1]);
+        if (!isNaN(d.getTime())) {
+            if (Number(bits[2]) < 1900) { return false; }
+        }
+        return d && (d.getMonth() + 1) == bits[0];
+    }
+
+</script>

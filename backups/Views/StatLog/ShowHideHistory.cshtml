@@ -1,0 +1,46 @@
+﻿@*
+    DO NOT MODIFY OUTSIDE OF MSLC.STATLOG
+    This file comes from MSLC.Statlog, any changes to it will be wiped out when the nuget package is updated.
+    Please make the appropriate enhancements to MSLC.Statlog instead of here.
+*@
+@model MSLC.StatLog.MVC.ViewModels.HideHistoryViewModel.View
+@Styles.Render("~/Content/StatLog.css")
+@{
+    Layout = null;
+    string hideText = Model.Hide ? "Hide" : "Show";
+}
+
+<div class="modal-content">
+    <div class="modal-header">
+        <span id="myModalLabel" style="text-align: left; font-size: 1.5em; font-weight: bolder; color:black;">
+            @hideText Event - @Model.InitialEventName
+        </span>
+        <button href="#" class="close" data-dismiss="modal">&times;</button>
+    </div>
+    @using (Html.BeginForm("SaveHideHistory", "StatLog", FormMethod.Post, new { id = "frmShowHide", enctype = "multipart/form-data", @class = "modal-form" }))
+    {
+        @Html.AntiForgeryToken()
+        @Html.HiddenFor(x => x.sHistoryID, new { id = "hdnHistoryID" })
+        @Html.HiddenFor(x => x.Hide)
+        <div>
+            <center>
+                <p>Are you sure you wish to @hideText this event?</p>
+            </center>
+        </div>
+        <div class="myControls">
+            <div style="padding-left:15px; margin: 8px;">
+                <table style="width: 100%;">
+                    <tr>
+                        <td colspan="2" align="center">
+                            <button type="submit" name="Command" id="btnSave" value="Save" class="btn btn-success BoldMe">@hideText</button>
+                            <button class="btn btn-danger BoldMe" data-dismiss="modal" aria-hidden="true">Close</button>
+                            <br />
+                            <br />
+                            <div class="errorLabel" id="spannotes"></div>
+                        </td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+    }
+</div>

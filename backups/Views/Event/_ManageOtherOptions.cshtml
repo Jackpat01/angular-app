@@ -1,0 +1,27 @@
+﻿@*
+    DO NOT MODIFY OUTSIDE OF MSLC.STATLOG
+    This file comes from MSLC.Statlog, any changes to it will be wiped out when the nuget package is updated.
+    Please make the appropriate enhancements to MSLC.Statlog instead of here.
+*@
+
+@using MSLC.Portal.MVC.Utility
+@using MSLC.StatLog.Configuration;
+@model MSLC.StatLog.MVC.ViewModels.EventViewModel.Manage
+
+<div class="d-flex flex-column">
+    <div class="row m-2">
+        <div class="col-2">
+            One Time Event:
+        </div>
+        <div class="col-9">
+            @Model.OneTime
+        </div>
+    </div>
+    <div class="button-box">
+        <a onclick="return modalButton(this, 'tallerWidest')" href="@Url.Action("EditOtherOptions", "Event", new
+            {
+                sEventID = Model.sEventID
+            })"
+           class="btn btn-kyBlue BoldMe">Edit Other Options</a>
+    </div>
+</div>

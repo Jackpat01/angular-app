@@ -1,0 +1,93 @@
+﻿@model WebPortal_OH_FI.Models.ViewModels.CostReportsUsedCeilingMediansViewModel
+
+<script>
+    $(document).ready(function () {
+        $("#reportButton").on("click", function () {
+            $("#ratesetting-reports").show();
+            $("#report-details").hide();
+        });
+    });
+</script>
+<div>
+    <button class="btn btn-success" id="reportButton">Back to Reports</button>
+</div>
+
+<table>
+    <tr>
+        <td colspan="2">Cost Reports Used Ceiling/Medians Report</td>
+    </tr>
+    <tr>
+        <td>SFY:</td>
+        <td>
+            @Html.DropDownListFor(model => model.Period.PeriodList, Model.Period.PeriodList, "Select SFY", new { ID = "drpSFYList", aria_label = "SFY" })
+        </td>
+    </tr>
+    <tr>
+        <td>
+            <input id="btnGenerateReport" value="Generate Report" type="submit" class="btn btn-success" onclick="GenerateReport()"/>
+        </td>
+    </tr>
+</table>
+
+<script type="text/javascript">
+    $(document).ready(function () {
+        ClearNotificationDialog();
+
+//        $("#drpReportRedDateList").prop("disabled", true);
+//        $("#drpReportRateTypeList").prop("disabled", true);
+        $("#btnGenerateReport").prop("disabled", true);
+
+
+        $("#drpSFYList").change(function () {
+            var val = $('#drpSFYList option:selected').text();
+            if (val != "Select SFY") {
+
+                    $("#btnGenerateReport").prop("disabled", false);
+
+            } else {
+                    $("#btnGenerateReport").prop("disabled", true);
+                }
+        });
+    });
+
+    function GenerateReport() {
+        var sfy = $('#drpSFYList option:selected').text();
+
+        return LoadNotificationDialog("Generating Report, please wait...").then(() => {
+            return new Promise((resolve, reject) => {
+                $.ajax({
+                    async: true,
+                    url: "@Url.AbsoluteAction("GenerateCostReportsUsedCeilingMediansReport", "Rate")",
+                    data: JSON.stringify({ sfy: sfy }),
+                    cache: false,
+                    type: "POST",
+                    dataType: "json",
+                    contentType: "application/json;charset=utf-8",
+                    success: function (response) {
+                        if (response.Success) {
+                            //get the file name for download
+                            if (response.FileName != "") {
+                                //use window.location.href for redirect to download action for download the file
+                                window.location.href = "@Url.AbsoluteAction("Download", "Rate")/?fileName=" + response.FileName;
+                            }
+                            //GetSelectedRed();
+                        }
+                        else {
+                            StaticAlert({ content: "Generating Cost Reports Used Ceiling/Medians Report: " + response.Message }).then(() => {
+                                resolve();
+                            });
+                        }
+                        resolve();
+                    },
+                    error: function (a, b, c) {
+                        StaticAlert({ content: "AJAX callback error, Generating Cost Reports Used Ceiling/Medians Report: " + a.responseText }).then(() => {
+                            resolve();
+                        });
+                    }
+                });
+            });
+        }).then(() => {
+            return ClearNotificationDialog();
+        });
+    }
+</script>

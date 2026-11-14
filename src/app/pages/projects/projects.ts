@@ -6,6 +6,9 @@ import {Router, RouterLink} from '@angular/router';
 import {FunctionsService} from '../../services/functions-service';
 import {SessionStorageService} from '../../services/session-storage-service';
 import {ARUMProxy_User} from '../../models/ARUMProxy_User';
+import {SESSION_KEYS_OCRT} from '../../models/session-keys.constants';
+import {TitleService} from '../../services/title';
+
 @Component({
   imports: [RouterLink],
   selector: 'ohfi-projects',
@@ -13,42 +16,43 @@ import {ARUMProxy_User} from '../../models/ARUMProxy_User';
   templateUrl: './projects.html',
 })
 export class Projects implements OnInit {
-  tempData = inject(TempDataService);
-  portalConfig = inject(PortalConfigService);
-  functions=inject(FunctionsService);
-  session=inject(SessionStorageService);
+  private titleService = inject(TitleService);
+  private tempData = inject(TempDataService);
+  private portalConfig = inject(PortalConfigService);
+  private functions = inject(FunctionsService);
+  private session = inject(SessionStorageService);
   private router = inject(Router);
 
   ngOnInit(): void {
+    this.titleService.setTitle('Projects');
+
     let arumUser = this.session.getItem<ARUMProxy_User>('armUser');
-    if (arumUser == null)
-    {
-      if (!OHFISession.IsSSO)
-      {
+    if (arumUser == null) {
+      if (!this.session.getItem<boolean>('IsSSO')) {
         this.router.navigate(['/login']);
+      } else {
+        this.router.navigate(['/sso/error']);
       }
-      else
-      {
-        this.router.navigate(['/sso/error']);      }
     }
 
-    // reset any session variables that would cause issues from any previous project selection.
-    OHFISession.ResetForNewProject();
-
-    this.session.setItem(SESSION_KEYS_OCRT.SELECTED_COST_REPORT,null);
-    this.session.setItem(SESSION_KEYS_OCRT.PROVIDER_DATA,null);
-    this.session.setItem(SESSION_KEYS_OCRT.SCHEDULE_GRID_MASK,null);
-    this.session.setItem(SESSION_KEYS_OCRT.SCHED_PAGE_COUNT_LAST,null);
-    this.session.setItem(SESSION_KEYS_OCRT.SCHED_PAGE_COUNT_FIRST,null);
-    this.session.setItem(SESSION_KEYS_OCRT.SCHED_PAGE_COUNTER,null);
-    this.session.setItem(SESSION_KEYS_OCRT.SCHED_LAST,null);
-    this.session.setItem(SESSION_KEYS_OCRT.SELECTED_TAB,null);
-    this.session.setItem(SESSION_KEYS_OCRT.SCHEDULE_VALUES_UPDATED,null);
-    this.session.setItem(SESSION_KEYS_OCRT.SCHEDULE_EDITS_REQUIRED,null);
-    this.session.setItem(SESSION_KEYS_OCRT.SELECTED_SCHEDULE,null);
-    this.session.setItem(SESSION_KEYS_OCRT.USE_LOCAL_CALCULATIONS,true);
-    ClientMapping.ClearAllClientIdMappings();
-    this.session.setItem(this.portalConfig.getClassificationSessionKey(),null);
+    this.session.setItem('selectedProviderID', 0);
+    this.session.removeItem('AppNameFromSession');
+    this.session.removeItem('InitialCatalogFromSession');
+    this.session.removeItem('ProviderDictionary');
+    this.session.removeItem(SESSION_KEYS_OCRT.SELECTED_COST_REPORT);
+    this.session.removeItem(SESSION_KEYS_OCRT.PROVIDER_DATA);
+    this.session.removeItem(SESSION_KEYS_OCRT.SCHEDULE_GRID_MASK);
+    this.session.removeItem(SESSION_KEYS_OCRT.SCHED_PAGE_COUNT_LAST);
+    this.session.removeItem(SESSION_KEYS_OCRT.SCHED_PAGE_COUNT_FIRST);
+    this.session.removeItem(SESSION_KEYS_OCRT.SCHED_PAGE_COUNTER);
+    this.session.removeItem(SESSION_KEYS_OCRT.SCHED_LAST);
+    this.session.removeItem(SESSION_KEYS_OCRT.SELECTED_TAB);
+    this.session.removeItem(SESSION_KEYS_OCRT.SCHEDULE_VALUES_UPDATED);
+    this.session.removeItem(SESSION_KEYS_OCRT.SCHEDULE_EDITS_REQUIRED);
+    this.session.removeItem(SESSION_KEYS_OCRT.SELECTED_SCHEDULE);
+    this.session.setItem(SESSION_KEYS_OCRT.USE_LOCAL_CALCULATIONS, true);
+    this.session.removeItem('InternalIdMapping');
+    this.session.removeItem(this.portalConfig.getClassificationSessionKey());
   }
 
   get classifications(): Signal<Classification[]> {

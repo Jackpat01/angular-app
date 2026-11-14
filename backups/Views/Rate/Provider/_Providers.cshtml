@@ -1,0 +1,218 @@
+﻿﻿@*﻿@Styles.Render("~/Content/StatLog.css")*@
+@using Syncfusion.JavaScript.Models 
+@model WebPortal_OH_FI.Models.ProviderViewModel
+
+ <style type="text/css">
+     .nav-tabs .nav-item.show .nav-link, .nav-tabs .nav-link.active {
+         background: moccasin;
+         border-bottom: 2px solid green;
+     }
+
+     th, td {
+         padding: 10px;
+     }
+ </style>
+<div id="provider-grid">
+    <div style='width: 100%; font-weight: bold;'>
+        <div><h1>Providers</h1></div>
+    </div>
+    @{
+
+        AjaxOptions options = new AjaxOptions();
+        options.HttpMethod = "POST";
+
+    }
+    <table class="w-45">
+        <tr>
+            <td>
+                <label class="FormLabel" for="drpProviderType">Select Provider Type:</label><br />
+                @Html.DropDownListFor(x => x.FilterTypeId, (IEnumerable<SelectListItem>)Model.ProviderFilterType, new { ID = "drpProviderType", @style = "width:200px" })
+            </td>
+            <td>
+                <br />
+                <input id="btnSearch" value="Process" type="submit" class="btn btn-success" onclick="return GetProviders();" />
+            </td>
+        </tr>
+    </table>
+    <center>
+        <div id="dvTable">
+            @(Html.EJ().Grid<object>("tblProvider")
+                        .CssClass("mslcTable")
+                        .Datasource(Model.ProviderInfos)
+                        .AllowPaging()
+                        .Locale("en-US")
+                        .EnableRowHover(true)
+                        .AllowSelection(true)
+                        .AllowSorting(true)
+                        .AllowFiltering(true)
+                        .AllowTextWrap(true)
+                        .PageSettings(p =>
+                        {
+                            p.PageSize(25);
+                            p.PageSizeList(new List<int>() { 10, 25, 50, 100 });
+                        })
+                        .TextWrapSettings(wrap => { wrap.WrapMode(WrapMode.Both); })
+                        .FilterSettings(filter =>
+                        {
+                            filter.FilterType(FilterType.Menu);
+                            filter.ShowPredicate(false);
+                        })
+                        .ToolbarSettings(toolbar =>
+                        {
+                            toolbar.ShowToolbar().ToolbarItems(items =>
+                            {
+                                items.AddTool(ToolBarItems.Search);
+                            });
+                        })
+                        .Columns(col =>
+                        {
+                            col.Field("ProviderName").HeaderText("Provider Name").TextAlign(TextAlign.Left).Width(45).Add();
+                            col.Field("NPINumber").HeaderText("NPI Number").TextAlign(TextAlign.Left).Width(15).CssClass("noWrap").Add();
+                            col.Field("ProviderMedicaidNumber").HeaderText("Medicaid Number").TextAlign(TextAlign.Left).Width(20).CssClass("noWrap").Add();
+                            col.Field("ProviderMedicareNumber").HeaderText("Medicare Number").TextAlign(TextAlign.Left).Width(20).CssClass("noWrap").Add();
+                            col.Field("EffectiveDate").HeaderText("Initial Certification Date").TextAlign(TextAlign.Left).Width(25).CssClass("noWrap").Type(ColumnType.Date).Format("{0:MM/dd/yyyy}").Add();
+                        }).ClientSideEvents(events =>
+                        {
+                            events.ActionBegin("onActionBeginProvider");
+                            events.RowSelected("onRowSelectedProvider");
+                        }))
+
+        </div>
+    </center>
+</div>
+
+<div id="SyncFusionScript">
+    <script src="@Url.AbsoluteContentUri("~/Scripts/ej/common/ej.unobtrusive.min.js")"></script>
+</div>
+<div id="provider-details" style="display:none"></div>
+
+<script type="text/javascript">
+
+    function onRowSelectedProvider(args) {
+        var id = args.selectedData.ProviderNumber;
+        LoadNotificationDialog("Loading Provider...").then(() => {
+            return $("#provider-grid").hide();
+        }).then(() => {
+            // wrap the load in a promise so that
+            return new Promise((resolve, reject) => {
+                $('#provider-details').load('@Url.AbsoluteAction("ProviderDetails", "Rate")?id=' + id, null, () => {
+                    resolve();
+                });
+            });
+        }).then(() => {
+            return $("#provider-details").show();
+        }).then(() => {
+            return ClearNotificationDialog();
+        });
+    }
+
+    $(document).ready(function () {
+        $('.datefield').datepicker("setDate", new Date(), {
+            onClose: function () {
+                $(this).valid();
+            }
+        });
+    });
+
+    function onActionBeginProvider(args) {
+        var clientSideTimeZoneDiff = new Date().getTimezoneOffset() / 60;
+        ej.serverTimezoneOffset = @Model.TimeZoneOffset + clientSideTimeZoneDiff;
+
+        var limit = args.model.dataSource.length;
+        for (let i = 0; i < limit; i++) {
+            let v = args.model.dataSource[i];
+            if (v.EffectiveDate != null) {
+                if (v.EffectiveDate.length > 10) {
+                    v.EffectiveDate = new Date(Number(v.EffectiveDate.match(/\d+/)[0])).addHours(ej.serverTimezoneOffset);
+                }
+                else {
+                    v.EffectiveDate = v.EffectiveDate.addHours(ej.serverTimezoneOffset);
+                }
+            }
+
+            if (v.ClosureDate != null ) {
+                if (v.ClosureDate.length > 10) {
+                    v.ClosureDate = new Date(Number(v.ClosureDate.match(/\d+/)[0])).addHours(ej.serverTimezoneOffset);
+                }
+                else {
+                    v.ClosureDate = v.ClosureDate.addHours(ej.serverTimezoneOffset);
+                }
+            }
+        }
+    }
+
+    // To re-bind the sysncfusion Grid
+    function GetProviders() {
+        var providerObj = {
+            ProviderType: $('#drpProviderType').val()
+        };
+
+        var addZero = (i) => {
+            if (i < 10) {
+                i = "0" + i;
+            }
+            return i;
+        }
+
+        var formatDate = (date) => {
+            let year = date.getFullYear(),
+                month = addZero(date.getMonth() + 1),
+                day = addZero(date.getDate() + 1),
+                hours = addZero(date.getHours() + 1),
+                minutes = addZero(date.getMinutes() + 1),
+                seconds = addZero(date.getSeconds() + 1);
+            let dateArr = [year, month, day];
+            let timeArr = [hours, minutes, seconds];
+            let result = dateArr.join('-').concat(" ", timeArr.join(':'));
+            return result;
+        }
+
+        return LoadNotificationDialog("Loading...").then(() => {
+            return new Promise((resolve, reject) => {
+                $.ajax({
+                    async: true,
+                    url: "@Url.AbsoluteAction("Providers", "Rate")",
+                    data: JSON.stringify(providerObj),
+                    type: "POST",
+                    contentType: "application/json;charset=utf-8",
+                    dataType: "json",
+                    success: function (response) {
+                        limit = response.ProviderInfos.length;
+                        for (let i = 0; i < limit; i++) {
+                            let v = response.ProviderInfos[i];
+                            if (v.EffectiveDate != null) {
+                                if (v.EffectiveDate.length > 10) {
+                                    v.EffectiveDate = new Date(Number(v.EffectiveDate.match(/\d+/)[0])).addHours(ej.serverTimezoneOffset);
+                                }
+                                else {
+                                    v.EffectiveDate = v.EffectiveDate.addHours(ej.serverTimezoneOffset);
+                                }
+                            }
+
+                            if (v.ClosureDate != null ) {
+                                if (v.ClosureDate.length > 10) {
+                                    v.ClosureDate = new Date(Number(v.ClosureDate.match(/\d+/)[0])).addHours(ej.serverTimezoneOffset);
+                                }
+                                else {
+                                    v.ClosureDate = v.ClosureDate.addHours(ej.serverTimezoneOffset);
+                                }
+                            }
+                        }
+                        $("#tblProvider").ejGrid("dataSource", response.ProviderInfos);
+
+                        resolve();
+                    },
+                    error: function (errormessage) {
+                        StaticAlert({ content: errormessage.responseText }).then(() => {
+                            resolve();
+                        });
+                    }
+                });
+            });
+        }).then(() => {
+            return ClearNotificationDialog();
+        });
+    }
+
+</script>
+

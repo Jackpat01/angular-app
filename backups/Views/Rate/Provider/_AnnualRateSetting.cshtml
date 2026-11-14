@@ -1,0 +1,82 @@
+﻿@using WebPortal_OH_FI.Web
+@model WebPortal_OH_FI.Models.AnnualRateSettingViewModel
+@{ 
+
+    List<SelectListItem> list = new List<SelectListItem>
+    {
+        new SelectListItem { Value = "", Text = "Select Below"}
+    };
+    list = list.Concat(Model.MenuList).ToList();
+}
+<table>
+    <tr>
+        <td>
+            <label for="drpAnnualRateSetting">Select Report:</label>
+            @Html.DropDownList("drpAnnualRateSetting", list)
+        </td>
+    <tr>
+    </tr>
+</table>
+<table>
+    <tr>
+        <td>
+            <div id="gridPlaceholder">
+
+            </div>
+        </td>
+    </tr>
+</table>
+<div id="SyncFusionScript">
+    <script src="@Url.AbsoluteContentUri("~/Scripts/ej/common/ej.unobtrusive.min.js")"></script>
+</div>
+<script type="text/javascript">
+    $(document).ready(function () {
+        $("#drpAnnualRateSetting").change(function () {
+            let selectedValue = $(this).val();
+            if (selectedValue === '') {
+                $("#gridPlaceholder").hide();
+            }
+            else {
+                var url2 = "@Html.Raw(Url.AbsoluteAction("actionName","Rate"))";
+                url2 = url2.replace("actionName", selectedValue);
+                LoadNotificationDialog("Loading...").then(() => {
+                    //********************** Local Store ************
+                    // Use Localstorage to clear any previous grid's "CurrentPageIndex" to reset it after Postback.
+                    // Syncfusion Forum link for future reference:
+                    // --https://www.syncfusion.com/forums/144600/retain-last-selected-row-and-page-in-grid-after-postback--
+                    window.localStorage.removeItem("currentPageIndex");
+                    window.localStorage.setItem("currentPageIndex", 1);
+                    window.localStorage.removeItem("currentPageIndexCB");
+                    window.localStorage.setItem("currentPageIndexCB", 1);
+                    window.localStorage.removeItem("currentPageIndexCBT");
+                    window.localStorage.setItem("currentPageIndexCBT", 1);
+                    window.localStorage.removeItem("currentPageIndexLB");
+                    window.localStorage.setItem("currentPageIndexLB", 1);
+                    //*********************** Local Store ************
+
+                    return new Promise((resolve, reject) => {
+                        $.ajax({
+                            async: true,
+                            url: url2,
+                            type: "POST",
+                            cache: false,
+                            contentType: "application/json;charset=utf-8",
+                            success: function (result) {
+                                $("#gridPlaceholder").show();
+                                $("#gridPlaceholder").html(result);
+                                resolve();
+                            },
+                            error: function (errormessage) {
+                                StaticAlert({ content: errormessage.responseText }).then(() => {
+                                    resolve();
+                                });
+                            }
+                        });
+                    });
+                }).then(() => {
+                    return ClearNotificationDialog();
+                });
+            }
+        })
+    })
+</script>

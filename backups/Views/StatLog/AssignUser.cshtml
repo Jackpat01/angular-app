@@ -1,0 +1,63 @@
+﻿@*
+    DO NOT MODIFY OUTSIDE OF MSLC.STATLOG
+    This file comes from MSLC.Statlog, any changes to it will be wiped out when the nuget package is updated.
+    Please make the appropriate enhancements to MSLC.Statlog instead of here.
+*@
+
+@Styles.Render("~/Content/StatLog.css")
+@model MSLC.StatLog.MVC.ViewModels.AssignUserViewModel.View
+@{
+    Layout = null;
+}
+
+<div class="modal-content">
+    <div class="modal-header">
+        <span id="myModalLabel" style="text-align: left; font-size: 1.5em; font-weight: bolder; color:black;">
+            Change Assigned User - @Model.InitialEventName
+        </span>
+        <button href="#" class="close" data-dismiss="modal">&times;</button>
+    </div>
+
+    <div style="padding-left: 15px; margin: 8px;">
+        @using (Html.BeginForm("SaveAssignedUser", "StatLog", FormMethod.Post, new { id = "frmAssignUser", enctype = "multipart/form-data", @class = "modal-form" }))
+        {
+            @Html.AntiForgeryToken()
+            @Html.HiddenFor(x => x.sHistoryID, new { id = "hdnHistoryID" })
+            <div class="myImage" style="display: none;">
+                <center>
+                    <img src="~/Images/loading.gif" alt="Loading" width="32" height="32" />
+                    <h3>Saving...</h3>
+                </center>
+            </div>
+            <div class="myControls">
+                <table style="width: 100%;" cellpadding="4" cellspacing="4">
+                    <tr>
+                        <td width="20%" nowrap align="right">
+                            Currently Assigned To:
+                        </td>
+                        <td width="80%" align="left">
+                            @Html.DisplayFor(x => x.AssignedName, new { id = "lblAssignedName" })
+                        </td>
+                    </tr>
+                    <tr>
+                        <td width="20%" nowrap align="right">
+                            Change Assigned To:
+                        </td>
+                        <td width="80%" align="left">
+                            @Html.DropDownListFor(x => x.sAssignedUserID, Model.AssignableUsersSelectList, new { ID = "ddlAssignableUsers", aria_label="Assignable User" })
+                        </td>
+                    </tr>
+                    <tr>
+                        <td colspan="2" align="center">
+                            <button type="submit" name="Command" id="btnSave" value="Save" class="btn btn-success BoldMe">Save</button>
+                            <button class="btn btn-primary BoldMe" data-dismiss="modal" aria-hidden="true">Close</button>
+                            <br />
+                            <br />
+                            <div class="errorLabel" id="spannotes"></div>
+                        </td>
+                    </tr>
+                </table>
+            </div>
+        }
+    </div>
+</div>

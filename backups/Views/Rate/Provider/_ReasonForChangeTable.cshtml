@@ -1,0 +1,401 @@
+﻿@*@Model WebPortal_OH_FI.Models.ReasonForChangePermissionsModel*@ 
+
+<h1>Reason for Change Table</h1>
+<center>
+    <div id="reasonForChangeTable"></div>
+</center>
+<input type="hidden" id="hdnReasonForChangeRecordId" />
+<div id="divReasonForChangeTableHistory"></div>
+
+<script id="reasonForChangeTableHistory" type="text/x-template">
+    <center>
+        <a aria-label="History" data-toggle="modal" href="" data-target="#window_reasonForChangeTableHistory" onclick="LoadReasonForChangeTableHistory('{{:RecordId}}')">
+            <i data-feather='rotate-ccw' class='history-info'></i>
+        </a>
+    </center>
+</script>
+
+<script>
+    const reasonForChangeGrid = '#reasonForChangeTable';
+    /** Keeps track of data from selected row for accessing during validation */
+    let selectedRowData = {}; 
+    $(document).ready(function () {
+        //========== Logic that Fires when Page Loads ==========
+        LoadNotificationDialog('Loading').then(() => {
+            GetTableData().then((data) => {
+                if (data.Data !== undefined)
+                    RenderTable(data.Data);
+            });
+        }).then(() => ClearNotificationDialog());
+
+        //========== Ajax Requests ==========
+        function GetTableData() {
+            return new Promise((resolve, reject) => {
+                $.ajax({
+                    async: true,
+                    url: '@Url.AbsoluteAction("GetReasonForChangeTable", "Rate")',
+                    type: 'GET',
+                    cache: false,
+                    success: (result) => resolve(result),
+                    error: function (errorMessage) {
+                        StaticAlert({ content: `ReasonForChange Table Error: ${errorMessage.responseText}` }).then(() => {
+                            resolve();
+                        });
+                    }
+                })
+            });
+        }
+
+        //========== Table Functionality ==========
+        function RenderTable(data) {
+            const fields = { text: 'Text', value: 'Value' };
+            var cols = [];
+            for (const col of data.Columns) {
+                let column = {
+                    field: col.Field, headerText: col.HeaderText, isPrimaryKey: col.IsPrimaryKey, isIdentity: col.IsIdentity, visible: col.Visible,
+                    textAlign: col.TextAlign, allowEditing: col.AllowEditing, allowFiltering: col.AllowFiltering, allowSorting: col.AllowSorting,
+                    width: col.Width, template: col.Template
+                };
+
+                if (@Json.Encode(Model.CanEdit)) {
+                    if (col.Field === 'Code') {
+                        column.type = 'string';
+                        column.validationRules = {
+                            required: true,
+                            minlength: '2',
+                            maxlength: '2',
+                            reasonCodeRule: true
+                        };
+                    }
+
+                    if (col.Field === 'Name') {
+                        column.type = 'string';
+                        column.validationRules = {
+                            required: true,
+                            maxlength: '200',
+                            minlength: '1',
+                            nameRule: true
+                        };
+                    }
+
+                    if (col.Field === 'Description') {
+                        column.type = 'string';
+                        column.validationRules = {
+                            required: true,
+                            maxlength: '200',
+                            minlength: '1',
+                            descRule: true
+                        };
+                    }
+
+                    if (col.Field === 'RYBeginYear' || col.Field === 'RYEndYear') {
+                        column.type = 'number';
+                        column.validationRules = {
+                            required: true,
+                            minlength: '4',
+                            maxlength: '4',
+                            yearOtherRecordRule: true,
+                            yearSameRecordRule: true
+                        };
+                    }
+                }
+
+                if (col.EditType === 5 /*Enum int value for dropdownedit*/) {
+                    column.editType = 'dropdownedit';
+                    column.editParams = { dataSource: col.DropDownEditOptions.DataSource, fields: fields };
+                }
+                cols.push(column);
+            }
+
+            const editSettings = { allowEditing: data.IsAuditManager, allowAdding: data.IsAuditManager };
+            const toolBarSettings = { showToolbar: true, toolbarItems: [ej.Grid.ToolBarItems.Search] };
+            const pageSettings = { pageSize: 5, pageSizeList: [5, 10, 15, 20] };
+            const textWrapSettings = { wrapMode: ej.Grid.WrapMode.Both };
+            const filterSettings = { filterType: 'menu', showPredicate: false };
+
+            if (data.IsAuditManager) {
+                toolBarSettings.toolbarItems.push(ej.Grid.ToolBarItems.Add);
+                toolBarSettings.toolbarItems.push(ej.Grid.ToolBarItems.Edit);
+                toolBarSettings.toolbarItems.push(ej.Grid.ToolBarItems.Update);
+                toolBarSettings.toolbarItems.push(ej.Grid.ToolBarItems.Cancel);
+            }
+
+            $(reasonForChangeGrid).ejGrid({
+                dataSource: data.Records,
+                columns: cols,
+                editSettings: editSettings,
+                toolbarSettings: toolBarSettings,
+                pageSettings: pageSettings,
+                allowPaging: true,
+                enableRowHover: false,
+                allowSelection: true,
+                allowSorting: true,
+                allowTextWrap: true,
+                allowFiltering: true,
+                allowSearching: true,
+                textWrapSettings: textWrapSettings,
+                cssClass: 'mslcTable',
+                locale: 'en-US',
+                filterSettings: filterSettings,
+                actionBegin: reasonForChangeActionBegin,
+                actionComplete: reasonForChangeActionComplete,
+                templateRefresh: loadIcons
+            });
+        }
+    });
+
+    //========== On Click Functions =========
+    function LoadReasonForChangeTableHistory(recordId) {
+        const historyDiv = '#divReasonForChangeTableHistory';
+        $(historyDiv).empty();
+        $('#hdnReasonForChangeRecordId').val(recordId);
+        LoadNotificationDialog('Loading Reason for Change Table History...').then(() => {
+            return new Promise((resolve, reject) => {
+                $.ajax({
+                    url: '@Url.AbsoluteAction("LoadReasonForChangeTableHistory", "Rate")',
+                    cahce: false,
+                    type: 'GET',
+                    success: function (result) {
+                        $(historyDiv).html(result);
+                        $('#window_reasonForChangeTableHistory').modal('show');
+                        resolve();
+                    },
+                    error: function (errormessage) {
+                        StaticAlert({ content: `Reason for Change Table History Error: ${errormessage.responseText}` })
+                            .then(() => resolve());
+                    }
+                })
+            });
+        }).then(() => ClearNotificationDialog());
+    }
+</script>
+
+@if (Model.CanEdit)
+{
+    <script>
+        //========== Ajax Requests ==========
+        function SaveReasonForChangeRecord(data) {
+            return new Promise((resolve, reject) => {
+                $.ajax({
+                    async: true,
+                    url: '@Url.AbsoluteAction("SaveReasonForChangeTable", "Rate")',
+                    data: JSON.stringify({model: data}),
+                    type: "POST",
+                    contentType: "application/json;charset=utf-8",
+                    success: function (result) {
+                        if (result.Success) {
+                            $(reasonForChangeGrid).ejGrid('dataSource', result.Data);
+                            resolve();
+                        } else {
+                            StaticAlert({ content: `Reason for Change Table Error: ${result.Message}` }).then(() => {
+                                $(reasonForChangeGrid).ejGrid('dataSource', result.Data);
+                                resolve();
+                            });
+                        }
+                    },
+                    error: function (result) {
+                        StaticAlert({ content: `Reason for Change Table Error: ${result.Message}` }).then(() => {
+                            resolve();
+                        });
+                    }
+                });
+            });
+        }
+
+        //========== Table Functionality ==========
+        function reasonForChangeActionBegin(args) {
+            if (args.requestType == 'save') SaveReasonForChangeRecord(args.data);
+        }
+
+        function reasonForChangeActionComplete(args) {
+            const auditTypeInput = '#reasonForChangeTableAuditType';
+            const opCodeInput = '#reasonForChangeTableOPCode';
+            const codeInput = '#reasonForChangeTableCode';
+
+            if (args.requestType == 'add' || args.requestType == 'beginedit') {
+                const auditDropDown = $(auditTypeInput).data('ejDropDownList');
+                const opDropDown = $(opCodeInput).data('ejDropDownList');
+                opDropDown.disable();
+                selectedRowData = args.rowData; //This will catch if a record has seed data
+                selectedRowData.RowIndex = args.rowIndex; // This will hang on to selected row for validation
+                selectedRowData.OldCode = args.rowData.Code;
+                const matches = findRecordsForReasonCode(args.rowData.Code, args.rowData.RecordId);
+
+                if (args.rowData.IsSeeded || matches.length > 0) { //Cannot modify Audit type, Operation Code, or reason code if record was seeded or shares reason code with other records 
+                    auditDropDown.disable();
+                    $(codeInput).prop('disabled', true);
+                    return; //No need to prep reason code event listener
+                } 
+
+                auditDropDown.enable();
+                PrepReasonCodeEventListener();
+            }
+        }
+
+        //===== Input Controls =====
+        /** Creates logic for handling updates to the reason code */
+        function PrepReasonCodeEventListener() {
+            const codeInput = '#reasonForChangeTableCode';
+            $(codeInput).on('change', function () {
+                const val = $(this)[0].value.trim();
+                selectedRowData.Code = val;
+
+                if (val !== '') { 
+                    const matches = findRecordsForReasonCode(val, selectedRowData.RecordId);
+                    if (matches.length > 0) {
+                        preloadRecordCells(matches[0], false, false);
+                        $(this)[0].value = val; //Ensures white space is removed
+                    } else {
+                        // If this is was the only record being modified, this will return the old data
+                        if (val == selectedRowData.OldCode) preloadRecordCells(selectedRowData, true, false);
+                        // If this was a new record, it will wipe everything clean if there was no match
+                        else clearPreloadRecordCells(true, false);
+                    } //If they get here, there is no value entered so we want everything cleared
+                } else clearPreloadRecordCells(true, false); 
+            });
+        }
+        /** Creates logic for updating selectedRowData to aid in validating date spans */
+        function PrepYearInputEventListeners() {
+            const beginYearIn = '#reasonForChangeTableRYBeginYear';
+            const endYearIn = '#reasonForChangeTableRYEndYear';
+            $(beginYearIn).on('change', function () {
+                selectedRowData.RYBeginYear = $(this)[0].val;
+            });
+            $(endYearIn).on('change', function () {
+                selectedRowData.RYEndYear = $(this)[0].val;
+            });
+        }
+
+        //========== Validation ==========
+        // Rule verifies that the reason code is two characters with the first being a letter and the second being a number
+        $.validator.addMethod("reasonCodeRule", function (value, element, params) {
+            const regex = /^[A-Z][A-Z-0-9]$/;
+            return regex.test(value);
+        }, 'Reason Code must start with a letter and end with a letter or number.');
+        // Rule verifies that the name is not the same as a reason record with a different reason code
+        $.validator.addMethod("nameRule", function (value, element, params) {
+            const matchedRecords = findRecordsWithName(value, selectedRowData.RecordId);
+            const differentReasonCodes = matchedRecords.filter(x => x.Code != selectedRowData.Code);
+            return differentReasonCodes.length == 0;
+        }, 'Name cannot be a duplicate from a different Reason Code.');
+        // Rule verifies that the description is not the same as a reason record with a different reason code
+        $.validator.addMethod('descRule', function (value, element, params) {
+            const matchedRecords = findRecordsWithDescription(value, selectedRowData.RecordId);
+            const differentReasonCodes = matchedRecords.filter(x => x.Code != selectedRowData.Code);
+            return differentReasonCodes.length == 0;
+        }, 'Description cannot be a duplicate from a different Reason Code.');
+        // Rule verifies dates are not in the same span as existing record
+        $.validator.addMethod('yearOtherRecordRule', function (value, element, params) {
+            const matchedRecords = findRecordsForReasonCode(selectedRowData.Code, selectedRowData.RecordId);
+            const sameDateSpan = matchedRecords.filter(x => x.RYBeginYear <= value && value <= x.RYEndYear);
+            return sameDateSpan.length == 0;
+        }, 'Cannot be in the same year span as existing reason code.');
+        // Rule verifies dates from same record aren't overlapped
+        $.validator.addMethod('yearSameRecordRule', function (value, element, params) {
+            const beginYearIn = '#reasonForChangeTableRYBeginYear';
+            const endYearIn = '#reasonForChangeTableRYEndYear';
+
+            if (element.id === 'reasonForChangeTableRYEndYear') {
+                setTimeout(() => {
+                    let cellElement;
+                    if (selectedRowData.RowIndex === undefined) {
+                        cellElement = $(beginYearIn);
+                    } else {
+                    const grid = $(reasonForChangeGrid).ejGrid('instance');
+                    cellElement = grid.getRowByIndex(selectedRowData.RowIndex).find(beginYearIn);
+                    }
+                    //Validation will happen one last time when cell is 
+                    if (cellElement.length > 0) {
+                        cellElement.valid();
+                    }
+                }, 100);
+            }
+
+            return $(beginYearIn).val() <= $(endYearIn).val();
+        }, 'Begin Year must be less than or equal to End Year.');
+
+        //========== Helper Functions ==========
+        /** Search table records for other records with a matching reason code
+        * @@param {string} reasonCode Reason Code to be used in queryCommandEnabled
+        * @@param {string} recordId RecordId from record used for finding matches (avoids picking itself up in query) 
+        */
+        function findRecordsForReasonCode(reasonCode, recordId) {
+            const records = $(reasonForChangeGrid).ejGrid('instance').model.dataSource;
+            return records.filter(x => {
+                return x.Code == reasonCode && x.RecordId != recordId;
+            }).sort(y => y.RYBeginDate);
+        }
+        /** Search table records for other records with a matching name
+        * @@param {string} name Name to be used in queryCommandEnabled
+        * @@param {string} recordId RecordId from record used for finding matches (avoids picking itself up in query) 
+        */
+        function findRecordsWithName(name, recordId) {
+            const records = $(reasonForChangeGrid).ejGrid('instance').model.dataSource;
+            return records.filter(x => {
+                return x.Name.toLowerCase().replaceAll(' ', '') == name.toLowerCase().replaceAll(' ', '') && x.RecordId != recordId;
+            }).sort(y => y.RYBeginDate);
+        }
+        /** Search table records for other records with a matching description
+        * @@param {string} description Description to be used in queryCommandEnabled
+        * @@param {string} recordId RecordId from record used for finding matches (avoids picking itself up in query) 
+        */
+        function findRecordsWithDescription(description, recordId) {
+            const records = $(reasonForChangeGrid).ejGrid('instance').model.dataSource;
+            return records.filter(x => {
+                return x.Description.toLowerCase().replaceAll(' ', '') == description.toLowerCase().replaceAll(' ', '') && x.RecordId != recordId;
+            }).sort(y => y.RYBeginDate);
+        }
+        /** Preload current active cells values while in add or edit mode with matching record data
+        * @@param {object} match Object containing the data to prepopulate record cells
+        * @@param {boolean} enableAuditType Whether or not to enable Audit Type's drop down 
+        * @@param {boolean} enableOpCodeType Whether or not to enable Operation Code's drop down  
+        */
+        function preloadRecordCells(match, enableAuditType, enableOpCode) {
+            const nameInput = '#reasonForChangeTableName';
+            const descInput = '#reasonForChangeTableDescription';
+            const auditTypeInput = '#reasonForChangeTableAuditType';
+            const opCodeInput = '#reasonForChangeTableOPCode';
+
+            const auditDropDown = $(auditTypeInput).data('ejDropDownList');
+            const opDropDown = $(opCodeInput).data('ejDropDownList');
+
+            $(nameInput).val(match.Name);
+            $(descInput).val(match.Description);
+            opDropDown.selectItemByValue(match.OPCode);
+            auditDropDown.selectItemByValue(match.AuditType);
+
+            enableAuditType ? auditDropDown.enable() : auditDropDown.disable();
+            enableOpCode ? opDropDown.enable() : opDropDown.disable();
+        }
+        /** Clear all preloaded cells in current active record while in add or edit mode
+        * @@param {boolean} enableAuditType Whether or not to enable Audit Type's drop down 
+        * @@param {boolean} enableOpCodeType Whether or not to enable Operation Code's drop down  
+        */
+        function clearPreloadRecordCells(enableAuditType, enableOpCode) {
+            const nameInput = '#reasonForChangeTableName';
+            const descInput = '#reasonForChangeTableDescription';
+            const auditTypeInput = '#reasonForChangeTableAuditType';
+            const opCodeInput = '#reasonForChangeTableOPCode';
+
+            const auditDropDown = $(auditTypeInput).data('ejDropDownList');
+            const opDropDown = $(opCodeInput).data('ejDropDownList');
+
+            $(nameInput).val('');
+            $(descInput).val('');
+            auditDropDown.selectItemByValue('');
+            opDropDown.selectItemByValue('');
+
+            enableAuditType ? auditDropDown.enable() : auditDropDown.disable();
+            enableOpCode ? opDropDown.enable() : opDropDown.disable();
+        }
+    </script>
+}
+else
+{
+    <script>
+        //========== Table Functionality ==========
+        function reasonForChangeActionBegin() { }
+
+        function reasonForChangeActionComplete() { }
+    </script>
+}

@@ -1,0 +1,236 @@
+﻿@using MSLC.Portal.MVC.Utility
+@model WebPortal_OH_FI.Models.RateIndexViewModel
+
+@{
+    ViewBag.Title = "Index";
+    Layout = "~/Views/Shared/_LayoutWithMenu.cshtml";
+}
+
+<div class="tab-panel m-2 p-2">
+    <div class="nav nav-tabs m-0 d-flex fs-5" id="nav-tab" role="tablist">
+        <div id="nav-providers-tab" href="#nav-providers" class="nav-item nav-link active btn"
+             data-toggle="tab" role="tab" aria-selected="true" tabindex="0">Providers</div>
+        @if (Model.CanViewAnnualRateSetting)
+        {
+            <div id="nav-annualrate-tab" href="#nav-annualrate" class="nav-item nav-link btn"
+                 data-toggle="tab" role="tab" aria-selected="false" tabindex="-1">Annual Rate Setting</div>
+        }
+        <div id="nav-reports-tab" href="#nav-reports" class="nav-item nav-link btn"
+             data-toggle="tab" role="tab" aria-selected="false" tabindex="-1">Reports</div>
+        @if (Model.CanViewCRStaff)
+        {
+            <div id="nav-crstafftable-tab" href="#nav-crstafftable" class="nav-item nav-link btn"
+                 data-toggle="tab" role="tab" aria-selected="false" tabindex="-1">CR Staff Table</div>
+        }
+        @if (Model.CanViewAdminLicense)
+        {
+            <div id="nav-adminlicense-tab" href="#nav-adminlicense" class="nav-item nav-link btn"
+                 data-toggle="tab" role="tab" aria-selected="false" tabindex="-1">Admin License</div>
+        }
+        @if (Model.CanViewAuditStaff)
+        {
+            <div id="nav-audituser-tab" href="#nav-audituser" class="nav-item nav-link btn"
+                 data-toggle="tab" role="tab" aria-selected="false" tabindex="-1">CR Audit Staff Table</div>
+        }
+        @if (Model.CanViewStandardNarrative)
+        {
+            <div id="nav-stdnarr-tab" href="#nav-stdnarr" class="nav-item nav-link btn"
+                 data-toggle="tab" role="tab" aria-selected="false" tabindex="-1">Standard Narrative Table</div>
+        }
+        @if (Model.CanViewAuditComment)
+        {
+            <div id="nav-comnarr-tab" href="#nav-comnarr" class="nav-item nav-link btn"
+                 data-toggle="tab" role="tab" aria-selected="false" tabindex="-1">Comment Table</div>
+        }
+        @if (Model.CanViewAuditDetail)
+        {
+            <div id="nav-detnarr-tab" href="#nav-detnarr" class="nav-item nav-link btn"
+                 data-toggle="tab" role="tab" aria-selected="false" tabindex="-1">Detail Table</div>
+        }
+        @if (Model.CanViewNarrativeCode)
+        {
+            <div id="nav-narrcode-tab" href="#nav-narrcode" class="nav-item nav-link btn"
+                 data-toggle="tab" role="tab" aria-selected="false" tabindex="-1">Narrative Code Table</div>
+        }
+        @if (Model.CanViewReasonForChange)
+        {
+            <div id="nav-rechange-tab" href="#nav-rechange" class="nav-item nav-link btn"
+                 data-toggle="tab" role="tab" aria-selected="false" tabindex="-1">Reason for Change Table</div>
+        }
+        @if (Model.CanViewOperationCode)
+        {
+            <div id="nav-opcode-tab" href="#nav-opcode" class="nav-item nav-link btn"
+                 data-toggle="tab" role="tab" aria-selected="false" tabindex="-1">Operation Code Table</div>
+        }
+    </div>
+    <div class="tab-content px-4 pb-4 pt-2" id="nav-tabContent">
+
+        <div id="nav-providers" aria-labelledby="nav-providers-tab" role="tabpanel" class="tab-pane fade show active">
+            @Html.Action("Providers", "Rate")
+        </div>
+
+        @if (Model.CanViewAnnualRateSetting)
+        {
+            <div id="nav-annualrate" aria-labelledby="nav-annualrate-tab" role="tabpanel" class="tab-pane fade">
+                @Html.Action("AnnualRateSetting", "Rate")
+            </div>
+        }
+
+        <div id="nav-reports" aria-labelledby="nav-reports-tab" role="tabpanel" class="tab-pane fade">
+            @Html.Action("Reports", "Rate")
+        </div>
+
+        @if (Model.CanViewCRStaff)
+        {
+            <div id="nav-crstafftable" aria-labelledby="nav-crstafftable-tab" role="tabpanel" class="tab-pane fade">
+                @Html.Action("CRStaffTable", "Rate")
+            </div>
+        }
+        @if (Model.CanViewAdminLicense)
+        {
+            <div id="nav-adminlicense" aria-labelledby="nav-adminlicense-tab" role="tabpanel" class="tab-pane fade">
+                @Html.Action("AdminLicense", "Rate")
+            </div>
+        }
+        @if (Model.CanViewAuditStaff)
+        {
+            <div id="nav-audituser" aria-labelledby="nav-adminlicense-tab" role="tabpanel" class="tab-pane fade">
+                @Html.Action("CRAuditStaffTable", "Rate")
+            </div>
+        }
+        @if (Model.CanViewStandardNarrative)
+        {
+            <div id="nav-stdnarr" aria-labelledby="nav-stdnarr-tab" role="tabpanel" class="tab-pane fade">
+                @Html.Action("StandardNarrativeTable", "Rate")
+            </div>
+        }
+        @if (Model.CanViewAuditComment)
+        {
+            <div id="nav-comnarr" aria-labelledby="nav-comnarr-tab" role="tabpanel" class="tab-pane fade">
+                @Html.Action("CommentTable", "Rate")
+            </div>
+        }
+        @if (Model.CanViewAuditDetail)
+        {
+            <div id="nav-detnarr" aria-labelledby="nav-detnarr-tab" role="tabpanel" class="tab-pane fade">
+                @Html.Action("DetailTable", "Rate")
+            </div>
+        }
+        @if (Model.CanViewNarrativeCode)
+        {
+            <div id="nav-narrcode" aria-labelledby="nav-narrcode-tab" role="tabpanel" class="tab-pane fade">
+                @Html.Action("NarrativeCodeTable", "Rate")
+            </div>
+        }
+        @if (Model.CanViewReasonForChange)
+        {
+            <div id="nav-rechange" aria-labelledby="nav-rechange-tab" role="tabpanel" class="tab-pane fade">
+                @Html.Action("ReasonForChangeTable", "Rate")
+            </div>
+        }
+        @if (Model.CanViewOperationCode)
+        {
+            <div id="nav-opcode" aria-labelledby="nav-opcode-tab" role="tabpanel" class="tab-pane fade">
+                @Html.Action("OperationCodeTable", "Rate")
+            </div>
+        }
+    </div>
+</div>
+<style>
+    th, td {
+        padding: 10px;
+    }
+</style>
+
+<script>
+    $(document).ready(function () {
+        window.URL["ImportHistorical"] = "@Url.AbsoluteAction("ImportHistorical", "Management")";
+        window.URL["ImportCertifiedBeds"] = "@Url.AbsoluteAction("ImportCertifiedBeds", "Management")";
+        window.URL["ImportHistoricalProgressCheck"] = "@Url.AbsoluteAction("ImportHistoricalProgressCheck", "Management")";
+    });
+    //************** Reload to Refresh the tabs *****************//
+    $('#nav-providers-tab').on('show.bs.tab', function (event) {
+        return LoadNotificationDialog("Loading Providers Tab...").then(() => {
+            return new Promise((resolve, reject) => {
+          $.ajax({
+            url: "@Url.AbsoluteAction("Providers", "Rate")",
+            cache: false,
+              success: function (result) {
+                  $("#nav-providers").html(result);
+                  resolve();
+            },
+            error: function (errormessage) {
+                StaticAlert({ content: errormessage.responseText });
+                resolve();
+            }
+          });
+         });
+        }).then(() => {
+            return ClearNotificationDialog();
+        });
+    });
+
+    $('#nav-annualrate-tab').on('show.bs.tab', function (event) {
+        return LoadNotificationDialog("Loading Annual RateSetting Tab...").then(() => {
+            return new Promise((resolve, reject) => {
+          $.ajax({
+            url: "@Url.AbsoluteAction("AnnualRateSetting", "Rate")",
+            cache: false,
+            type: 'POST',
+            success: function (result) {
+                $("#nav-annualrate").html(result);
+                resolve();
+            },
+            error: function (errormessage) {
+                StaticAlert({ content: errormessage.responseText });
+                resolve();
+            }
+          });
+         });
+        }).then(() => {
+                return ClearNotificationDialog();
+        });
+       });
+
+        $('#nav-reports-tab').on('show.bs.tab', function (event) {
+            return LoadNotificationDialog("Loading Reports Tab...").then(() => {
+                return new Promise((resolve, reject) => {
+          $.ajax({
+            url: "@Url.AbsoluteAction("Reports", "Rate")",
+            cache: false,
+              success: function (result) {
+                  $("#nav-reports").html(result);
+                  resolve();
+            },
+            error: function (errormessage) {
+                StaticAlert({ content: errormessage.responseText });
+                resolve();
+            }
+          });
+         });
+        }).then(() => {
+                return ClearNotificationDialog();
+        });
+       });
+
+         $('#nav-crstafftable-tab').on('show.bs.tab', function (event) {
+            return LoadNotificationDialog("Loading CR Staff Table Tab...").then(() => {
+                return new Promise((resolve, reject) => {
+          $.ajax({
+            url: "@Url.AbsoluteAction("CRStaffTable", "Rate")",
+            cache: false,
+              success: function (result) {
+                  $("#nav-crstafftable").html(result);
+                  resolve();
+            },
+            error: function (errormessage) {
+                StaticAlert({ content: errormessage.responseText });
+                resolve();
+            }
+          });
+         });
+        }).then(() => {
+                    return ClearNotificationDialog();
+        });
+       });
+</script>

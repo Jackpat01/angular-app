@@ -1,0 +1,33 @@
+﻿@*
+    DO NOT MODIFY OUTSIDE OF MSLC.STATLOG
+    This file comes from MSLC.Statlog, any changes to it will be wiped out when the nuget package is updated.
+    Please make the appropriate enhancements to MSLC.Statlog instead of here.
+*@
+
+@Styles.Render("~/Content/StatLog.css")
+@using MSLC.Portal.MVC.Utility
+@using MSLC.StatLog.MVC.ViewModels
+@using MSLC.StatLog.UI.Models
+@* @Html.Script("~/Scripts/Pages/StatLog/ShowAddInteractive.js", "jquery") *@
+@* <script src="@Url.AbsoluteContent("~/Scripts/MSLCComponents/XMLSchemaDisplay.js")"></script> *@
+
+@model List<LetterAutomationViewModel.ViewMetadata>
+@{
+    Layout = null;
+}
+<div class="modal-content">
+    <div class="modal-header">
+        <span id="myModalLabel" style="text-align: left; font-size: 1.5em; font-weight: bolder;" color:black;>
+            Metadata
+        </span>
+        <button href="#" class="close" data-dismiss="modal">&times;</button>
+    </div>
+    @for (var index = 0; index < Model.Count; index++)
+    {
+        var schema = Model[index];
+        @Html.Raw(@Html.XMLSchemaDisplay(schema.XMLSchemaString, schema.ID, schema.DefaultXMLData).SetReadOnly(true))
+    }
+</div>
+<div id="SyncFusionScript">
+    <script src="@Url.AbsoluteContent("~/Scripts/ej/common/ej.unobtrusive.min.js")"></script>
+</div>

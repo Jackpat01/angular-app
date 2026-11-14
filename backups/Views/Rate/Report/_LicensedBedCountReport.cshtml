@@ -1,0 +1,134 @@
+﻿@using MSLC.Portal.MVC.Utility
+@model WebPortal_OH_FI.Models.ViewModels.LicensedBedCountViewModel
+
+<style type="text/css">
+    .nav-tabs .nav-item.show .nav-link, .nav-tabs .nav-link.active {
+        background: moccasin;
+        border-bottom: 2px solid green;
+    }
+
+    th, td {
+        padding: 10px;
+    }
+
+    span.e-input-group-icon.e-date-icon.e-icons {
+        display: block;
+    }
+</style>
+<script>
+    $(document).ready(function () {
+        $("#reportButton").on("click", function () {
+            $("#ratesetting-reports").show();
+            $("#report-details").hide();
+        });
+    });
+</script>
+<div id="licensedBedCountReport">
+    <table>
+        <tr>
+            <td>
+                <button class="btn btn-success" id="reportButton">Back to Reports</button>
+            </td>
+        </tr>
+        <tr></tr>
+        <tr>
+            <td>
+                Licensed Bed Count Report
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Effective Date:
+            </td>
+            <td>
+                @Html.TextBoxFor(x => x.EffectiveDate, new { @placeholder = "Effective Date", id = "effectiveDate", maxlength = 10, autocomplete = "off", @class = "datefield", @style = "width: 125px; margin: 4px 6px;", aria_label="Effective Date" })
+            </td>
+        </tr>
+
+        <tr>
+            <td><input id="btnGenerateReport" value="Generate Report" type="submit" class="btn btn-success" onclick="ProcessLicensedBedCountReport()" /></td>
+        </tr>
+    </table>
+</div>
+<div id="SyncFusionScript">
+    <script src="@Url.AbsoluteContent("~/Scripts/ej/common/ej.unobtrusive.min.js")"></script>
+</div>
+<script type="text/javascript">
+    $(document).ready(function() {
+        ClearNotificationDialog();
+
+        $("#btnGenerateReport").prop("disabled", true);
+
+        $("#effectiveDate").change(function () { setEnabled() });
+        $("#effectiveDate").val(undefined);
+    });
+
+    $('.datefield').datepicker(
+        {
+            format: 'mm/dd/yyyy',
+            todayHighlight: true,
+            autoclose: true,
+            clearBtn: true
+        });
+
+    function setEnabled() {
+        if ($("#effectiveDate").val() == undefined || $("#effectiveDate").val() == '') {
+            $('#btnGenerateReport').prop("disabled", true);
+        } else {
+            $('#btnGenerateReport').prop("disabled", false);
+        }
+    }
+
+    function ProcessLicensedBedCountReport() {
+        var effectiveDate = $("#effectiveDate").data('datepicker').getFormattedDate('mm/dd/yyyy');
+
+        return LoadNotificationDialog("Generating Licensed Bed Count Report...").then(() => {
+            return new Promise((resolve, reject) => {
+                $.ajax({
+                    async: true,
+                    url: "@Url.AbsoluteAction("LicensedBedCountReport", "Rate")",
+                    data: JSON.stringify({ "asOfEffectiveDate": effectiveDate }),
+                    type: "POST",
+                    contentType: "application/json;charset=utf-8",
+                    dataType: "json",
+                    success: function(result) {
+                        if (result.Success) {
+                            //get the file name for download
+                            if (result.FileName !== undefined) {
+                                //use window.location.href for redirect to download action for download the file
+                                window.location.href = "@Url.AbsoluteAction("Download", "Rate")/?fileName=" + result.FileName;
+                                ClearNotificationDialog();
+                            }
+                        } else {
+                            StaticAlert({ content: result.Message }).then(() => {
+                                ClearNotificationDialog();
+                                resolve();
+                            });
+                        }
+
+                        resolve();
+                    },
+                    error: function (result) {
+                        if (result.Message === '') {
+                            result.Message = 'Unable to connect to Server.';
+                        }
+                        StaticAlert({ content: result.Message }).then(() => {
+                            resolve();
+                        });
+                    }
+                });
+                function error(result) {
+                    if (result.Message === '') {
+                        result.Message = 'Unable to connect to Server.';
+                    }
+                    StaticAlert({ content: result.Message }).then(() => {
+                    resolve();
+                });
+                }
+            });
+        }).then(() => {
+            return ClearNotificationDialog();
+        });
+    }
+
+</script>

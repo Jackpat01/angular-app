@@ -1,0 +1,149 @@
+﻿@using MSLC.Portal.MVC.Utility
+@model WebPortal_OH_FI.Models.UploadViewModel
+
+@{
+    Layout = "~/Views/Shared/_LayoutWithMenu.cshtml";
+    ViewBag.Title = "Upload - Index";
+    var Message = (TempData["Message"] != null && !string.IsNullOrEmpty(TempData["Message"].ToString())) ? TempData["Message"].ToString() : string.Empty;
+    bool showTable = string.IsNullOrEmpty(Message);
+}
+
+@Html.Script("~/Scripts/Pages/Upload/Index.js?vs=5", "jquery")
+
+@using (Html.BeginForm("SaveSynchronous", "Upload", FormMethod.Post, new { enctype = "multipart/form-data", @class = "modal-form" }))
+{
+    @Html.HiddenFor(x => x.HideVersion, new { id = "hdnHideVersion" })
+    @Html.HiddenFor(x => x.HidePeriod, new { id = "hdnHidePeriod" })
+    @Html.HiddenFor(x => x.HideUploadButton, new { id = "hdnDisableUpload" })
+    @Html.HiddenFor(x => x.DeleteAfterDays, new { id = "hdnDeleteAfterDays" })
+    @Html.HiddenFor(x => x.ProviderId, new { id = "hdnSelectedProviderID" })
+    @Html.HiddenFor(x => x.FileSubTypeId, new { id = "hdnFileSubType" })
+    <input id="hdnProviderID" type="hidden" value="" />
+    <input id="hdnExtensionFormats" type="hidden" value="" />
+    <input id="hdnShowtable" type="hidden" value="@showTable.ToString()" />
+    <input id="hdnReturnFileSubTypesURL" type="hidden" value="@Url.AbsoluteAction("ReturnFileSubTypes", "Upload")" />
+    <input id="hdnReturnExtensionAndFileSizeURL" type="hidden" value="@Url.AbsoluteAction("ReturnExtensionAndFileSize", "Upload")" />
+    <input id="hdnFormatBytesURL" type="hidden" value="@Url.AbsoluteAction("FormatBytes", "Upload")" />
+    <input id="hdnUploadSendEmailURL" type="hidden" value="@Url.AbsoluteAction("SendEmail", "Upload")" />
+    <input id="hdnUploadFileURL" type="hidden" value="@Url.AbsoluteAction("UploadFile", "Upload")" />
+    <input id="hdnSetProviderURL" type="hidden" value="@Url.AbsoluteAction("SetProvider", "Upload")" />
+    <input id="hdnFormatBytesFromErrorURL" type="hidden" value="@Url.AbsoluteAction("FormatBytesFromError", "Upload")" />
+    <div id="dvDownload" data-url="@Url.AbsoluteAction("Index", "Download")"></div>
+    <div id="dvUserRole" data-url="@Url.AbsoluteAction("RoleForUser","User")"></div>
+
+    <h2>
+        <span style="float:left;">Upload</span>
+        &nbsp;&nbsp;
+        <input id="showMyFiles" type="button" value="See my files" class="btn btn-success btn-showmyfiles" style="float:left; margin-left:20px; display: none" />
+    </h2>
+
+    <hr />
+
+    if (!showTable && !string.IsNullOrEmpty(Message))
+    {
+        <div class="errorLabel">
+            <center>@Html.Raw(Message)</center>
+            <br /><br />
+        </div>
+    }
+
+    Html.EJ()
+        .Dialog("errorDialog")
+        .Title("Error with Upload")
+        .ShowOnInit(false).EnableResize(false)
+        .ContentTemplate(@<p id="errorMessage" style="display:none;overflow:auto;height:200px;width:350px;">This is a dialog.</p>)
+.Render();
+
+
+@Html.HiddenFor(x => Model.FileSubTypeId)
+
+if (showTable)
+{
+    if ((Model.Providers == null) || (!Model.Providers.Any()))
+    {
+        <div id="divError" class="errorLabel">
+            <center>No providers recieved from service, please contact support.</center>
+        </div>
+        return;
+    }
+    <div id="FileTable" style="display: none; padding-left: 15px; margin-top: 8px; margin-bottom: 12px; width: 65%; margin-left: auto; margin-right: auto;" class="ui-tabs ui-widget ui-widget-content ui-corner-all">
+        <table>
+            <tbody>
+                <tr id="ProviderRow" style="display: none">
+                    <td>
+                        <label for="ddlProviders">Choose Provider:</label>
+                    </td>
+                    <td>@Html.DropDownListFor(x => x.ProviderId, Model.Providers, "Select...", new { id = "ddlProviders", @style = "width: 375px;" })</td>
+                </tr>
+                <tr id="FileTypeRow" style="display: none">
+                    <td>
+                        <label for="ddlFileType">Choose File Type:</label>
+                    </td>
+                    <td>@Html.DropDownListFor(x => x.FileTypeId, Model.FileTypes, "Select...", new { id = "ddlFileType", @style = "width: 375px;" })</td>
+                </tr>
+                <tr id="FileSubTypeRow" style="display: none">
+                    <td>
+                        <label for="ddlFileSubType">Choose Version:</label>
+                    </td>
+                    <td><select id="ddlFileSubType" style="width: 375px;"></select></td>
+                </tr>
+                <tr id="FileSizeRow" style="display: none">
+                    <td>Max File Size:</td>
+                    <td><label id="lblMaxFileSize"></label></td>
+                </tr>
+                <tr id="FileExtensionRow" style="display: none">
+                    <td>Allowed File Extensions:</td>
+                    <td><label id="lblAllowedExtensions"></label></td>
+                </tr>
+
+                <tr id="ApplicationPeriodRow" style="display: none">
+                    <td>
+                        <label for="ddlApplicationPeriod">Choose Period:</label>
+                    </td>
+                    <td>@Html.DropDownListFor(x => x.ApplicationPeriodId, Model.ApplicationPeriods, "Select...", new { id = "ddlApplicationPeriod", @style = "width: 375px;" })</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+}
+
+if (showTable)
+{
+    <div id="UploadControl" style="display: none; width:65%; margin-left:auto; margin-right:auto; height:150px; margin-top:30px">
+        @Html.EJ().Uploadbox("SynchronousUpload").AutoUpload(false).AsyncUpload(false).DropAreaText("Drop files or click to upload.").ShowFileDetails(false).AllowDragAndDrop(true).MultipleFilesSelection(false).DropAreaHeight("150px").ClientSideEvents(e => e.FileSelect("onFileSelect").Error("onUploadError")).ExtensionsAllow("").FileSize(0) @*.ClientSideEvents(e => e.Begin("onUploadBegin").Complete("onUploadComplete").Error("onUploadError").BeforeSend("onBeforeSend").FileSelect("onFileSelect"))*@
+        @*@Html.EJ().Uploadbox("UploadDefault").SaveUrl(Url.AbsoluteAction("UploadFile", "Upload")).AllowDragAndDrop(true).MultipleFilesSelection(true).AsyncUpload(false).ShowFileDetails(false).ClientSideEvents(e => e.Begin("onUploadBegin").Complete("onUploadComplete").Error("onUploadError").BeforeSend("onBeforeSend").FileSelect("onFileSelect")).DropAreaHeight("150px").ExtensionsAllow("").FileSize(0)*@
+    </div>
+
+    <div id="FilesToBeUploaded" style="display: none; margin-left: auto; margin-right: auto; width: 65%" class="ui-tabs ui-widget ui-widget-content ui-corner-all">
+        <table id="FileListTable" style="margin-left: auto; margin-right: auto; margin-bottom: 20px; border-collapse:separate; border-spacing: 50px 0 !important;" cellpadding="5" cellspacing="5" border="0"></table>
+
+        <div class="text-center">
+            @Html.EJ().Button("ResetUpload").Type(ButtonType.Button).Text("Reset").ClientSideEvents(n => n.Click("onResetFileSelection"))
+            &nbsp;&nbsp;&nbsp;
+            @*Once the submit button is clicked it triggers SaveActionResult and the files are saved.*@
+            @Html.EJ().Button("post").Type(ButtonType.Submit).Text("Upload").CssClass("text-center")
+        </div>
+    </div>
+
+    <div id="dvFileUploadingSpinny" style="display: none; text-align: center; margin-top:30px;">
+        <img src="~/Images/loading.gif" alt="Searching" width="32" height="32" /><br /><p style="margin-top:10px"><b style="color: #C83C3C">Do not close your browser.  Do not click on any links.</b></p> <p> Your files are being transferred.  Depending on the size of the files this could take a while.  This is normal.</p><p>Total file size:  <span id="TotalFileSize"></span></p><p> Once the upload is finished you will see a success message.</p>
+    </div>
+
+    <div id="dvUploadSuccess" style="display: none; color: #4E832A !important; font-size: 32px; margin-top: 50px;">
+        <center>
+            <p>
+                File(s) have been uploaded successfully!
+            </p>
+        </center>
+        <div id="successfulList" style="font-size: 18px; color: black; width: 52%; margin-left: auto; margin-right: auto; margin-top:30px">
+        </div>
+    </div>
+    <div>
+        <h2>
+            <span style="float:left;visibility:hidden;">Upload</span>
+            &nbsp;&nbsp;
+            <input id="showMyFiles" type="button" value="See my files" class="btn btn-success btn-showmyfiles" style="float:right; margin-right:50px; display: none" />
+        </h2>
+    </div>
+}
+}

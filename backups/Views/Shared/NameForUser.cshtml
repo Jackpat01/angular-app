@@ -1,0 +1,14 @@
+﻿@using MSLC.Portal.MVC.Utility
+@using WebPortal_OH_FI.Web
+@if (RetrieveSession.ARUMUser != null)
+{
+    if (!string.IsNullOrEmpty(RetrieveSession.ARUMUser.Email))
+    {
+        @RetrieveSession.ARUMUser.Email
+    }
+}
+else
+{
+    <text>No UserName for User</text>
+}
+

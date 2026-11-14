@@ -1,0 +1,215 @@
+﻿@*
+    DO NOT MODIFY OUTSIDE OF MSLC.STATLOG
+    This file comes from MSLC.Statlog, any changes to it will be wiped out when the nuget package is updated.
+    Please make the appropriate enhancements to MSLC.Statlog instead of here.
+*@
+
+@Styles.Render("~/Content/StatLog.css")
+@using MSLC.Portal.Configuration
+@using MSLC.Portal.MVC.Utility
+@model MSLC.StatLog.MVC.ViewModels.LetterAutomationViewModel.View
+@Html.Script("~/Scripts/Pages/LetterAutomation/Index.js", "jquery")
+
+@{
+    Layout = PortalConfiguration.DetermineLayout("Menu");
+    ViewBag.Title = "Generate Letter";
+}
+
+<style>
+    .e-rowcell.noWrap {
+        white-space: pre-wrap !important;
+    }
+</style>
+
+
+<div id="dvFillCorrespondentsTable" data-url="@Url.AbsoluteAction("GetProviderSpecificCorrespondents","LetterAutomation")"></div>
+<div id="dvFillCostReportTableDropdown" data-url="@Url.AbsoluteAction("GetProviderSpecificCostReports","LetterAutomation")"></div>
+<div id="dvGetMetadataOptionsURL" data-url="@Url.AbsoluteAction("GetMetadataOptions","LetterAutomation")"></div>
+<input type="hidden" value=@PortalConfiguration.AuditTypeReplacementName name="AuditName" id="hdnAuditName" />
+
+@if (TempData["Message"] != null && !string.IsNullOrEmpty(TempData["Message"].ToString()))
+{
+    <br />
+    <br />
+    <center>
+        <div class="errorLabel">
+            @Html.Raw(TempData["Message"].ToString())
+        </div>
+    </center>
+}
+
+<div id="dialogDiv" class="MSLCModal modal hide fade" tabindex="-1" aria-labelledby="windowTitleLabel" aria-hidden="true" role="dialog">
+    <div id="modal-dialog" class="modal-dialog" role="document">
+        <div id="dialogContent" style="font-size: 14px; width:100%"></div>
+        <div id="dialogMessage" style="font-size: 14px; width:100%"></div>
+    </div>
+</div>
+
+@if (TempData["Message"] != null && !string.IsNullOrEmpty(TempData["Message"].ToString()))
+{
+    TempData["Message"] = null;
+}
+
+@using (Html.BeginForm("GenerateStatLogAutomatedLetter", "LetterAutomation", FormMethod.Post, new { id = "frmSubmit", enctype = "multipart/form-data" }))
+{
+    @Html.AntiForgeryToken()
+    @Html.HiddenFor(x => x.CorrespondentID, new { id = "hdnCorrespondentID" })
+    @Html.HiddenFor(x => x.ShowMetadata, new { id = "hdnShowMetadata" })
+    <div>
+        <center>
+            <div style="margin: 15px; margin-top: 15px; max-width: 1500px;">
+                <fieldset style="width: 100%; max-width: 1000px;">
+                    <legend style="text-align: left;"><b style="float: left;">Generate Letter</b><span style="float: right;"></span></legend>
+                    <hr />
+                    <table style="width: 100%;">
+                        <tr>
+                            <td width="30%" style="padding-bottom: 10px">
+                                <label for="ddlTemplate">Letter Template</label>
+                                @Html.DropDownListFor(x => x.TemplateID, Model.TemplateDropdownList, new { id = "ddlTemplate", style = "width: 80%;", onchange = "SetRowsActive()" })
+                            </td>
+                            @*<td width="70%" style="padding-bottom: 10px;">
+                                    @Html.DropDownListFor(x => x.ProviderID, Model.ProviderDropdownList, new { id = "ddlProvider", style = "width: 80%;", onchange = "setProviderInfo()" })
+                                </td>*@
+
+                            <td width="70%">
+                                <label for="ddlProvider_dropdown">Provider</label>
+                                @Html.HiddenFor(x => x.ProviderID, new { id = "hdnProviderID" })
+                                @Html.Hidden("hdnProviderNumber")
+                                @(Html.EJ()
+                                    .Autocomplete("ddlProvider")
+                                    .Datasource(Model.ProviderList)
+                                    .AutocompleteFields(e => e.Text("Name").Key("Number"))
+                                    .WatermarkText("Provider search")
+                                    .MinCharacter(0)
+                                    .MultiColumnSettings(obj => obj.Enable(true).Columns(obj1 =>
+                                    {
+                                        obj1.Field("Name").HeaderText("Name").Add();
+                                        obj1.Field("Number").HeaderText(Model.PrimaryIdentifier).Add();
+                                    }).ShowHeader(true).SearchColumnIndices(new List<int> { 1, 0 }).StringFormat("{0}"))
+                                    .HighlightSearch(true)
+                                    .Width("80%")
+                                    .ClientSideEvents(e =>
+                                    {
+                                        e.Open("FixDuplicateClasses");
+	                                    e.ActionBegin("FixDuplicateClasses");
+	                                    e.ActionComplete("FixDuplicateClasses");
+	                                    e.ActionSuccess("FixDuplicateClasses");
+	                                    e.FocusIn("FixDuplicateClasses");
+	                                    e.FocusOut("FixDuplicateClasses");
+                                        e.Select("setProviderInfo");
+                                    })
+                                    .PopupHeight("400px")
+                                    .AllowSorting(true).SortOrder(SortOrder.Ascending)
+                                    .ShowPopupButton(true)
+                                    .EmptyResultText("No Provider(s) found in list."))
+                            </td>
+                        </tr>
+                    </table>
+                    <div id="tblProviderSpecific">
+                        <table style="width: 100%;">
+                            <tr>
+                                <td width="40%" style="padding-bottom: 10px">
+                                    <label for="ddlCostReport">Stat Log</label>
+                                    @Html.DropDownListFor(x => x.CostReportID, Model.CostReportsDropdownList, new { id = "ddlCostReport", style = "width: 80%;", onchange = "SetSelectedCostReport()" })
+                                </td>
+                            </tr>
+                            <tr>
+                                <th align="left">Correspondents</th>
+                            </tr>
+                        </table>
+                        <div>
+                            @(Html.EJ().Grid<object>("CorrespondentGrid")
+                                .Datasource(Model.CorrespondentDropdownList)
+                                .AllowPaging()
+                                .EnableRowHover(true)
+                                .AllowSelection(false)
+                                .AllowSorting(true)
+                                .AllowFiltering(true)
+                                .AllowTextWrap(true)
+                                .TextWrapSettings(wrap => { wrap.WrapMode(WrapMode.Both); })
+                                .FilterSettings(filter => { filter.FilterType(FilterType.Menu); filter.ShowPredicate(false); })
+
+                                .ToolbarSettings(toolbar =>
+                                {
+                                    toolbar.ShowToolbar().ToolbarItems(items =>
+                                    {
+                                        items.AddTool(ToolBarItems.Search);
+                                    });
+                                })
+                                .Columns(col =>
+                                {
+                                    col.HeaderText("Select").Template("<input type = 'checkbox' id = 'chk_{{:CorrespondentID}}' class = 'correspondentCheck' value = '{{:CorrespondentID}}' name = 'CorrIDs' onclick = 'SetCorrIDs(\"{{:CorrespondentID}}\")' aria-label='Select Correspondent' />").TextAlign(TextAlign.Center).Width(18).AllowSorting(false).Add();
+                                    col.Field("Type").HeaderText("Type").TextAlign(TextAlign.Center).Width(22).Add();
+                                    col.Field("CorrespondentName").HeaderText("Name").TextAlign(TextAlign.Center).Width(40).Add();
+                                    col.Field("Address").HeaderText("Address").TextAlign(TextAlign.Center).Width(50).Add();
+                                    col.Field("City").HeaderText("City").TextAlign(TextAlign.Center).Width(50).AllowSorting(false).AllowFiltering(true).Add();
+                                    col.Field("State").HeaderText("State").TextAlign(TextAlign.Center).Width(30).AllowSorting(false).Add();
+                                })
+                                //.ClientSideEvents(events =>
+                                //{
+                                //    events.Load("setProviderInfo");
+                                //})
+                                )
+                        </div>
+                        @if (Model.ShowMetadata)
+                        {
+                            <table style="width: 100%;" class="mt-2">
+                                <tr>
+                                    <th align="left">MetaData (Optional)</th>
+                                </tr>
+                            </table>
+                            <div>
+                                @(Html.EJ().Grid<object>("MetaDataGrid")
+                                        .Datasource(Model.HistoryDropdownList)
+                                        .AllowPaging()
+                                        .EnableRowHover(true)
+                                        .AllowSelection(false)
+                                        .AllowSorting(true)
+                                        .AllowFiltering(true)
+                                        .AllowTextWrap(true)
+                                        .TextWrapSettings(wrap => { wrap.WrapMode(WrapMode.Both); })
+                                        .FilterSettings(filter => { filter.FilterType(FilterType.Menu); filter.ShowPredicate(false); })
+
+                                        .ToolbarSettings(toolbar =>
+                                        {
+                                            toolbar.ShowToolbar().ToolbarItems(items =>
+                                            {
+                                                items.AddTool(ToolBarItems.Search);
+                                            });
+                                        })
+                                        .Columns(col =>
+                                        {
+                                            col.HeaderText("Select").Template("#metaDataSelect").TextAlign(TextAlign.Center).Width(18).AllowSorting(false).Add();
+                                            col.Field("Name").HeaderText("Name").TextAlign(TextAlign.Center).Width(22).Add();
+                                            col.Field("template.CreateDate").HeaderText("Create Date").TextAlign(TextAlign.Center).Width(40).Add();
+                                            // col.Template("#notesHtml").HeaderText("View Metadata").CssClass("icon").TextAlign(TextAlign.Center).Width(40).Add();
+                                        })
+                                        .ClientSideEvents(events =>
+                                        {
+                                            events.TemplateRefresh("loadIcons");
+                                        })
+                                    )
+                                @Html.Hidden("sHistoryID")
+                                <script id="metaDataSelect" type="text/x-template">
+                                    <input type='checkbox' id='chkMD_{{:sHistoryID}}' onclick="setMetadataID('{{:sHistoryID}}')" />
+                                </script>
+                                <script id="notesHtml" type="text/x-template">
+                                    <a href="@Url.AbsoluteAction("ViewMetadata", "LetterAutomation")?sHistoryID={{:sHistoryID}}" onclick="return modalButton(this, 'tallerWidest' )">
+                                        <i data-feather='eye'></i>
+                                    </a>
+                                </script>
+                            </div>
+                        }
+                    </div>
+                    <div id="dvGenerateLetter">
+                        <button class="btn btn-success BoldMe" id="btnGenerateLetter" name="Command" type="submit" style="margin: 10px;">Generate Letter</button>
+                    </div>
+                </fieldset>
+                <br />
+                <div id="dvLoading" style="display: none; text-align: center;">
+                    <img src="~/Images/loading.gif" alt="Loading" width="32" height="32" />
+                </div>
+            </div>
+        </center>
+    </div>
+}

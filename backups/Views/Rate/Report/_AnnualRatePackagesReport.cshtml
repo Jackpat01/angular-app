@@ -1,0 +1,306 @@
+﻿@model WebPortal_OH_FI.Models.AnnualRateSettingViewModel
+<style type="text/css">
+    .nav-tabs .nav-item.show .nav-link, .nav-tabs .nav-link.active {
+        background: moccasin;
+        border-bottom: 2px solid green;
+    }
+
+    th, td {
+        padding: 10px;
+    }
+
+    .e-grid .e-pager .e-pagercontainer {
+        float: left;
+    }
+
+    .e-grid .e-pager .e-pager-itemsinterval {
+        float: left;
+    }
+
+    .e-pager-itemsinterval {
+        direction: rtl;
+        float: left;
+    }
+</style>
+<script>
+    $(document).ready(function () {
+        $("#reportButton").on("click", function () {
+            $("#ratesetting-reports").show();
+            $("#report-details").hide();
+        });
+    });
+</script>
+<div>
+    <button class="btn btn-success" id="reportButton">Back to Reports</button>
+</div>
+<div id="reportPanel">
+    <table>
+          <tr>
+            <td>Rate Packages</td>
+        </tr>
+        <tr>
+            <td>SFY : </td>
+            <td>
+                @Html.DropDownListFor(model => model.PeriodList, (IEnumerable<SelectListItem>)Model.PeriodList, "Select SFY", new { ID = "reportSFYList", aria_label="SFY" })
+            </td>
+        </tr>
+        <tr>
+            <td>RED Date:</td>
+            <td>@Html.DropDownListFor(model => model.RedDateList, (IEnumerable<SelectListItem>)Model.RedDateList, "RED Date List", new { ID = "drpReportRedDateList", @style = "width: 130px", aria_label="RED Date" })</td>
+            <td><input id="btnSelectedRed" value="Get Selected RED" type="submit" class="btn btn-success" onclick="GetSelectedRed()" /></td>
+        </tr>
+    </table>
+    <div id="divReportProviderInfo">
+        <table>
+            <tr>
+                <td>
+                    Provider List
+                </td>
+            </tr>
+            <tr>
+                <td align="center">
+                    <div id="tblReportProviderList"></div>
+                </td>
+            </tr>
+            <tr>
+                <td><input id="btnGenerateRatePackage" value="Generate Rate Package" type="submit" class="btn btn-success" onclick="GenerateRatePackage()" /></td>
+            </tr>
+        </table>
+    </div>
+</div>
+<script type="text/javascript">
+    $(document).ready(function () {
+        $("#divReportProviderInfo").hide();
+        var redDateSelected = $('#drpReportRedDateList option:selected').text();
+        $("#btnSelectedRed").prop("disabled", redDateSelected == "RED Date List");
+        $("#drpReportRedDateList").prop("disabled", true);
+
+        var ddl = $('#drpReportRedDateList');
+        ddl.empty();
+        $(document.createElement('option'))
+            .attr('value', '')
+            .text('RED Date List')
+            .appendTo(ddl);
+
+        $("#drpReportRedDateList").change(function () {
+            var val = $('#drpReportRedDateList option:selected').text();
+            if (val != "RED Date List") {
+                $("#btnSelectedRed").prop("disabled", false);
+            } else {
+                $("#btnSelectedRed").prop("disabled", true); // Disables
+            }
+            // Create grid object.
+            var gridObj = $("#tblReportProviderList").data("ejGrid");
+            // Clears the searching from the grid
+            if (typeof gridObj !== "undefined") {
+                gridObj.clearSearching();
+                $("#divReportProviderInfo").hide();
+            }
+        });
+
+        $("#reportSFYList").change(function () {
+            $("#btnSelectedRed").prop("disabled", true);
+            var val = $('#reportSFYList option:selected').text();
+            if (val != "Select SFY") {
+                $("#drpReportRedDateList").prop("disabled", false);
+                return LoadNotificationDialog("Get REDs for SFY...").then(() => {
+                    return new Promise((resolve, reject) => {
+                        $.ajax({
+                            async: true,
+                            url: "@Url.AbsoluteAction("GetRedDatesForSFY", "Rate")",
+                            data: JSON.stringify({ "sfy": val }),
+                            type: "POST",
+                            contentType: "application/json;charset=utf-8",
+                            dataType: "json",
+                            success: function (result) {
+                                if (!result.Success) {
+                                    StaticAlert({ content: result.Message }).then(() => {
+                                        resolve();
+                                    });
+                                }
+                                else {
+                                    var ddl = $('#drpReportRedDateList');
+                                    ddl.empty();
+                                    $(document.createElement('option'))
+                                        .attr('value', '')
+                                        .text('RED Date List')
+                                        .appendTo(ddl);
+
+                                    //Check if drop down list is empty
+                                    if (result.data.length == 0) {
+                                        // Load Grid
+                                        $().filter(function () {
+                                            return this.text == 'RED Date List';
+                                        }).attr('selected', true).trigger('change');
+                                    }
+                                    else {
+                                        $(result.data).each(function () {
+                                            $(document.createElement('option'))
+                                                .attr('value', this.Value)
+                                                .text(this.Text)
+                                                .appendTo(ddl);
+                                        });
+                                    }
+                                    $("#divReportProviderInfo").hide();
+                                    resolve();
+                                }
+                            },
+                            error: function (errormessage) {
+                                StaticAlert({ content: errormessage.responseText || errormessage }).then(() => {
+                                    resolve();
+                                });
+                            }
+                        });
+                    });
+                }).then(() => {
+                    return ClearNotificationDialog();
+                });
+            } else {
+                $('#drpReportRedDateList').val("").change();
+                $("#drpReportRedDateList").prop("disabled", true);
+            }
+        });
+    });
+
+    function GetSelectedRed() {
+        var redDateSelected = $("#drpReportRedDateList option:selected").text();
+
+        return LoadNotificationDialog("Get Selected RED Info...").then(() => {
+            return new Promise((resolve, reject) => {
+                $.ajax({
+                    async: true,
+                    url: "@Url.AbsoluteAction("GetProviderInfoBySelectedRED", "Rate")",
+                    data: JSON.stringify({ "redDate": redDateSelected }),
+                    type: "POST",
+                    contentType: "application/json;charset=utf-8",
+                    success: function (result) {
+                        if (result.Success) {
+                            var gridColumns = result.AnnualRateSettingViewModel.GridColumns;
+                            var providerInformationList = result.AnnualRateSettingViewModel.RatePackageViewModelList;
+                            // Build Grid - Data binding
+                            LoadProviderData(gridColumns, providerInformationList);
+
+                            $("#divReportProviderInfo").show();
+                            resolve();
+                        }
+                    },
+                    error: function (errormessage) {
+                        StaticAlert({ content: "AJAX callback error, Get Provider Info Data: " + errormessage.responseText }).then(() => {
+                            resolve();
+                        });
+                    }
+
+                });
+            });
+
+        }).then(() => {
+            return ClearNotificationDialog();
+        });
+    }
+
+    function LoadProviderData(gridColumns, providerInformationList) {
+        var cols = [];
+        var GridColumns = gridColumns;
+        // Create Custom Template for Finalized Column
+        cols.push({ type: 'checkbox', width: '20' });
+        for (var col = 0; col < GridColumns.length; col++) {
+            // Build "Columns" and "Header Text"
+            cols.push({ field: GridColumns[col].Field, headerText: GridColumns[col].HeaderText, width: GridColumns[col].Width, cssClass: 'Wrap', textAlign: 'left', visible: true });
+        }
+        $("#tblReportProviderList").ejGrid({
+            dataSource: providerInformationList,
+            selectionSettings: { persistSelection: true },
+            columns: cols,
+            toolbarSettings: {
+                showToolbar: true,
+                toolbarItems: [ej.Grid.ToolBarItems.Search]
+            },
+            pageSettings: { pageSize: 5, pageSizeList: [5, 10, 15, 20] },
+            allowPaging: true,
+            allowFiltering: true,
+            filterSettings: { filterType: 'Menu' },
+            enableRowHover: true,
+            allowSelection: true,
+            allowSorting: true,
+            allowTextWrap: true,
+            editSettings: {},
+            rowSelected: onRowSelectedRatePackages,
+            rowDeselected: onRowDeselectedRatePackages
+        });
+    }
+
+    ////******Begin - Grid Checkbox Events **********
+    let selectedRatePacakges = [];
+    function onRowSelectedRatePackages(args) {
+        var providerSelected = args.selectedData;
+        var index = selectedRatePacakges.findIndex(item => item.RatePackageId == args.selectedData.RatePackageId
+            && item.ProviderId == args.selectedData.ProviderId);
+        if (args.data.length > 1) {
+            for (var i = 0; i < args.data.length; i++) {
+                selectedRatePacakges.push(args.data[i]); //pushing all the selected Records
+            }
+        }
+        else if (index == -1) {
+            selectedRatePacakges.push(args.selectedData);
+        }
+        //GetProviderRateInfoDetails();
+    }
+
+    function onRowDeselectedRatePackages(args) {
+        var deselectedItem = args.selectedData;
+        var index = selectedRatePacakges.findIndex(item => item.RatePackageId == deselectedItem.RatePackageId
+            && item.ProviderId == deselectedItem.ProviderId);
+        if (args.data.length > 1) {
+            for (var i = 0; i < args.data.length; i++) {
+                selectedRatePacakges.splice(args.data[i], 1); //remove all the selected Records
+            }
+        }
+        else {
+            selectedRatePacakges.splice(index, 1);
+        }
+        //GetProviderRateInfoDetails();
+    }
+
+    function GenerateRatePackage() {
+        // Create grid object.
+        var gridObj = selectedRatePacakges;
+        if (gridObj.length >= 1) {
+            return LoadNotificationDialog("Generating Rate Packages to PDF, please wait...").then(() => {
+                return new Promise((resolve, reject) => {
+                    $.ajax({
+                        async: true,
+                        url: "@Url.AbsoluteAction("GenerateAnnualRatePackages", "Rate")",
+                        data: { providerData: gridObj},
+                        cache: false,
+                        type: "POST",
+                        dataType: "json",
+                        success: function (response) {
+                            if (response.Success) {
+                                //get the file name for download
+                                if (response.fileName != "") {
+                                    //use window.location.href for redirect to download action for download the file
+                                    window.location.href = "@Url.AbsoluteAction("Download", "Rate")/?fileName=" + response.fileName;
+                                }
+                                selectedRatePacakges = [];
+                                GetSelectedRed();
+                            }
+                            else {
+                                StaticAlert({ content: "Generating Rate Packages to PDF: " + response.Message }).then(() => {
+                                    resolve();
+                                });
+                            }
+                            resolve();
+                        },
+                        error: function (a, b, c) {
+                            StaticAlert({ content: "AJAX callback error, Generating Rate Packages to PDF: " + a.responseText }).then(() => {
+                                resolve();
+                            });
+                        }
+                    });
+                });
+            }).then(() => {
+                return ClearNotificationDialog();
+            });
+        }
+    }
+</script>

@@ -1,0 +1,161 @@
+﻿@*
+    DO NOT MODIFY OUTSIDE OF MSLC.STATLOG
+    This file comes from MSLC.Statlog, any changes to it will be wiped out when the nuget package is updated.
+    Please make the appropriate enhancements to MSLC.Statlog instead of here.
+*@
+
+@model MSLC.StatLog.MVC.ViewModels.MetadataViewModel.Edit
+@{
+    Layout = null;
+}
+@* @Html.Script("~/Scripts/Pages/Metadata/Index.js", "jquery") *@
+@* @Styles.Render("~/Content/Metadata.css") *@
+
+
+<link href="~/Content/south-street/jquery-ui-1.9.2.custom.min.css" rel="stylesheet" />
+@using (Html.BeginForm("Save", "Metadata", FormMethod.Post, new { id = "frmSubmit", enctype = "multipart/form-data", @class = "modal-form", defaultbutton = "btnSave" }))
+{
+    @Html.AntiForgeryToken()
+    @Html.HiddenFor(x => x.ID)
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3 id="myModalLabel" style="text-align: left;">
+                @if (Model.Editable)
+                {
+                    <text>View MetaData</text>
+
+                }
+                else if (Model.ID > 0)
+                {
+
+                    <text>Edit MetaData - @Model.Name - Version @Model.VersionNumber</text>
+                }
+                else
+                {
+                    if (String.IsNullOrWhiteSpace(Model.Name))
+                    {
+                        <text>Add New Metadata</text>
+                    }
+                    else
+                    {
+                        <text>Add New Metadata - @Model.Name</text>
+                    }
+                }
+            </h3>
+            <button href="#" class="close" data-dismiss="modal">&times;</button>
+        </div>
+        <div class="modal-body">
+            <div style="margin: 8px;">
+                <table>
+                    <tr>
+                        <td>
+                            <label class="FormLabel" for="Name">Name:</label>
+                        </td>
+                        <td>
+                            @if (String.IsNullOrEmpty(Model.Name))
+                            {
+                                @Html.TextBoxFor(x => x.Name, new { maxlength = 50 })
+                            }
+                            else
+                            {
+                                @Html.TextBoxFor(x => x.Name, new { @readonly = "readonly" })
+                            }
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <label class="FormLabel" for="XMLSchemaString">XML Schema:</label>
+                        </td>
+                        <td>
+                            @if (Model.Editable)
+                            {
+                                @Html.TextBoxFor(x => x.XMLSchemaString)
+                            }
+                            else
+                            {
+                                @Html.TextBoxFor(x => x.XMLSchemaString, new { @readonly = "readonly" })
+                            }
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <label class="FormLabel" for="DefaultXMLData">Default Data:</label>
+                        </td>
+                        <td>
+                            @if (Model.Editable)
+                            {
+                                @Html.TextBoxFor(x => x.DefaultXMLData)
+                            }
+                            else
+                            {
+                                @Html.TextBoxFor(x => x.DefaultXMLData, new { @readonly = "readonly" })
+                            }
+                        </td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+        <div id="dvFooter" class="modal-footer mslcModalFooter" style="text-align: left !important;">
+            <div class="myImage" style="display: none; text-align: center;">
+                <img src="~/Images/loading.gif" alt="Loading" width="32" height="32" />
+            </div>
+            <div class="myControls">
+                <button class="btn btn-basic BoldMe" data-dismiss="modal" aria-hidden="true">Close</button>
+                @if (Model.Editable)
+                {
+                    <button id="btnSave" type="submit" class="btn btn-success BoldMe">
+                        @(Model.ID > 0
+                            ? "Update Schema"
+                            : String.IsNullOrWhiteSpace(Model.Name)
+                                ? "Add New Schema"
+                                : "Add New Version")
+                    </button>
+                }
+                @* @if ((Model.IsActive == true || Model.IsActive == null) && !String.IsNullOrEmpty(Model.ProvType)) *@
+                @* { *@
+                @*     <button type="submit" class="btn btn-danger BoldMe" name="Command" value="Deactivate">Deactivate</button> *@
+                @*     <text>&nbsp; &nbsp;</text> *@
+                @* } *@
+                @* else if (Model.IsActive == false && !String.IsNullOrEmpty(Model.ProvType)) *@
+                @* { *@
+                @*     <button type="submit" class="btn btn-success BoldMe" name="Command" value="Activate">Activate</button> *@
+                @*     <text>&nbsp; &nbsp;</text> *@
+                @* } *@
+            </div>
+        </div>
+    </div>
+}
+<script type="text/javascript">
+    $(document).ready(function () {
+        var buttonKeys = { "EnterKey": 13 };
+        $("#frmSubmit").keypress(function (e) {
+            if (e.which === buttonKeys.EnterKey) {
+                var defaultButtonId = $(this).attr("defaultbutton");
+                $("#" + defaultButtonId).click();
+                return false;
+            }
+            return true;
+        });
+
+        $("#frmSubmit").on('submit', function () {
+            var message = ValidateForm();
+            if (message.length > 1) {
+                alert(message);
+                return false;
+            }
+
+            return true;
+        });
+    });
+
+    function ValidateForm() {
+        var messages = [];
+        //        if ($('#txtType').val() === '') {
+        //            messages.push("Please Enter Provider Type Key...");
+        //        }
+        //        if ($('#txtName').val() === '') {
+        //            messages.push("Please Enter Name...");
+        //        }
+        return messages.join("\r\n");
+    }
+</script>

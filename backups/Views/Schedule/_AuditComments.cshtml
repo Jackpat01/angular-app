@@ -1,0 +1,881 @@
+﻿@model WebPortal_OH_FI.Models.ViewModels.AuditCommentPerms
+<!-- #region HTML -->
+<!-- #region Modals -->
+<div class="modal fade" id="window_SpecialNarrative" tabindex="-1" role="dialog" aria-labelledby="specialNarrativeTitle" aria-hidden="true">
+	<div class="modal-dialog" role="document">
+		<div class="modal-content">
+			<div class="modal-header">
+				<h4 class="modal-title" id="specialNarrativeTitle">Enter Special Narrative</h4>
+				<button type="button" class="close" data-dismiss="modal" aria-label="Close">&times;</button>
+			</div>
+			<div class="modal-body">
+				<div class="form-group">
+					<label for="sNarrativeNumber">Special Narrative Number:</label>
+					<input type="text" id="sNarrativeNumber" class="form-control" autocomplete="off" />
+				</div>
+				<div class="form-group">
+					<label for="sNarrativeDescription">Description:</label>
+					<textarea id="sNarrativeDescription" class="form-control" rows="4" disabled></textarea>
+				</div>
+				<div id="sNarrativeError" class="text-danger" style="display: none; margin-top: 8px;"></div>
+			</div>
+			<div class="modal-footer">
+				<button type="button" class="btn btn-secondary" id="cancelSNarrativeBtn">Cancel</button>
+				<button type="button" class="btn btn-success" id="saveSNarrativeBtn" disabled>Save</button>
+			</div>
+		</div>
+	</div>
+</div>
+<!-- #endregion -->
+
+<div>
+	<h1>Audit Comments</h1>
+	<div id="auditCommentContainer"></div>
+</div>
+<div id="descriptionPanel">
+	<span style="color: red">Hover over letters for Narrative text</span>
+	<hr />
+	<span id="commentNumber"></span>
+	<div id="descriptionContent">
+	</div>
+</div>
+<!-- #endregion -->
+<!-- #region CSS Styling -->
+<style>
+	#auditCommentContainer {
+		display: flex;
+		width: 70%;
+		margin-top: 20px;
+		margin-left: 16px;
+		flex-direction: column;
+		gap: 10px;
+	}
+
+	.row {
+		display: flex;
+		flex-direction: row;
+		flex-wrap: nowrap;
+		gap: 10px;
+	}
+
+    .item {
+        flex: 1;
+        min-width: 120px;
+        padding: 10px;
+        border: 1px solid #ccc;
+        display: flex;
+        flex-wrap: wrap;
+        align-self: flex-start;
+        align-items: center;
+        justify-content: space-between;
+        background: #fff;
+    }
+
+	.item-content {
+		display: flex;
+		flex-direction: row;
+		align-items: center;
+		justify-content: space-between;
+	}
+
+	.item-content .e-chkbox-wrap {
+		display: inline-block;
+	}
+
+	.feather-arrow-right-circle {
+		padding-left: 10px;
+		width: 18px;
+		height: 18px;
+	}
+
+	.hidden {
+		display: none;
+	}
+
+	.enabled-item {
+		background-color: white;
+		opacity: 1.0;
+		pointer-events: all;
+	}
+
+	.disabled-item {
+		background-color: lightgray;
+		opacity: 0.8;
+		pointer-events: none;
+	}
+
+	#descriptionPanel {
+		margin-top: 50px;
+	}
+
+	#descriptionContent {
+		min-height: 150px;
+		white-space: pre-line;
+	}
+
+	.narrative-button {
+		background: none;
+		border: none;
+		padding: 0;
+		cursor: pointer;
+		color: inherit;
+	}
+
+    .is-invalid {
+        border-color: #dc3545 !important; 
+        box-shadow: 0 0 0 0.2rem rgba(220, 53, 69, 0.25); 
+    }
+
+	.narrative-button:focus, .narrative-button:active {
+		outline: none;
+	}
+
+    .narrative-tooltip {
+		text-wrap: wrap;
+		font-size: .75rem;
+		color: red;
+    }
+</style>
+<!-- #endregion -->
+<!-- #region Functions -->
+<script>
+    /** Records in array contain data to associate records from specialNarratives array to the comments they are attached to */
+    var currentAuditComments = [];
+    /** Records in array contain special narrative data associated with the cost report */
+	var specialNarratives = [];
+	/** Used to determine whether or not page is already in the process of saving a special narrative interaction */
+	var isProgrammaticCheck = false;
+	/** Stores each set of exclusive audit comment groups in a key value pair to have a reference of what each audit comment item is responsible for disabling*/
+	var codeToGroup = {};
+	/** Contains data to determine whether or not an input has been saved after being altered, used to block other events */
+	// var unsavedChanges = { //Currently not used, but may be used for overriding event to leave later
+	// 	IsUnsaved: false,
+	// 	$input: null,
+	// 	$button: null,
+	// 	OriginalValue: null,
+	// 	CommentNumber: null
+	// };
+	var canEdit = @Json.Encode(Model.CanEdit);
+
+	// ========== Entry Logic ==========
+	$(function () {
+		wireDescriptionPanel();
+		wireArrowHover();
+		getAuditCommentData().then((data) => {
+			if (data.Success) initializeAuditCommentGrid(data);
+		});
+	});
+
+	// =========== Ajax Requests ==========
+	/** Responsible for requesting Audit Comment data for the selected cost report */
+	function getAuditCommentData() {
+		return new Promise((resolve, reject) => {
+			$.ajax({
+				async: true,
+				url: '@Url.AbsoluteAction("GetCostReportAuditCommentsModel", "Schedule")',
+				type: 'POST',
+				cache: false,
+				success: (response) => resolve(response),
+				error: (errorMessage) => StaticAlert({content: `${errorMessage.responseText}`}).then(resolve)
+			});
+		});
+	}
+
+	// ========== UI Functionality ==========
+	// ===== Grid Creation
+    /** Use response from the server to update canEdit, currentAuditComments, and specialNarratives for the selected cost report
+     * then generates all the HTML for the audit comment items */
+	function createAuditCommentGrid(response) {
+		const data = response.Data;
+		canEdit = data.AuditCommentPerms.CanEdit;
+		currentAuditComments = data.AuditComments;
+		specialNarratives = data.SpecialNarratives;
+		/** Contains data to used to generate the audit comment items in the UI */
+		var items = data.GridItems; 
+		/** Contains data used to determine which audit comment items cause others to disable in the UI when they are checked */
+		var exclusiveGroups = data.ExclusiveGroups; 
+
+		$.each(exclusiveGroups, function (groupName, narrativeNumber) {
+			$.each(narrativeNumber, function (_, narrativeNumber) {
+				codeToGroup[narrativeNumber] = groupName;
+			});
+		});
+
+		var $container = $('#auditCommentContainer');
+		$container.empty();
+
+		var $row = null;
+
+		//Generate HTML for each audit comment item
+		$.each(items, function (index, item) {
+			// New row every 5 items
+			if (index % 5 === 0) {
+				$row = $('<div class="row"></div>');
+				$container.append($row);
+			}
+			// Handles the empty space where 'R' and 'S' would be
+			if (!item.NarrativeNumber) {
+				$spacer = $('<div class="item" style="border: none;"></div>');
+				$row.append($spacer);
+				return true;
+			}
+
+			var checkboxId = 'chk_' + index;
+
+			//Container for item with Narrative Number and its Description embedded
+			$itemDiv = $('<div class="item enabled-item"></div>')
+				.attr('data-code', item.NarrativeNumber)
+				.attr('data-description', item.Description);
+			
+			var $label = $('<label></label>')
+				.attr('for', checkboxId)
+				.text(item.NarrativeNumber);
+
+			var $itemContent = $('<div class="item-content"></div>')
+
+			// Fires if comment can have special narrative attached to it
+			if (item.HasIcon) {
+				var $iconButton = $(
+					`<button type="button" class="narrative-button" data-code="${item.NarrativeNumber}" aria-label="Add Special Narrative for ${item.NarrativeNumber}">`
+					+ '<span class="arrow" data-feather="arrow-right-circle"></span>'
+					+ '</button>');
+
+				const auditComment = findCommentByCode(item.NarrativeNumber);
+				var specialNarr = null
+
+				if (auditComment != null)
+					specialNarr = findSpecialNarrativeByRecordId(auditComment.SpecialNarrativeId);
+
+				var textVal = specialNarr != null ? specialNarr.NarrativeNumber : '';
+				var $textBox = $(`<input style='width: 3rem;' class="narrative-input" title='There are unsaved changes, click arrow to save' data-originalval='${textVal}' type='text' value='${textVal}'/>`);
+				var $tooltip = $('<div class="narrative-tooltip" hidden>There are unsaved changes. Click arrow to save.</div>');
+				
+				if (!canEdit)
+					$iconButton.prop('disabled', !canEdit).css("cursor", "default");
+
+                $itemContent.append($textBox).append($iconButton);
+                $itemDiv.append($label).append($itemContent).append($tooltip);
+			} else {
+				var $checkbox = $('<input type="checkbox" />')
+					.attr('id', checkboxId)
+					.attr('data-index', index);
+
+				$checkbox.prop('disabled', !canEdit);
+
+				$itemContent.append($checkbox);
+				// Initialize
+				$checkbox.ejCheckBox({
+					checked: item.IsChecked,
+					change: function (args) {
+						//conditional here helps block users from using functionality if they enable in inspector
+						if(canEdit) onAuditCommentChanged(args, item);
+					},
+					enabled: canEdit
+				});
+				$itemDiv.append($label).append($itemContent);
+			}
+
+			$row.append($itemDiv);
+
+		});
+		feather.replace();
+	}
+
+    /** Invokes functions: createAuditCommentGrid & applyExistingState using response from server */
+	function initializeAuditCommentGrid(response) {
+		createAuditCommentGrid(response);
+        //This only does something if there are comments that have been checked for selected cost report
+		applyExistingState(); 
+	}
+
+    /** Loop through currentAuditComments twice, first checking all checkboxes that match each record,
+     * then disables any audit comments exluded due to checked comments exclusivities */
+	function applyExistingState() {
+		// Check the box of each existing audit comment
+		// Update original val attribute for textbox inputs
+		$.each(currentAuditComments, function (_, comment) {
+			var $itemDiv = $('#auditCommentContainer .item[data-code="' + comment.NarrativeNumber + '"]');
+			if (!$itemDiv.length) return;
+
+			var $checkbox = $itemDiv.find('input.e-checkbox');
+			var $textbox = $itemDiv.find('input.narrative-input');
+			var inst = $checkbox.data('ejCheckBox');
+			if (inst) {
+				isProgrammaticCheck = true;
+				inst.option('checked', true);
+				isProgrammaticCheck = false;
+			}
+			if ($textbox.length > 0) {
+				const specialNarr = findSpecialNarrativeByRecordId(comment.SpecialNarrativeId);
+				if (specialNarr != null) $textbox.attr('data-originalval', specialNarr.NarrativeNumber);
+			}
+		});
+
+		// Make sure all are enabled first in case one has been cleared via text box
+        $('#auditCommentContainer .item').removeClass('disabled-item').addClass('enabled-item')
+		$('#auditCommentContainer input[type="checkbox"]').each(function () {
+			var inst = $(this).data('ejCheckBox');
+			// use perm as well so we don't enable everything that was disabled on creation if they don't have perms
+			if (inst && canEdit) inst.option('enabled', true);
+		});
+		$('#auditCommentContainer .narrative-input').each(function () { $(this).prop('disabled', !canEdit); });
+
+		// Apply group disable logic for any checked items
+		$.each(currentAuditComments, function (_, comment) {
+			var myGroup = codeToGroup[comment.NarrativeNumber];
+			if (!myGroup) return;
+
+			$('#auditCommentContainer .item').each(function () {
+				var $itemDiv = $(this);
+				var otherCode = $itemDiv.attr('data-code');
+				if (!otherCode) return;
+				if (otherCode === comment.NarrativeNumber) return;
+				if (codeToGroup[otherCode] !== myGroup) return;
+
+				var $checkbox = $itemDiv.find('input[type="checkbox"]');
+                var $textbox = $itemDiv.find('input.narrative-input');
+				var inst = $checkbox.data('ejCheckBox');
+				if (inst) inst.option('enabled', false);
+				if ($textbox.length > 0) {
+					$textbox.val('');
+					$textbox.attr('data-originalval', '');
+					$textbox.trigger('focusout');
+				}
+				$itemDiv.removeClass('enabled-item').addClass('disabled-item');
+			});
+		});
+	}
+
+	// ===== Hover Events
+    /** Creates mouseover event for every label in a comment item that extracts the comment number and its description from the comment item and then displays it to UI */
+	function wireDescriptionPanel() {
+		$('#auditCommentContainer').on('mouseover', '.item label', function () {
+			var narrNumber = $(this).closest('.item').attr('data-code');
+			var description = $(this).closest('.item').attr('data-description');
+			$('#commentNumber').text(`Comment: ${narrNumber}`);
+			$('#descriptionContent').text(description || '');
+		});
+	}
+
+    /** Creates mouseover event for every arrow in a comment item that extracts the special narrative and its description from the comment item and then displays it to UI
+     * if there is no special narrative assigned uses comment number and its description instead */
+	function wireArrowHover() {
+		$('#auditCommentContainer').on('mouseover', '.narrative-button', function () {
+			var $button = $(this);
+			var code = $button.closest('.item').attr('data-code');
+			var comment = findCommentByCode(code);
+
+			if (!comment || !comment.SpecialNarrativeId) {
+				$('#commentNumber').text(``);
+				$('#descriptionContent').text('');
+				return;
+			}
+
+			var narrative = findSpecialNarrativeByRecordId(comment.SpecialNarrativeId);
+			if (narrative) {
+				$('#commentNumber').text(`Comment: ${narrative.NarrativeNumber}`);
+				$('#descriptionContent').text(narrative.Description);
+			}
+		});
+	}
+
+    /** searches through specialNarratives and checks for an instance with a RecordId matching recordId */
+	function findSpecialNarrativeByRecordId(recordId) {
+		if (specialNarratives.some(s => s.RecordId === recordId)) {
+			return specialNarratives.find(s => s.RecordId === recordId);
+		}
+		return null;
+	}
+
+    // ===== Checkbox Event
+    /** on click event for checkboxes in audit comment item
+	 * if the box was checked, will either open special narrative modal or simply save (if comment can't have special narr attached)
+	 * if the box was unchecked, will delete the audit comment
+	 * lastly, enables/disables exlusive audit comment items */
+	function onAuditCommentChanged(args, gridItem) {
+		if (isProgrammaticCheck) return; // Do not trigger saves during initialization
+
+		var myGroup = codeToGroup[gridItem.NarrativeNumber];
+		var shouldDisable = args.isChecked;
+
+		if (args.isChecked) {
+			if (gridItem.HasIcon) {
+				// Open Modal for Special Narratives
+				openSpecialNarrativeModal(gridItem, false);
+			} else {
+				saveAuditComment(gridItem.NarrativeNumber, null).then(function (result) {
+					if (result && result.Success) {
+						currentAuditComments = result.Data;
+					}
+				});
+			}
+		} else {
+			// Unchecked - delete audit comment record
+			var existing = findCommentByCode(gridItem.NarrativeNumber);
+			if (existing) {
+				deleteAuditComment(existing).then(function (result) {
+					if (result && result.Success) {
+						currentAuditComments = result.Data;
+					}
+				});
+			}
+		}
+
+		if (!myGroup) return; // No group, so nothing to disable.
+
+		$('#auditCommentContainer .item').each(function () {
+			var $itemDiv = $(this);
+			var otherCode = $(this).attr('data-code');
+			if (!otherCode) return;	// Skip spacers
+			if (otherCode === gridItem.NarrativeNumber) return; // Skip self
+			if (codeToGroup[otherCode] !== myGroup) return;	// Different group
+
+			var $checkbox = $itemDiv.find('input.e-checkbox');
+			var inst = $checkbox.data('ejCheckBox');
+			if (inst) {
+				inst.option('enabled', !shouldDisable);
+			}
+
+			// Defer the class change until after EJ1 finishes its re-render cycle
+			(function ($el, disable) {
+				setTimeout(function () {
+					if (disable) {
+						$el.removeClass('enabled-item').addClass('disabled-item');
+					} else {
+						$el.removeClass('disabled-item').addClass('enabled-item');
+					}
+				}, 0);
+			})($itemDiv, shouldDisable);
+		});
+	}
+
+	// ===== Queries 
+	/** Search the currentAuditComments array for records matching the comment code */
+	function findCommentByCode(code) {
+		for (var i = 0; i < currentAuditComments.length; i++) {
+			if (currentAuditComments[i].NarrativeNumber === code) {
+				return currentAuditComments[i];
+			}
+		}
+		return null;
+	}
+
+	/** Search the specialNarratives array for records matching the narrative number */
+	function findSpecialNarrative(narrativeNumber) {
+        if (specialNarratives.some(s => s.NarrativeNumber === narrativeNumber))
+            return specialNarratives.find(s => s.NarrativeNumber === narrativeNumber);
+
+		return null;
+	}
+
+	if (canEdit) { //These events are only needed if perms are present
+        // ===== Arrow Button Event
+        // Handles saving of special narratives to the audit comment
+        $('#auditCommentContainer').off('click.narrbtn').on('click.narrbtn', '.narrative-button', function (e) {
+            e.preventDefault();
+            e.stopPropagation();
+            const $item = $(e.target).closest('.item');
+            const $input = $item.find('.narrative-input');
+            const $label = $item.find('label');
+            $input.val($input.val().replace('x', 'X'));
+
+            const matchedSpecialNarr = findSpecialNarrative($input.val());
+            const matchedAuditComment = findCommentByCode($label.text());
+            const gridItem = { NarrativeNumber: $label.text() };
+
+            if (matchedSpecialNarr == null) {
+                // User is deleting special narrative from audit comment
+                if ($input.val() === '' && matchedAuditComment != null) {
+                    deleteAuditComment(matchedAuditComment).then(function (result) {
+                        if (result && result.Success) {
+                            currentAuditComments = result.Data;
+                            if (!result.Success) {
+                                $error.text('Could not save audit comment. Please contact support.').show();
+                                return;
+                            }
+                        }
+                    }).then(() => {
+                        $input.attr('data-originalVal', '');
+                        $input.trigger('focusout');
+                        applyExistingState();
+                    });
+                    // User is adding a brand new narrative, if the number was empty, passing null forces pop up to focus on special narr input
+                } else openSpecialNarrativeModal(gridItem, true, $input.val() === '' ? null : $input.val(), $input);
+            } else {
+                // User is updating audit comment to an existing narrative
+                if (matchedAuditComment != null) {
+                    deleteAuditComment(matchedAuditComment).then(function (result) {
+                        if (result && result.Success) {
+                            currentAuditComments = result.Data;
+                            if (!result.Success) {
+                                $error.text('Could not save audit comment. Please contact support.').show();
+                                return;
+                            }
+                        }
+                    }).then(commitAuditComment);
+                    // User is adding an existing special narrative to an audit comment that doesn't have a special narrative attached to it yet
+                } else commitAuditComment();
+
+                /** Used to invoke saveAuditComment with error handling specific to click.narrbtn event */
+                function commitAuditComment() {
+                    saveAuditComment(gridItem.NarrativeNumber, matchedSpecialNarr.RecordId).then(function (result) {
+                        if (result && result.Success) {
+                            currentAuditComments = result.Data;
+                            if (!result.Success) {
+                                $error.text('Could not save audit comment. Please contact support.').show();
+                                return;
+                            }
+                        }
+                        $('#window_SpecialNarrative').modal('hide');
+                    }).then(() => {
+                        applyExistingState();
+                        $input.trigger('focusout');
+                    });
+                }
+            }
+        });
+
+        // ===== TextBox Events
+        // When clicking into the input, we hide the tooltip
+        $('#auditCommentContainer').off('click.narrin').on('click.narrin', '.narrative-input', (e) => renderTooltip($(e.target), true));
+        // When the input leaves focus, we check to see if there are unsaved changes in it, if so render the tooltip
+        $('#auditCommentContainer').off('focusout.narrin').on('focusout.narrin', '.narrative-input', function (e) {
+            const $element = $(e.target);
+            renderTooltip($element, !hasUnsavedChanges($element));
+        });
+
+        /** Targets the tool tip corresponding to the input passed in set its visibility */
+        function renderTooltip($input, isVisible) {
+            const tooltip = $input.parent().parent().find('.narrative-tooltip');
+            const invalidClass = 'is-invalid';
+            if (isVisible) {
+                $input.removeClass(invalidClass);
+            } else {
+                $input.addClass(invalidClass);
+            }
+            tooltip.attr('hidden', isVisible);
+        }
+        /** Determines if the value has been changed in a given input without being saved */
+        function hasUnsavedChanges($element) {
+            const value = $element.val();
+            const ogVal = $element.attr('data-originalval');
+            return value != ogVal;
+        } 
+	}
+
+	
+	// // ===== Attempt to Take Control of button and Navigation onClicks
+	// Saving for later since the plan is to attempt to implement this at another time
+	// function overrideOtherElementEvents(selector, event, namespace) {
+ //        $(selector).each(function (index, element) {
+ //            const $element = $(element);
+
+ //            // Get all events attached to the element
+	// 		const existingEvents = $._data(element, 'events') ?? [];
+	// 		let eventsToUse = [];
+ //            for (const eventType in existingEvents) {
+ //                console.log('eventType', eventType);
+ //                if (eventType === event) { // Match specific event
+ //                    const handlers = existingEvents[eventType];
+ //                    console.log('handlers', handlers);
+
+ //                    for (const subevent of handlers) {
+ //                        // Safely invoke the stored event handler
+ //                        console.log('subevent', subevent);
+ //                        if (typeof subevent.handler === 'function' && subevent.namespace === namespace) {
+	// 						eventsToUse.push(subevent);
+ //                        }
+ //                    }
+ //                }
+	// 		}
+	// 		console.log('eventsToUse', eventsToUse);
+ //            // Ensure events exist
+ //            if (Object.keys(existingEvents).length > 0) {
+	// 			// Remove and reattach the event
+	// 			$element.off(event).on(event, function (e) {
+	// 				// e.stopPropagation();
+	// 				// Iterate through all events
+	// 				console.log('eventsToUse', eventsToUse);
+ //                    if (unsavedChanges.IsUnsaved && $element !== unsavedChanges.$button) {
+ //                        // Prevent default action and show alert if there are unsaved changes
+ //                        StaticAlert({
+ //                            title: 'Audit Comments Notification',
+ //                            content: `Audit Comment ${unsavedChanges.CommentNumber} has unsaved changes`,
+ //                            callback: () => unsavedChanges.$input.focus()
+	// 					});
+	// 					return;
+ //                    } else {
+	// 					// Iterate through all events
+	// 					for (const targetEvent in eventsToUse) {
+	// 						console.log('event being used: ', eventsToUse[targetEvent].handler);
+ //                            eventsToUse[targetEvent].handler.call(this);
+	// 					}
+ //                    }
+ //                });
+ //            }
+ //        });
+	// }
+
+
+	// function handlePageLockingWhenUnsave() {
+ //        overrideOtherElementEvents('a', 'click', 'tabindex');
+ //        overrideOtherElementEvents('a', 'keydown', 'tabindex');
+ //        overrideOtherElementEvents('select', 'change', 'tabindex'); 
+
+	// }
+</script>
+<!-- #endregion -->
+<!-- #region Can Edit Functions -->
+@if (Model.CanEdit)
+{
+	<script>
+		// ========== Ajax Requests ==========
+		/** Request to save audit comment to currently selected cost report */
+		function saveAuditComment(commentNumber, specialNarrId, onSuccess) {
+            var auditCommentToSave = {
+                NarrativeNumber: commentNumber,
+                SpecialNarrativeId: specialNarrId
+            };
+			return new Promise((resolve, reject) => {
+				$.ajax({
+					async: true,
+					url: '@Url.AbsoluteAction("SaveCostReportAuditCommentModel","Schedule")',
+					type: 'POST',
+                    data: JSON.stringify({ model: auditCommentToSave }),
+					contentType: 'application/json;charset=utf-8',
+					success: (result) => resolve(result),
+					error: (result) => handleError(result, resolve)
+				});
+			});
+		}
+		/** Request to save special narrative to currently selected cost report */
+		function saveNewSpecialNarrative(narrativeNumber, description) {
+			return new Promise((resolve, reject) => {
+				var newSpecialNarrative = {
+					NarrativeNumber: narrativeNumber,
+					Description: description
+				};
+
+				$.ajax({
+					async: true,
+					url: '@Url.AbsoluteAction("SaveCostReportSpecialNarrativeModel","Schedule")',
+					type: 'POST',
+					data: JSON.stringify({ model: newSpecialNarrative }),
+					contentType: 'application/json;charset=utf-8',
+					success: (result) => resolve(result),
+					error: (result) => handleError(result, resolve)
+				});
+			});
+		}
+		/** Request to delete audit comment from currently selected cost report */
+		function deleteAuditComment(data) {
+			return new Promise((resolve, reject) => {
+				$.ajax({
+					async: true,
+					url: '@Url.AbsoluteAction("DeleteCostReportAuditCommentModel","Schedule")',
+					data: JSON.stringify({model: data}),
+					type: 'POST',
+					contentType: 'application/json;charset=utf-8',
+					success: (result) => resolve(result),
+					error: (result) => handleError(result, resolve)
+				});
+			});
+		}
+		/** Handles creating the static alert whenever an Ajax request defined above fails */
+		function handleError(result, promiseResolve) {
+			StaticAlert({ content: `Audit Comments Error: ${result.Message}` }).then(() => {
+				promiseResolve();
+			});
+		}
+
+		// ========== UI Functionality ==========
+        /** Opens special narratives modal and initializes events for its UI elements */
+		function openSpecialNarrativeModal(gridItem, fromButton, specialNarr, $input) {
+			var $number = $('#sNarrativeNumber');
+			var $description = $('#sNarrativeDescription');
+			var $saveBtn = $('#saveSNarrativeBtn');
+			var $cnclBtn = $('#cancelSNarrativeBtn');
+			var $error = $('#sNarrativeError');
+
+			var existingNarrative = null;
+			var lookupTimer = null;
+			var LOOKUP_DELAY = 400;
+			var isSpecialNarrNull = specialNarr == null
+
+			// Reset state
+			$number.val(specialNarr);
+			$description.val('');
+			$description.prop('disabled', isSpecialNarrNull);
+            $saveBtn.prop('disabled', isSpecialNarrNull);
+			$error.hide().text('');
+			existingNarrative = null;
+
+			// Number input
+			$number.off('input.snarr').on('input.snarr', function () {
+				$number.val($number.val().replace('x', 'X'));
+				var entered = $.trim($number.val());
+
+				$error.hide();
+
+				if (!entered) {
+					$description.val('').prop('disabled', true);
+					$saveBtn.prop('disabled', true);
+					existingNarrative = null;
+					return;
+				}
+
+				var found = findSpecialNarrative(entered);
+				
+				if (found) {
+					existingNarrative = found;
+					$description.val(found.Description).prop('disabled', true);
+					$saveBtn.prop('disabled', false);
+				} else {
+					if (existingNarrative != null) {
+						$description.val('');
+						$saveBtn.prop('disabled', true);
+					}
+
+					existingNarrative = null;
+					$description.prop('disabled', false);
+
+					// Save button enables once there is text in the description box
+					var hasDescription = $.trim($description.val()).length > 0;
+					$saveBtn.prop('disabled', false);
+				}
+			});
+			$number.off('change.snarr').on('change.snarr', function () {
+                $input.val($number.val());
+			});
+
+			// NFOFI-6682 Description being blank should not disable the save button
+			// Description input for adding new Special Narrative
+			// $description.off('input.snarr').on('input.snarr', function () {
+			// 	if (existingNarrative) return;
+			// 	var hasContent = $.trim($description.val()).length > 0;
+			// 	$saveBtn.prop('disabled', !hasContent);	// A character has been entered, enable saving
+			// });
+
+			// Save button
+			$saveBtn.off('click.snarr').on('click.snarr', function () {
+				var number = $.trim($number.val());
+				var description = $.trim($description.val());
+
+                if (number == '') {
+                    StaticAlert({
+                        title: 'Special Narrative Save Notification',
+                        content: 'Please enter a special narrative.',
+                        callback: () => $description.focus()
+                    });
+                    return;
+                }
+
+				if (description == '') {
+                    StaticAlert({
+                        title: 'Special Narrative Save Notification',
+						content: 'Please enter a description.',
+						callback: () => $description.focus()
+					});
+					return;
+				}
+
+                /** if special narrative exists, this will attempt to save the audit comment
+				 * if special narrative does not exist, this will attempt to save the special narrative and upon success it will save the audit comment as well 
+				 * on success, the special narratives modal will close, if there was a failure, modal with persist with error text inside 
+				 * NOTICE: This also covers how the callback function in the current invocation below works as well */
+				function persistNarrativeIfNeeded(callback) {
+					if (existingNarrative) {
+						callback(true, existingNarrative.RecordId);	// Already exists, nothing to save
+					} else {
+						saveNewSpecialNarrative(number, description).then(function (result) {
+							//TODO: make call to save audit comment here
+							if (!result || !result.Success) {
+								callback(false, null);
+								return;
+							}
+
+							//Update current specialNarratives with what returns from server, since it is the source of truth
+							specialNarratives = result.Data;
+
+							//If the record is not null, that means that the save attempt was successful
+							var newRecord = null;
+							if (specialNarratives.some(s => s.NarrativeNumber === number)) {
+								newRecord = specialNarratives.find(s => s.NarrativeNumber === number);
+							}
+
+							callback(newRecord != null, newRecord ? newRecord.RecordId : null);
+						});
+					}
+				}
+				
+				persistNarrativeIfNeeded(function (success, narrativeRecordId) {
+					if (!success) {
+						$error.text('Could not save narrative. Please contact support.').show();
+						return;
+					}
+
+					let ogVal = $input.attr('data-originalval');
+					let newVal = $input.val()
+
+					if (newVal != ogVal && ogVal !== '') {
+                        var existing = findCommentByCode(gridItem.NarrativeNumber);
+						deleteAuditComment(existing).then(function (result) {
+                            if (result && result.Success) {
+                                currentAuditComments = result.Data;
+                                if (!success) {
+                                    $error.text('Could not save audit comment. Please contact support.').show();
+                                    return;
+                                }
+                            }
+						}).then(function () {
+							saveAuditComment(gridItem.NarrativeNumber, narrativeRecordId).then(function (result) {
+								if (result && result.Success) {
+									currentAuditComments = result.Data;
+									if (!success) {
+										$error.text('Could not save audit comment. Please contact support.').show();
+										return;
+									}
+									applyExistingState();
+									$input.trigger('focusout');
+								}
+								$('#window_SpecialNarrative').modal('hide');
+							});
+						});
+					} else {
+						saveAuditComment(gridItem.NarrativeNumber, narrativeRecordId).then(function (result) {
+                    		if (result && result.Success) {
+								currentAuditComments = result.Data;
+								if (!success) {
+									$error.text('Could not save audit comment. Please contact support.').show();
+									return;
+								}
+								applyExistingState();
+								$input.trigger('focusout');
+							}
+                    		$('#window_SpecialNarrative').modal('hide');
+						});
+					}
+
+				});
+			});
+
+            $cnclBtn.off('click.snarr').on('click.snarr', function () {
+                setTimeout(() => {
+					if (hasUnsavedChanges($input)) $input.val('');
+					$input.trigger('click');
+                    $input.focus();
+                }, 300);
+
+                $('#window_SpecialNarrative').modal('hide');
+			});
+
+			$('#window_SpecialNarrative').modal('show');
+			setTimeout(function () {
+                isSpecialNarrNull ? $number.focus() : $description.focus();
+			}, 500);
+		}
+	</script>
+	<!-- #endregion -->
+}
+
+

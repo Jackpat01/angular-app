@@ -1,0 +1,82 @@
+﻿@*
+    DO NOT MODIFY OUTSIDE OF MSLC.STATLOG
+    This file comes from MSLC.Statlog, any changes to it will be wiped out when the nuget package is updated.
+    Please make the appropriate enhancements to MSLC.Statlog instead of here.
+*@
+
+@using MSLC.Portal.MVC.Utility
+@using MSLC.StatLog.Configuration
+@model MSLC.StatLog.MVC.ViewModels.EventViewModel.Manage
+
+<div class="d-flex flex-column">
+    <div class="row m-2">
+        <div class="col-2">
+            Upload Enabled for Event:
+        </div>
+        <div class="col-9">
+            @Model.UploadEnabled
+        </div>
+    </div>
+    @if (!String.IsNullOrEmpty(Model.CurrentFileType))
+    {
+        <div class="row m-2">
+            <div class="col-2">
+                File Type for Upload:
+            </div>
+            <div class="col-9">
+                @Model.CurrentFileType
+            </div>
+        </div>
+    }
+    @if (!String.IsNullOrEmpty(Model.AllowedExtensions))
+    {
+        <div class="row m-2">
+            <div class="col-2">
+                Allowed File Extensions:
+            </div>
+            <div class="col-9">
+                @Model.AllowedExtensions
+            </div>
+        </div>
+    }
+
+    @if (Model.FileNameTemplates.Any())
+    {
+	    <div class="row m-2">
+		    <div class="col-2">
+			    File Name Templates:
+			</div>
+		    <div class="col-9">
+
+			    @foreach (string fileNameTemplate in Model.FileNameTemplates)
+			    {
+				    <div class="my-1">
+					    @fileNameTemplate
+				    </div>
+			    }
+		    </div>
+	    </div>
+    }
+
+    @if (StatLogConfiguration.IsPHIControlsEnabled)
+    {
+        if (!String.IsNullOrEmpty(Model.IsPHIUpload))
+        {
+            <hr class="m-0" />
+            <div class="row m-2">
+                <div class="col-2">
+                    @Model.IsPHIUpload
+                </div>
+            </div>
+        }
+    }
+
+    <div class="button-box">
+        <a onclick="return modalButton(this, 'tallerWidest')" href="@Url.Action("EditFiles", "Event", new
+            {
+                sEventID = Model.sEventID,
+                CurrentApplicationFileTypeID = Model.CurrentFileTypeID
+            })"
+           class="btn btn-kyBlue BoldMe">Edit Event File Options</a>
+    </div>
+</div>

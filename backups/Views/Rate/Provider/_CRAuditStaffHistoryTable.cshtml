@@ -1,0 +1,104 @@
+﻿<div id="window_crauditstafftablehistory" class="modal fade" data-backdrop="static">
+    ﻿
+    <div class="modal-dialog modal-lg" role="document" style="max-width:1200px">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Cost Report Audit Staff Table History</h3>
+                <button type="button" class="close" data-dismiss="modal" onclick="closeAuditStaffHistory()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <table style="width: 100%;">
+                    <colgroup>
+                        <col />
+                    </colgroup>
+                    <tbody>
+                        <tr>
+                            <td>
+                                <center>
+                                    <div id="tblCRAuditStaffTableHistory"></div>
+                                </center>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    $(document).ready(function () {
+        //========== Logic that Fires when Page Loads ==========
+        LoadNotificationDialog("Loading").then(() => {
+            LoadHistory().then((data) => {
+                if (data !== undefined)
+                    RenderTable(data);
+            });
+        }).then(() => ClearNotificationDialog());
+
+        //========== Ajax Requests ==========
+        function LoadHistory() {
+            return new Promise((resolve, reject) => {
+                let userId = $("#hdnUserId").val();
+                $.ajax({
+                    async: true,
+                    url: "@Url.AbsoluteAction("GetCRAuditStaffTableHistory", "Rate")",
+                    data: JSON.stringify({ 'userId':userId }),
+                    type: "POST",
+                    cache: false,
+                    contentType: "application/json;charset=utf-8",
+                    success: (result) => resolve(result),
+                    error: function (errormessage) {
+                        StaticAlert({ content: "CR Staff Table Error: " + errormessage.responseText }).then(() => {
+                            resolve();
+                        });
+                    }
+                });
+            });
+        }
+
+        //========== Table Functionality =========
+        function RenderTable(result) {
+            var cols = [];
+            cols.push({ field: 'Action', headerText: 'Action' });
+            cols.push({ field: 'Mnemonic', headerText: 'User Type' });
+            cols.push({ field: 'FirstName', headerText: 'First Name' }); //width: "130px"
+            cols.push({ field: 'LastName', headerText: 'Last Name' });
+            cols.push({ field: 'LegacyStaffId', headerText: 'CR Staff Id' });
+            cols.push({ field: 'PhoneNumber', headerText: 'Phone Number' });
+            cols.push({ field: 'Email', headerText: 'Email' });
+            cols.push({ field: 'ActiveFlag', headerText: 'Active Flag' });
+            cols.push({ field: 'LastUpdateBy', headerText: 'Last Update By' });
+            cols.push({ field: 'LastUpdatedOn', headerText: 'Last Updated On' });
+
+            const toolbarSettings = { showToolbar: false };
+            const pageSettings = { pageSize: 5, pageSizeList: [5, 10, 15, 20] };
+            const textWrapSettings = { wrapMode: ej.Grid.WrapMode.Both };
+            const editSettings = { allowEditing: false, allowAdding: false, allowDeleting: false, showDeleteConfirmDialog: false };
+
+            $("#tblCRAuditStaffTableHistory").ejGrid({
+                dataSource: result.Data,
+                columns: cols,
+                toolbarSettings: toolbarSettings,
+                pageSettings: pageSettings,
+                allowPaging: true,
+                enableRowHover: false,
+                allowSelection: false,
+                allowSorting: true,
+                allowTextWrap: true,
+                textWrapSettings: textWrapSettings,
+                editSettings: editSettings,
+                cssClass: 'mslcTable',
+                locale: 'en-US'
+            });
+        }
+
+    });
+
+    //========== On Click Functions =========
+    function closeAuditStaffHistory() {
+        LoadNotificationDialog("Closing Staff History...").then(() => {
+            $("#window_crauditstafftablehistory").hide();
+        }).then(() => ClearNotificationDialog());
+    }
+</script>

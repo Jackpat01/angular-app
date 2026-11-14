@@ -1,0 +1,300 @@
+﻿@using MSLC.Portal.MVC.Utility
+@model WebPortal_OH_FI.Models.CostReport.Index
+
+@{
+    Layout = "~/Views/Shared/_LayoutCostReport.cshtml";
+    bool isCollapsed = Model.IsCollapsed;
+}
+
+
+<div id="MainTab" class="nav">
+    <ul id="MainTabIndex"></ul>
+</div>
+
+<div id="window_SelectDocument" class="modal fade" role="dialog">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Cost Report Selection</h3>
+                <button type="button" class="close" data-dismiss="modal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p>Select the Cost Report you wish to create or work with by choosing the facility, the correct reporting period, the cost report type and the version. The CY for the Reporting Period is determined based on the Year of the Cost Report Period End Date only. For example if a cost report for the period 12/15/2023 – 03/31/2024 is being created you would choose CY2024 from the Reporting Period dropdown.</p>
+                <table style="width: 100%;">
+                    <colgroup>
+                        <col style="width: 9rem;" />
+                        <col />
+                    </colgroup>
+                    <tbody>
+                        <tr>
+                            <td style="text-align: right; padding-right: .5rem;"><label for="FacilityIndex_dropdown">Facility:</label></td>
+                            @*<td><select id="FacilityIndex" style="width: 90%;"></select></td>*@
+                            <td style="padding: 4px 6px">
+                                @(Html.EJ()
+                                    .Autocomplete("FacilityIndex")
+                                    .Datasource(Model.AutoProviderInformation)
+                                    .AutocompleteFields(e => e.Text("Name").Key("Number"))
+                                    .WatermarkText("Provider search")
+                                    .MinCharacter(0)
+                                    .MultiColumnSettings(obj => obj.Enable(true).Columns(obj1 =>
+                                    {
+                                        obj1.Field("Name").HeaderText("Name").Add();
+                                        obj1.Field("Number").HeaderText(Model.PrimaryIdentifier).Add();
+                                    }).ShowHeader(true).SearchColumnIndices(new List<int> { 1, 0 }).StringFormat("{0}"))
+                                    .HighlightSearch(true)
+                                    .Width("94%")
+                                    .ClientSideEvents(e =>
+                                    {
+                                        e.Open("FixDuplicateClasses");
+                                        e.Select("FacilityIndexSelect");
+                                    })
+                                    .PopupHeight("400px")
+                                    .AllowSorting(true).SortOrder(SortOrder.Ascending)
+                                    .ShowPopupButton(true)
+                                    .EmptyResultText("No Provider(s) found in list."))
+                            </td>
+                        </tr>
+                        <tr>
+                            <td style="text-align: right; padding-right: .5rem;"><label for="PeriodIndex">Reporting Period:</label></td>
+                            <td><select id="PeriodIndex" style="width: 90%;"></select></td>
+                        </tr>
+                        <tr>
+                            <td style="text-align: right; padding-right: .5rem;"><label for="CostReportTypeIndex">Cost Report Type:</label></td>
+                            <td><select id="CostReportTypeIndex" style="width: 90%;"></select></td>
+                        </tr>
+                        <tr>
+                            <td style="text-align: right; padding-right: .5rem;"><label for="DocumentIndex">Version:</label></td>
+                            <td><select id="DocumentIndex" style="width: 90%;"></select></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <div class="modal-footer">
+                <span>
+                    <button type="submit" name="Command" id="btnSubmit" value="Upload" class="btn btn-success BoldMe" onclick="return window.CostReport.Selection.CheckForm(this);">Select</button>
+                    <button type="button" class="btn btn-success" data-dismiss="modal">Cancel</button>
+                </span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="myControls">
+    <div id="SelectionBrief" style="margin: .5rem 0; padding: 8px 0; background-color: #f1f1f1; border: solid #4e4c4c 1px; border-radius: .25rem; overflow: hidden;">
+        <div style="float: left; padding: .25rem .5rem;">
+            <span id="SelectionSummary" style="font-weight: bold;"></span>
+        </div>
+        <div style="float: right; width: 14rem; text-align: right; padding: 0 .5rem 0 0;">
+            <button type="button" class="expands" aria-label="Expand"></button>
+        </div>
+    </div>
+    <div id="SelectionVerbose" style="margin: .5rem 0; padding: 8px 0; background-color: #f1f1f1; border: solid #4e4c4c 1px; border-radius: .25rem; min-height: 2rem; overflow: hidden;">
+        <div style="float: left; padding: 0 .5rem;">
+            <div>Reporting Period <span id="ReportingPeriod" style="font-weight: bold;"></span></div>
+            <div>Facility <span id="Facility" style="font-weight: bold;"></span></div>
+            <div>Cost Report Type <span id="CostReportType" style="font-weight: bold;"></span></div>
+            <div>Version <span id="Document" style="font-weight: bold;"></span></div>
+        </div>
+        <div style="float: right; width: 16rem; text-align: right; padding: 0 .5rem 0 0;">
+            <div style="padding-bottom: .5rem"><button type="button" class="collapses" aria-label="Collapse/Expand"></button></div>
+            <div><a class="btn btn-success" data-toggle="modal" href="#window_SelectDocument" data-backdrop="static">Select Cost Report Data</a></div>
+        </div>
+    </div>
+</div>
+
+<div id="SubTab" class="nav">
+    <ul id="SubTabIndex"></ul>
+</div>
+<div id="ChildTab" class="nav">
+    <ul id="ChildTabIndex"></ul>
+</div>
+<div id="notificationModalBody">
+</div>
+<div id="viewport" style="margin-bottom: 1rem; position: relative">
+</div>
+
+<script src="/Scripts/Pages/CostReport/Index.js"></script>
+<script>
+    $(document).ready(function () {
+        document.title = "Cost Report Index";
+
+        window.URL["GetCostReportTypeIndex"] = "@Url.AbsoluteAction("GetCostReportTypeIndex", "CostReport")";
+        window.URL["GetDocumentIndex"] = "@Url.AbsoluteAction("GetDocumentIndex", "CostReport")";
+        window.URL["GetFacilityIndex"] = "@Url.AbsoluteAction("GetFacilityIndex", "CostReport")";
+        window.URL["GetReportingPeriodIndex"] = "@Url.AbsoluteAction("GetReportingPeriodIndex", "CostReport")";
+        window.URL["GetSelectedDocument"] = "@Url.AbsoluteAction("SelectedDocument", "CostReport")";
+        window.URL["GetSelectedTab"] = "@Url.AbsoluteAction("SelectedTab", "CostReport")";
+        window.URL["GetTabIndex"] = "@Url.AbsoluteAction("TabIndex", "CostReport")";
+        window.URL["SelectDocument"] = "@Url.AbsoluteAction("SelectDocument", "CostReport")";
+        window.URL["SelectTab"] = "@Url.AbsoluteAction("SelectTab", "CostReport")";
+        window.URL["Recalculate"] = "@Url.AbsoluteAction("Recalculate", "Schedule")";
+        window.URL["Viewport"] = "@Url.AbsoluteAction("Viewport", "CostReport")";
+        window.URL["GetCostReportSubmissionStatus"] = "@Url.AbsoluteAction("GetCostReportSubmissionStatus","CostReport")";
+        window.URL["SubmitCostReport"] = "@Url.AbsoluteAction("SubmitCostReport", "CostReport")";
+        window.URL["ImportHistorical"] = "@Url.AbsoluteAction("ImportHistorical", "Management")";
+        window.URL["ImportHistoricalProgressCheck"] = "@Url.AbsoluteAction("ImportHistoricalProgressCheck", "Management")";
+        window.URL["ImportCertifiedBeds"] = "@Url.AbsoluteAction("ImportCertifiedBeds", "Management")";
+        window.URL["GetCurrentProviderRole"] = "@Url.AbsoluteAction("GetCurrentProviderRole", "CostReport")";
+        window.URL["GetOCRTData"] = "@Url.AbsoluteAction("GetOcrtData", "CostReport")";
+        window.URL["GetTBData"] = "@Url.AbsoluteAction("GetTbData", "CostReport")";
+        window.URL["UpdateDataBatch"] = "@Url.AbsoluteAction("UpdateBatch", "Schedule")";
+        window.URL["CopyCrossOcrtToTb"] = "@Url.AbsoluteAction("CrossDocumentToTB", "CostReport")";
+        window.URL["CopyCrossTbToOCRT"] = "@Url.AbsoluteAction("CrossDocumentToOCRT", "CostReport")";
+        window.URL["UpdateCostReport"] = "@Url.AbsoluteAction("UpdateCostReport", "CostReport")";
+        window.URL["ReadValues"] = "@Url.AbsoluteAction("ReadValues", "Schedule")";
+        window.URL["RecalculateAuditAdjustment"] = "@Url.AbsoluteAction("RecalculateAuditAdjustment", "Schedule")";
+
+        // This will reset the useLocalCalculations flag if there is a reload.
+        window.useLocalCalculations = @Json.Encode(Model.UseLocalCalculations);
+
+        window.selection = {
+            isCollapsed: @Html.Raw(isCollapsed ? "true" : "false"),
+            collapse: function (speed) {
+                if (!speed) speed = 0;
+                $(".myControls .collapses").hide();
+                $("#SelectionVerbose").slideUp(speed,
+                    function() {
+                        $(".myControls .expands").show();
+                        $("#SelectionBrief").slideDown(speed);
+                    });
+            },
+
+            expand: function (speed) {
+                if (!speed) speed = 0;
+                $(".myControls .expands").hide();
+                $("#SelectionBrief").slideUp (speed,
+                    function() {
+                        $(".myControls .collapses").show();
+                        $("#SelectionVerbose").slideDown(speed);
+                    });
+            }
+        };
+
+        if (window.selection.isCollapsed) {
+            window.selection.collapse(0);
+        } else {
+            window.selection.expand(0);
+        }
+
+        $(".myControls .collapses")
+            .off(".sizing")
+            .on("click.sizing",
+                function() {
+                    window.selection.collapse(500);
+                    $.ajax({ async: true, url: "@Url.AbsoluteAction("Collapse", "CostReport")", cache: false, type: "POST" });
+                });
+
+        $(".myControls .expands")
+            .off(".sizing")
+            .on("click.sizing",
+                function() {
+                    window.selection.expand(500);
+                    $.ajax({ async: true, url: "@Url.AbsoluteAction("Expand", "CostReport")", cache: false, type: "POST" });
+                });
+
+        return LoadNotificationDialog("Loading...").then(() => {
+        //    return window.CostReport.Selection.LoadPeriodIndex();
+        //}).then(() => {
+        //    return window.CostReport.Selection.LoadCostReportTypeIndex();
+        //}).then(() => {
+            // by default, hide the sub and child menu lines.
+            let elemChild = document.getElementById("ChildTab");
+            elemChild.style.display = "none";
+            let elemSub = document.getElementById("SubTab");
+            elemSub.style.display = "none";
+
+            //$("#PeriodIndex").change(function () {
+            //    ////console.log("PeriodIndex change");
+            //    return window.CostReport.Selection.LoadCostReportTypeIndex().then(() => {
+            //        return window.CostReport.Selection.LoadDocumentIndex();
+            //    });
+            //});
+
+            //$("#FacilityIndex").change(function () {
+            //    ////console.log("FacilityIndex change");
+            //    return window.CostReport.Selection.LoadPeriodIndex().then(() => {
+            //        return window.CostReport.Selection.LoadCostReportTypeIndex();
+            //    }).then(() => {
+            //        return window.CostReport.Selection.LoadDocumentIndex();
+            //    });
+            //});
+
+            //$("#CostReportTypeIndex").change(function () {
+            //    ////console.log("CostReportTypeIndex change");
+            //    return window.CostReport.Selection.LoadDocumentIndex();
+            //});
+
+            $("#CostReportSelection_Set")
+                .off(".crselection")
+                .on("click.crselection", function () {
+                    return window.CostReport.Selected.Prompt();
+                });
+            $('#window_SelectDocument')
+                .off("show.bs.modal")
+                .on('show.bs.modal',
+                    function (event) {
+                        // show the "Loading..." on the period drop down
+                        return window.CostReport.Selection.LoadPeriodIndex(true).then(() => {
+                            // show the "Loading..." on the cost report type drop down
+                            return window.CostReport.Selection.LoadCostReportTypeIndex(true);
+                        }).then(() => {
+                            // show the "Loading..." on the version drop down
+                            return window.CostReport.Selection.LoadDocumentIndex(true);
+                        }).then(() => {
+                            // Set focus to the "first" field in the form.
+                            setTimeout(() => {
+                                requestAnimationFrame(() => {
+                                    $("#FacilityIndex").focus();
+                                    if ($("#FacilityIndex").val() != "") return LoadDropdowns();
+                                });
+                            }, 250);
+                        });
+                    });
+
+            return window.CostReport.Selected.Show();
+        //}).then(() => {
+        //    return window.CostReport.Selection.LoadDocumentIndex();
+        }).then(() => {
+            return ClearNotificationDialog();
+        });
+    });
+
+    function FacilityIndexSelect(args) {
+        var data = args.model.dataSource;
+        var selected = args.item;
+
+        var ARUMProviderID = 0;
+
+        $.each(data, function (index, row) {
+            if (row["ARUMProviderID"] === selected["ARUMProviderID"]) {
+                ARUMProviderID = row["ARUMProviderID"];
+                $("#hdnProviderID").val(ARUMProviderID);
+                $("#hdnProviderName").val(selected["Name"]);
+                $("#hdnProviderIdentifier").val(selected["Number"]);
+                return;
+            }
+        });
+
+        if (ARUMProviderID !== null) {
+            window.CostReport.Selection.ProviderId = ARUMProviderID;
+            //window.CostReport.Selection.LoadCostReportTypeIndex(null);
+
+            $("#FacilityIndex").val(selected["Name"] + " - " + selected["Number"]);
+            //$("#PeriodIndex option:first").prop("selected", true);
+
+            return LoadDropdowns();
+        }
+    }
+
+    function LoadDropdowns() {
+        return window.CostReport.Selection.LoadPeriodIndex(true).then(() => {
+            // show the "Loading..." on the cost report type drop down
+            return window.CostReport.Selection.LoadCostReportTypeIndex(true);
+        }).then(() => {
+            // show the "Loading..." on the version drop down
+            return window.CostReport.Selection.LoadDocumentIndex(true);
+        }).then(() => {
+            return window.CostReport.Selection.LoadPeriodIndex();
+        });
+    }
+</script>

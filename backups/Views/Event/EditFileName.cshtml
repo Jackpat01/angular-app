@@ -1,0 +1,163 @@
+﻿@*
+	DO NOT MODIFY OUTSIDE OF MSLC.STATLOG
+	This file comes from MSLC.Statlog, any changes to it will be wiped out when the nuget package is updated.
+	Please make the appropriate enhancements to MSLC.Statlog instead of here.
+*@
+
+@model MSLC.StatLog.MVC.ViewModels.ManageFileNamesViewModel.Edit
+@{
+	Layout = null;
+}
+<link href="~/Content/south-street/jquery-ui-1.9.2.custom.min.css" rel="stylesheet" />
+@using (Html.BeginForm("SaveFileName", "Event", FormMethod.Post, new { id = "frmSubmit", enctype = "multipart/form-data", @class = "modal-form", defaultbutton = "btnSave" }))
+{
+    @Html.AntiForgeryToken()
+	<div class="modal-content">
+		<div class="modal-header">
+			<h3 id="myModalLabel" style="text-align: left;">
+				@if (!String.IsNullOrEmpty(Model.FileNameTemplate.Template))
+				{
+					<text>Edit</text>
+				}
+				else
+				{
+					<text>Add</text>
+				}
+				File Name Template
+			</h3>
+			<button href="#" class="close" data-dismiss="modal">&times;</button>
+		</div>
+		@* @Html.HiddenFor(x => x.IsActive, new { id = "hdnIsActive" }) *@
+		<div class="modal-body">
+			<div style="margin: 8px;">
+				<div style="margin: 8px;">
+					Template should not contain the extension, as that is managed in other places.
+				</div>
+				<table>
+					<tr><td colspan="2" style="height: 5px;"></td></tr>
+					<tr>
+						<td>
+							<label class="FormLabel" for="txtFileName">Display Name:</label>
+						</td>
+						<td>
+							@if (!String.IsNullOrEmpty(Model.FileNameTemplate.Template))
+							{
+								@Html.TextBoxFor(x => x.FileNameTemplate.FileName, new { id = "txtFileName", @readonly = "readonly" })
+							}
+							else
+							{
+								@Html.TextBoxFor(x => x.FileNameTemplate.FileName, new { id = "txtFileName" }) 
+							}
+						</td>
+					</tr>
+					<tr>
+						<td>
+							<label class="FormLabel" for="txtTemplate">File Template:</label>
+						</td>
+						<td>
+							@Html.TextBoxFor(x => x.FileNameTemplate.Template, new { id = "txtTemplate" })
+						</td>
+					</tr>
+				</table>
+				<div class="border-top m-2 pt-2">
+					<div class="my-1">To allow any character to be in the file name at a spot, add {NAME:LENGTH} to the Template. This will also let us in the future pull out data from the file name.</div>
+					<div class="my-1">
+						For example:
+						<div class="ml-4">
+							<strong>"{PostDate:6}-Upload-Report"</strong> will allow the upload of the file <strong>"022024-Upload-Report"</strong>
+						</div>
+						<div class="ml-4">
+							<strong>"NODATE-Upload-Report"</strong> would also be a valid file name under that template.
+						</div>
+						<div class="ml-4">
+							In both cases though, in the future we would be able to build something to match PostDate to the value in the filename.
+						</div>
+						<div class="ml-4">
+							PostDate - 202024
+						</div>
+						<div class="ml-4">
+							PostDate - NODATE
+						</div>
+					</div>
+				</div>
+				<div class="border-top m-2 pt-2">
+					<div class="my-1">File name Hooks will be replaced in the template with their corresponding data.</div>
+					<div class="my-1">
+						For example:
+						<div class="ml-4">
+							<strong>"H2-{{ARUM.MCAID}}-Report"</strong> will become <strong>"H2-345215-Report"</strong>
+						</div>
+						<div class="ml-4">
+							If no MCAID could be found, instead it will become <strong>"H2-Missing-Report"</strong>
+						</div>
+					</div>
+							
+				</div>
+				<div class="mt-3">
+					<div class="my-1" >
+						File Name data hooks:
+					</div>
+					@foreach (string hook in Model.DataHooks)
+					{
+						<div class="my-1 ml-2">
+							@hook
+						</div>
+					}
+				</div>
+			</div>
+		</div>
+		<div id="dvFooter" class="modal-footer mslcModalFooter" style="text-align: left !important;">
+			<div class="myImage" style="display: none; text-align: center;">
+				<img src="~/Images/loading.gif" alt="Loading" width="32" height="32" />
+			</div>
+			<div class="myControls">
+				<button class="btn btn-basic BoldMe" data-dismiss="modal" aria-hidden="true">Close</button>&nbsp;&nbsp;
+				<button id="btnSave" type="submit" class="btn btn-success BoldMe" name="Command" value="Save">Save</button><text>&nbsp;&nbsp;</text>
+				@*@if ((Model.IsActive == true || Model.IsActive == null) && !String.IsNullOrEmpty(Model.FileNameTemplate.Template))
+				{
+					<button type="submit" class="btn btn-danger BoldMe" name="Command" value="Deactivate">Deactivate</button>
+					<text>&nbsp; &nbsp;</text>
+				}
+				else if (Model.IsActive == false && !String.IsNullOrEmpty(Model.FileNameTemplate.Template))
+				{
+					<button type="submit" class="btn btn-success BoldMe" name="Command" value="Activate">Activate</button>
+					<text>&nbsp; &nbsp;</text>
+				}*@
+			</div>
+		</div>
+	</div>
+}
+<script type="text/javascript">
+    $(document).ready(function () {
+        var buttonKeys = { "EnterKey": 13 };
+        $("#frmSubmit").keypress(function (e) {
+            if (e.which === buttonKeys.EnterKey) {
+                var defaultButtonId = $(this).attr("defaultbutton");
+                $("#" + defaultButtonId).click();
+                return false;
+            }
+            return true;
+        });
+
+        $("#frmSubmit").on('submit', function () {
+            var message = ValidateForm();
+            if (message.length > 1) {
+                alert(message);
+                return false;
+            }
+
+            return true;
+        });
+    });
+
+    function ValidateForm() {
+        var messages = [];
+		if ($('#txtFileName').val() === '') {
+			messages.push("Please Enter File Name...");
+		}
+		if ($('#txtTemplate').val() === '') {
+			messages.push("Please Enter a valid Template...");
+        }
+        return messages.join("\r\n");
+    }
+</script>
