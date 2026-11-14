@@ -36,19 +36,19 @@
             </li>
           }
           @if (canAccessBulkProcessingView ||
-          (UploadDownloadConfiguration.EnableUpload && canAccessPortalUpload) ||
-          (UploadDownloadConfiguration.EnableDownload && canAccessPortalDownload)) {
+          (enableUpload && canAccessPortalUpload) ||
+          (enableDownload && canAccessPortalDownload)) {
             <li class='has-sub'>
               <a>Files</a>
               <ul>
                 @if (canAccessBulkProcessingView) {
                   <li><a [routerLink]="['/bulk-processing']">Batch File Upload</a></li>
                 }
-                @if (UploadDownloadConfiguration.EnableUpload && canAccessPortalUpload) {
+                @if (enableUpload && canAccessPortalUpload) {
                   <li><a [routerLink]="['/upload']" title="Provider-specific Upload" alt="Provider-specific Upload">Upload</a>
                   </li>
                 }
-                @if (UploadDownloadConfiguration.EnableDownload && canAccessPortalDownload) {
+                @if (enableDownload && canAccessPortalDownload) {
                   <li><a [routerLink]="['/download']" title="Download from MSLC" alt="Download from MSLC">Files to
                     Download</a></li>
                 }

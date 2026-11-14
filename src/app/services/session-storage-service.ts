@@ -1,5 +1,5 @@
-import { Injectable, inject, PLATFORM_ID } from '@angular/core';
-import { isPlatformBrowser } from '@angular/common';
+import {Injectable, inject, PLATFORM_ID} from '@angular/core';
+import {isPlatformBrowser} from '@angular/common';
 
 @Injectable({
   providedIn: 'root'
@@ -8,6 +8,23 @@ export class SessionStorageService {
   private platformId = inject(PLATFORM_ID);
 
   canAccessFeature(featureName: string): boolean {
+    return false;
+  }
+
+  isState(): boolean {
+    return false;
+  }
+
+  isNF(): boolean {
+    return false;
+  }
+
+  isICF(): boolean {
+    return false;
+  }
+
+  checkUserRoles(role: string): boolean {
+    return false;
   }
 
   getItem<T>(key: string): T | null {

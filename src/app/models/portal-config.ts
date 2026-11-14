@@ -8,6 +8,8 @@ export interface PortalConfig {
   allClassifications:Classification[];
   classificationReplacementTerm:string;
   enableBB:boolean;
+  enableResource:boolean;
+  auditTypeReplacementName:string;
 
   [key: string]: unknown;
 }

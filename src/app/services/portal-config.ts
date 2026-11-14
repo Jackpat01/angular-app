@@ -16,7 +16,9 @@ export class PortalConfigService {
     loginSessionKey: 'ClassificationSession',
     classificationReplacementTerm: '',
     allClassifications: [],
-    enableBB: false
+    enableBB: false,
+    enableResource: false,
+    auditTypeReplacementName: '',
   };
 
   private apiService=inject(ApiService);
@@ -34,8 +36,15 @@ export class PortalConfigService {
     return this.configSubject.value;
   }
 
+  getAuditTypeReplacementName(): string {
+    return this.configSubject.value.auditTypeReplacementName;
+  }
+
   enableBB():boolean {
     return this.configSubject.value.enableBB;
+  }
+  enableResource():boolean {
+    return this.configSubject.value.enableResource;
   }
   /**
    * Get the application name from config

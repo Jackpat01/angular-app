@@ -10,6 +10,7 @@ import {ARUMUserProviders} from '../../models/ARUMUserProviders';
 import {Classification} from '../../models/Classification';
 import {Router, RouterLink, RouterOutlet} from '@angular/router';
 import {AppConfigService} from '../../services/app-config';
+import {UploadDownloadConfiguration} from '../../services/upload-download-configuration';
 
 @Component({
   imports: [
@@ -29,6 +30,7 @@ export class BaseWithMenuLayout implements OnInit {
   private storage = inject(SessionStorageService);
   private appConfig = inject(AppConfigService);
   private session=inject(SessionStorageService);
+  private uploadDownloadConfiguration = inject(UploadDownloadConfiguration);
 
   private _loginMessages: string[] = [];
 
@@ -39,6 +41,12 @@ export class BaseWithMenuLayout implements OnInit {
   get isNotShowAllPage(): boolean {
     const currentPath = this.router.url.split('?')[0];
     return currentPath !== '/bulletin-board/show-all';
+  }
+  get canAccessOCRT(): boolean {
+    return this.session.canAccessFeature('CostReport:View');
+  }
+  get canAccessRateSetting(): boolean {
+    return this.session.canAccessFeature('RateSetting:View');
   }
 
   get canAccessBulkProcessingView(): boolean {
@@ -57,40 +65,40 @@ export class BaseWithMenuLayout implements OnInit {
     return this.session.canAccessFeature('OHFI:SettingsManagement');
   }
   get canAccessLetterAutomation(): boolean {
-    return this.session.canAccessFeature("LetterAutomation:Access");
+    return this.session.canAccessFeature('LetterAutomation:Access');
   }
   get canAccessPortalUpload(): boolean {
-    return this.session.canAccessFeature("Portal:Upload");
+    return this.session.canAccessFeature('Portal:Upload');
   }
   get canAccessPortalDownload(): boolean {
-    return this.session.canAccessFeature("Portal:Download");
+    return this.session.canAccessFeature('Portal:Download');
   }
   get canAccessReportsARAP(): boolean {
-    return this.session.canAccessFeature("Reports:ARAP");
+    return this.session.canAccessFeature('Reports:ARAP');
   }
   get canAccessReportsMDS(): boolean {
-    return this.session.canAccessFeature("Reports:MDS");
+    return this.session.canAccessFeature('Reports:MDS');
   }
   get canAccessReportsMDSResidentListing(): boolean {
-    return this.session.canAccessFeature("Reports:MDSResidentListing");
+    return this.session.canAccessFeature('Reports:MDSResidentListing');
   }
   get canAccessReportsSectionQ(): boolean {
-    return this.session.canAccessFeature("Reports:SectionQ");
+    return this.session.canAccessFeature('Reports:SectionQ');
   }
   get canAccessReportsUploadDownload(): boolean {
-    return this.session.canAccessFeature("Reports:UploadDownload");
+    return this.session.canAccessFeature('Reports:UploadDownload');
   }
   get canAccessReportsMassUpload(): boolean {
-    return this.session.canAccessFeature("Reports:MassUpload");
+    return this.session.canAccessFeature('Reports:MassUpload');
   }
   get canAccessReportsCostReportSubmissionMonitoring(): boolean {
-    return this.session.canAccessFeature("Reports:CostReportSubmissionMonitoring");
+    return this.session.canAccessFeature('Reports:CostReportSubmissionMonitoring');
   }
   get canAccessReportsCostReportDataWizard(): boolean {
-    return this.session.canAccessFeature("Reports:CostReportDataWizard");
+    return this.session.canAccessFeature('Reports:CostReportDataWizard');
   }
   get canAccessCLPAView(): boolean {
-    return this.session.canAccessFeature("CLPA:View");
+    return this.session.canAccessFeature('CLPA:View');
   }
   get canAccessReports(): boolean {
     return this.canAccessReportsARAP
@@ -135,7 +143,7 @@ export class BaseWithMenuLayout implements OnInit {
 
   get providerType(): string | null {
     const classification = this.classification;
-    return classification === null ? null : classification.displayName
+    return classification === null ? null : classification.displayName;
   }
 
   get classification(): Classification | null {
@@ -150,6 +158,13 @@ export class BaseWithMenuLayout implements OnInit {
 
   get currentRoleName(): string {
     return this.currentRole?.roleName ?? "No Provider Selected";
+  }
+
+  get enableUpload(): boolean {
+    return this.uploadDownloadConfiguration.enableUpload();
+  }
+  get enableDownload(): boolean {
+    return this.uploadDownloadConfiguration.enableDownload();
   }
 
   get currentRole(): ARUMRole | null {
