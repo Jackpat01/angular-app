@@ -24,7 +24,7 @@ export class LoginService {
   loginToPage(credentials: LoginRequest): Observable<LoginResponse> {
     this.isLoadingSubject.next(true);
     return new Observable(observer => {
-      this.apiService.post<LoginResponse>('/loginToPage', credentials as unknown as Record<string, unknown>).subscribe({
+      this.apiService.post<LoginResponse>('/auth/loginToPage', credentials as unknown as Record<string, unknown>).subscribe({
         next: (response) => {
           this.isLoadingSubject.next(false);
           observer.next(response);
@@ -43,7 +43,7 @@ export class LoginService {
    * Endpoint: GET /eula
    */
   getEULAText(): Observable<EULAResponse> {
-    return this.apiService.get<EULAResponse>('/eulaText');
+    return this.apiService.get<EULAResponse>('/EULA/eulaText');
   }
 
   /**
@@ -52,7 +52,7 @@ export class LoginService {
    */
   acceptTermsOfUse(email: string): Observable<AcceptTermsResponse> {
     const request: AcceptTermsRequest = {email};
-    return this.apiService.post<AcceptTermsResponse>('/accept-terms', request as unknown as Record<string, unknown>);
+    return this.apiService.post<AcceptTermsResponse>('/auth/accept-terms', request as unknown as Record<string, unknown>);
   }
 
 

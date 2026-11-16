@@ -1,10 +1,10 @@
 import {Classification} from './Classification';
 
 export interface PortalConfig {
-  applicationName: string;
-  loginMessageHyperLink: string;
-  WebPortalTitle: string;
-  loginSessionKey:string;
+  application: string;
+  loginMessage: string;
+  webPortalTitle: string;
+  classificationSessionKey:string;
   allClassifications:Classification[];
   classificationReplacementTerm:string;
   enableBB:boolean;

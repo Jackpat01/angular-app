@@ -59,7 +59,7 @@ export class AcceptTerms implements OnInit {
   }
 
   ngOnInit(): void {
-    this.titleService.setTitle(`${this.portalConfig.getConfig().applicationName} - Accept Terms of Use`);
+    this.titleService.setTitle(`${this.portalConfig.getConfig().application} - Accept Terms of Use`);
 
     if (this.session.getItem<boolean>('IsSSO')) {
       this.router.navigate(['/sso/error']);
@@ -97,18 +97,22 @@ export class AcceptTerms implements OnInit {
     }
 
     if (!this.session.getItem<ARUMUserValidation>('ARUMUserValidations')) {
-      this.loginService.acceptTermsOfUse(this.email).subscribe({
-        next: (response) => {
-          if (response.successful) {
-            this.session.setItem('ARUMUserValidations', response.arumValidations);
-            let message = response.message;
-            this.tempData.setTempData("errorMessage", {message});
-            this.router.navigate(['/projects/projects']);
-          } else {
-            this.router.navigate(['/login']);
+      if (this.email) {
+        this.loginService.acceptTermsOfUse(this.email).subscribe({
+          next: (response) => {
+            if (response.successful) {
+              this.session.setItem('ARUMUserValidations', response.arumValidation);
+              let message = response.message;
+              this.tempData.setTempData("errorMessage", {message});
+              this.router.navigate(['/projects/projects']);
+            } else {
+              this.router.navigate(['/login']);
+            }
           }
-        }
-      });
-   }
+        });
+      } else {
+        this.router.navigate(['/login']);
+      }
+    }
   }
 }

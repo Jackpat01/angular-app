@@ -10,18 +10,18 @@ import {PortalConfig} from '../models/portal-config';
 })
 export class PortalConfigService {
   private defaultConfig: PortalConfig = {
-    WebPortalTitle: 'OMES Cost Report and Rate Setting',
-    applicationName: 'OMES Cost Report and Rate Setting',
-    loginMessageHyperLink: 'https://myersandstauffer.com/wp-content/uploads/2021/09/ExternalLoginMessage.txt',
-    loginSessionKey: 'ClassificationSession',
-    classificationReplacementTerm: '',
+    webPortalTitle: 'test',
+    application: 'OMES Cost Report and Rate Setting',
+    loginMessage: '',
+    classificationSessionKey: 'MSLCStatlogClassification',
+    classificationReplacementTerm: 'Project Type',
     allClassifications: [],
-    enableBB: false,
-    enableResource: false,
-    auditTypeReplacementName: '',
+    enableBB: true,
+    enableResource: true,
+    auditTypeReplacementName: 'StatLog Type',
   };
 
-  private apiService=inject(ApiService);
+  private apiService = inject(ApiService);
   private configSubject = new BehaviorSubject<PortalConfig>(this.defaultConfig);
   config$ = this.configSubject.asObservable();
 
@@ -40,21 +40,23 @@ export class PortalConfigService {
     return this.configSubject.value.auditTypeReplacementName;
   }
 
-  enableBB():boolean {
+  enableBB(): boolean {
     return this.configSubject.value.enableBB;
   }
-  enableResource():boolean {
+
+  enableResource(): boolean {
     return this.configSubject.value.enableResource;
   }
+
   /**
    * Get the application name from config
    */
   getApplicationName(): string {
-    return this.configSubject.value.applicationName;
+    return this.configSubject.value.application;
   }
 
   getWebPortalTitle(): string {
-    return this.configSubject.value.WebPortalTitle;
+    return this.configSubject.value.webPortalTitle;
   }
 
   getClassificationReplacementTerm(): string {
@@ -67,30 +69,19 @@ export class PortalConfigService {
   }
 
   async retrieveLoginMessage(): Promise<string[]> {
-    const messageHyperlink = this.configSubject.value.loginMessageHyperLink;
+    try {
+      const result = this.configSubject.value.loginMessage
+        .split(/\r?\n|\r/)
+        .filter(line => line.trim().length > 0);
 
-    if (!messageHyperlink) {
-      return [];
+      return Promise.resolve(result);
+    } catch {
+      return Promise.resolve([]);
     }
-
-    return firstValueFrom(
-      this.apiService.getRemoteData(messageHyperlink).pipe(
-        map((responseText: string) => {
-          // Split on \r\n, \r, or \n and filter out empty entries
-          return responseText
-            .split(/\r?\n|\r/)
-            .filter(line => line.trim().length > 0);
-        }),
-        catchError(() => {
-          // Equivalent to the empty catch block returning an empty array
-          return of([]);
-        })
-      )
-    );
   }
 
   getClassificationSessionKey(): string {
-    return this.configSubject.value.loginSessionKey;
+    return this.configSubject.value.classificationSessionKey;
   }
 
 
@@ -99,7 +90,7 @@ export class PortalConfigService {
    */
   refreshConfig(): Observable<PortalConfig> {
     return new Observable(observer => {
-      this.apiService.get<PortalConfig>('/app/portal-config').subscribe({
+      this.apiService.get<PortalConfig>('/portalConfiguration/get-config').subscribe({
         next: (config) => {
           this.configSubject.next(config);
           observer.next(config);
@@ -118,7 +109,7 @@ export class PortalConfigService {
    * Endpoint: GET /app/portal-config
    */
   private loadConfig(): void {
-    this.apiService.get<PortalConfig>('/app/portal-config').subscribe({
+    this.apiService.get<PortalConfig>('/portalConfiguration/get-config').subscribe({
       next: (config) => {
         this.configSubject.next(config);
       },

@@ -5,8 +5,6 @@ import {ApiService} from './api';
 export interface AppConfig {
   appVersion: string;
   currentYear: number;
-  appName: string;
-  supportEmail: string;
 }
 
 @Injectable({
@@ -16,9 +14,7 @@ export class AppConfigService {
   private apiService = inject(ApiService);
   private configSubject = new BehaviorSubject<AppConfig>({
     appVersion: '0.0.1',
-    currentYear: new Date().getFullYear(),
-    appName: 'Web Portal',
-    supportEmail: 'support@example.com',
+    currentYear: new Date().getFullYear()
   });
 
   config$ = this.configSubject.asObservable();
@@ -35,16 +31,8 @@ export class AppConfigService {
     return this.configSubject.value.appVersion;
   }
 
-  getAppName(): string {
-    return this.configSubject.value.appName;
-  }
-
   getCurrentYear(): number {
     return this.configSubject.value.currentYear;
-  }
-
-  getSupportEmail(): string {
-    return this.configSubject.value.supportEmail;
   }
 
   /**
@@ -52,7 +40,7 @@ export class AppConfigService {
    * Endpoint: GET /api/config
    */
   private loadConfig(): void {
-    this.apiService.get<AppConfig>('/config').subscribe({
+    this.apiService.get<AppConfig>('/appConfiguration/config').subscribe({
       next: (config) => {
         this.configSubject.next(config);
       },

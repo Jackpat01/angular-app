@@ -1,0 +1,9 @@
+{
+  "/external-msg": {
+    "target": "https://myersandstauffer.com",
+    "secure": true,
+    "changeOrigin": true,
+    "pathRewrite": {
+      "^/external-ms": ""
+    }  }
+}
