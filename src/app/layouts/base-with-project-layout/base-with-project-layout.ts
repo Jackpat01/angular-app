@@ -11,6 +11,8 @@ import {Classification} from '../../models/Classification';
 import {ARUMUserProviders} from '../../models/ARUMUserProviders';
 import {ARUMRole} from '../../models/ARUMRole';
 import {RouterLink, RouterOutlet} from '@angular/router';
+import {BaseReactiveComponent} from '../../shared/base-reactive.component';
+import {takeUntil} from 'rxjs/operators';
 
 @Component({
   imports: [
@@ -24,7 +26,7 @@ import {RouterLink, RouterOutlet} from '@angular/router';
   templateUrl: './base-with-project-layout.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class BaseWithProjectLayout implements OnInit {
+export class BaseWithProjectLayout extends BaseReactiveComponent implements OnInit {
   private titleService = inject(TitleService);
   private appConfig = inject(AppConfigService);
   private userService = inject(UserService);
@@ -121,7 +123,7 @@ export class BaseWithProjectLayout implements OnInit {
     await this.portalConfig.waitForConfigLoad();
     this.loginMessageFromConfig = this.portalConfig.retrieveLoginMessage();
     
-    this.portalConfig.config$.subscribe((config) => {
+    this.portalConfig.config$.pipe(takeUntil(this.destroy$)).subscribe((config) => {
       this.loginMessageFromConfig = config.loginMessage;
     });
   }

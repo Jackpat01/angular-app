@@ -8,6 +8,8 @@ import {SessionStorageService} from '../../services/session-storage-service';
 import {ARUMProxy_User} from '../../models/ARUMProxy_User';
 import {SESSION_KEYS_OCRT} from '../../models/session-keys.constants';
 import {TitleService} from '../../services/title';
+import {BaseReactiveComponent} from '../../shared/base-reactive.component';
+import {takeUntil} from 'rxjs/operators';
 
 @Component({
   imports: [RouterLink],
@@ -16,7 +18,7 @@ import {TitleService} from '../../services/title';
   templateUrl: './projects.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class Projects implements OnInit {
+export class Projects extends BaseReactiveComponent implements OnInit {
   private titleService = inject(TitleService);
   private tempData = inject(TempDataService);
   private portalConfig = inject(PortalConfigService);
@@ -46,7 +48,7 @@ export class Projects implements OnInit {
     });
 
     // Subscribe to config changes to update classifications when they update
-    this.portalConfig.config$.subscribe(() => {
+    this.portalConfig.config$.pipe(takeUntil(this.destroy$)).subscribe(() => {
       this.updateClassifications();
     });
 

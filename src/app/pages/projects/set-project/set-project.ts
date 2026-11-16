@@ -8,6 +8,8 @@ import {TempDataService} from '../../../services/temp-data';
 import {PortalConfigService} from '../../../services/portal-config';
 import {Classification} from '../../../models/Classification';
 import {AsyncHandlerService} from '../../../services/async-handler.service';
+import {BaseReactiveComponent} from '../../../shared/base-reactive.component';
+import {takeUntil} from 'rxjs/operators';
 
 @Component({
   selector: 'app-set-project',
@@ -15,7 +17,7 @@ import {AsyncHandlerService} from '../../../services/async-handler.service';
   styleUrls: ['./set-project.css'],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class SetProjectComponent implements OnInit {
+export class SetProjectComponent extends BaseReactiveComponent implements OnInit {
   private route = inject(ActivatedRoute);
   private session = inject(SessionStorageService);
   private project = inject(ProjectService);
@@ -27,7 +29,7 @@ export class SetProjectComponent implements OnInit {
 
   ngOnInit(): void {
     this.portalConfig.waitForConfigLoad().then(() => {
-      this.route.queryParamMap.subscribe(params => {
+      this.route.queryParamMap.pipe(takeUntil(this.destroy$)).subscribe(params => {
         let classificationId = params.get('cID');
         let myUser = this.session.getItem<ARUMProxy_User>('arumUser');
 
