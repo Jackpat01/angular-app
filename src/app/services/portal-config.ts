@@ -12,7 +12,7 @@ export class PortalConfigService {
   private defaultConfig: PortalConfig = {
     webPortalTitle: 'test',
     application: 'OMES Cost Report and Rate Setting',
-    loginMessage: '',
+    loginMessage: ['test1', 'test2', 'test3'],
     classificationSessionKey: 'MSLCStatlogClassification',
     classificationReplacementTerm: 'Project Type',
     allClassifications: [],
@@ -48,7 +48,8 @@ export class PortalConfigService {
     return firstValueFrom(this.configLoaded$.pipe(
       skip(1),
       filter(loaded => loaded === true)
-    )).then(() => {});
+    )).then(() => {
+    });
   }
 
   /**
@@ -90,16 +91,8 @@ export class PortalConfigService {
     return this.configSubject.value.allClassifications;
   }
 
-  async retrieveLoginMessage(): Promise<string[]> {
-    try {
-      const result = this.configSubject.value.loginMessage
-        .split(/\r?\n|\r/)
-        .filter(line => line.trim().length > 0);
-
-      return Promise.resolve(result);
-    } catch {
-      return Promise.resolve([]);
-    }
+  retrieveLoginMessage(): string[] {
+    return this.configSubject.value.loginMessage;
   }
 
   getClassificationSessionKey(): string {
@@ -136,7 +129,7 @@ export class PortalConfigService {
       next: (config) => {
         console.log('Portal config received from API:', config);
         console.log('WebPortalTitle from API:', (config as any).WebPortalTitle || (config as any).webPortalTitle);
-        
+
         // Map API response to our interface - API might use different casing
         const mappedConfig: PortalConfig = {
           webPortalTitle: (config as any).WebPortalTitle || config.webPortalTitle || this.defaultConfig.webPortalTitle,
@@ -149,7 +142,7 @@ export class PortalConfigService {
           enableResource: (config as any).EnableResource !== undefined ? (config as any).EnableResource : config.enableResource,
           auditTypeReplacementName: (config as any).AuditTypeReplacementName || config.auditTypeReplacementName || this.defaultConfig.auditTypeReplacementName,
         };
-        
+
         console.log('Mapped config:', mappedConfig);
         this.configSubject.next(mappedConfig);
         this.configLoadedSubject.next(true);

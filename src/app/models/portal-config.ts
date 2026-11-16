@@ -2,7 +2,7 @@ import {Classification} from './Classification';
 
 export interface PortalConfig {
   application: string;
-  loginMessage: string;
+  loginMessage: string[];
   webPortalTitle: string;
   classificationSessionKey:string;
   allClassifications:Classification[];

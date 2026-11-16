@@ -13,7 +13,7 @@ export interface AppConfig {
 export class AppConfigService {
   private apiService = inject(ApiService);
   private configSubject = new BehaviorSubject<AppConfig>({
-    appVersion: '0.0.1',
+    appVersion: '0.0.2',
     currentYear: new Date().getFullYear()
   });
 

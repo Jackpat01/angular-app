@@ -31,10 +31,8 @@ export class BaseWithProjectLayout implements OnInit {
   private storage = inject(SessionStorageService);
   userInfo: UserInfo | null = null;
 
-  private _loginMessages: string[] = [];
-
   get loginMessage(): string[] {
-    return this._loginMessages;
+    return this.portalConfig.retrieveLoginMessage();
   }
 
   get appVersion(): string {
@@ -119,7 +117,6 @@ export class BaseWithProjectLayout implements OnInit {
   async ngOnInit(): Promise<void> {
     this.userInfo = this.userService.getUser();
     await this.portalConfig.waitForConfigLoad();
-    this._loginMessages = await this.portalConfig.retrieveLoginMessage();
   }
 
   logout(): void {
