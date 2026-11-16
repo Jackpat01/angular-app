@@ -118,6 +118,7 @@ export class BaseWithProjectLayout implements OnInit {
 
   async ngOnInit(): Promise<void> {
     this.userInfo = this.userService.getUser();
+    await this.portalConfig.waitForConfigLoad();
     this._loginMessages = await this.portalConfig.retrieveLoginMessage();
   }
 
