@@ -13,7 +13,13 @@ export class ErrorPage implements OnInit {
   private portalConfig = inject(PortalConfigService);
 
   ngOnInit(): void {
-    this.titleService.setTitle(this.portalConfig.getWebPortalTitle() + " - Error");
+    // Wait for portal config to load before setting title
+    this.portalConfig.waitForConfigLoad().then(() => {
+      this.titleService.setTitle(this.portalConfig.getWebPortalTitle() + " - Error");
+    }).catch(error => {
+      console.error('Error loading portal config:', error);
+      this.titleService.setTitle('Error');
+    });
   }
 }
 

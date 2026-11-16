@@ -23,56 +23,62 @@ export class SetProjectComponent implements OnInit {
 
 
   ngOnInit(): void {
-    this.route.queryParamMap.subscribe(params => {
-      let classificationId = params.get('cID');
+    // Wait for portal config to load first
+    this.portalConfig.waitForConfigLoad().then(() => {
+      this.route.queryParamMap.subscribe(params => {
+        let classificationId = params.get('cID');
 
-      let myUser = this.session.getItem<ARUMProxy_User>('arumUser');
+        let myUser = this.session.getItem<ARUMProxy_User>('arumUser');
 
-      if (myUser == null) {
-        this.router.navigate(['/login']);
-      }
-
-      this.project.getProject(classificationId).subscribe(project => {
-        if (!project.successful) {
-          let message = project.message;
-          this.tempData.setTempData('message', {message});
-          this.router.navigate([project.path]);
+        if (myUser == null) {
+          this.router.navigate(['/login']);
         }
 
-        this.session.setItem(this.portalConfig.getClassificationSessionKey(), project.classification);
+        this.project.getProject(classificationId).subscribe(project => {
+          if (!project.successful) {
+            let message = project.message;
+            this.tempData.setTempData('message', {message});
+            this.router.navigate([project.path]);
+          }
 
-        let classification = this.session.getItem<Classification>(this.portalConfig.getClassificationSessionKey());
-        if (classification != null) {
-          this.session.setItem('InitialCatalogFromSession', classification?.arumToken);
-          this.session.setItem('AppNameFromSession', classification?.type);
-        } else {
-          let allClassifications = this.portalConfig.getAllClassifications();
-          if (allClassifications.length != 1) {
-            this.session.setItem('InitialCatalogFromSession', null);
-            this.session.setItem('AppNameFromSession', null);
+          this.session.setItem(this.portalConfig.getClassificationSessionKey(), project.classification);
+
+          let classification = this.session.getItem<Classification>(this.portalConfig.getClassificationSessionKey());
+          if (classification != null) {
+            this.session.setItem('InitialCatalogFromSession', classification?.arumToken);
+            this.session.setItem('AppNameFromSession', classification?.type);
           } else {
-            this.session.setItem(this.portalConfig.getClassificationSessionKey(), allClassifications[0]);
-            this.session.setItem('InitialCatalogFromSession', allClassifications[0].arumToken);
+            let allClassifications = this.portalConfig.getAllClassifications();
+            if (allClassifications.length != 1) {
+              this.session.setItem('InitialCatalogFromSession', null);
+              this.session.setItem('AppNameFromSession', null);
+            } else {
+              this.session.setItem(this.portalConfig.getClassificationSessionKey(), allClassifications[0]);
+              this.session.setItem('InitialCatalogFromSession', allClassifications[0].arumToken);
+            }
           }
-        }
-        this.project.setApplicationInformation(project.classification);
+          this.project.setApplicationInformation(project.classification);
 
-        // Update ARUM User
-        this.session.setItem('arumUser', project.arumUser);
+          // Update ARUM User
+          this.session.setItem('arumUser', project.arumUser);
 
-        if (this.portalConfig.enableBB() && (project.arumUser.bulletinBoards?.length!=0)) {
-          const newBulletinBoards = project.arumUser.bulletinBoards.reduce((count, board) => {
-            if (board.isNewBulletinBoard) count++;
-            if (board.alwaysShow === true) count++;
-            return count;
-          }, 0);
+          if (this.portalConfig.enableBB() && (project.arumUser.bulletinBoards?.length!=0)) {
+            const newBulletinBoards = project.arumUser.bulletinBoards.reduce((count, board) => {
+              if (board.isNewBulletinBoard) count++;
+              if (board.alwaysShow === true) count++;
+              return count;
+            }, 0);
 
-          if (newBulletinBoards >= 1) {
-            this.router.navigate(['/bulletinBoard/showAll']);
+            if (newBulletinBoards >= 1) {
+              this.router.navigate(['/bulletinBoard/showAll']);
+            }
           }
-        }
-        this.router.navigate(['/secure']);
-      })
+          this.router.navigate(['/secure']);
+        })
+      });
+    }).catch(error => {
+      console.error('Error loading portal config:', error);
+      this.router.navigate(['/login']);
     });
   }
 }

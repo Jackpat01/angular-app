@@ -59,7 +59,13 @@ export class AcceptTerms implements OnInit {
   }
 
   ngOnInit(): void {
-    this.titleService.setTitle(`${this.portalConfig.getConfig().application} - Accept Terms of Use`);
+    // Wait for portal config to load before setting title
+    this.portalConfig.waitForConfigLoad().then(() => {
+      this.titleService.setTitle(`${this.portalConfig.getConfig().application} - Accept Terms of Use`);
+    }).catch(error => {
+      console.error('Error loading portal config:', error);
+      this.titleService.setTitle('Accept Terms of Use');
+    });
 
     if (this.session.getItem<boolean>('IsSSO')) {
       this.router.navigate(['/sso/error']);
