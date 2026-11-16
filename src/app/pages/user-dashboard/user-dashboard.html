@@ -1,14 +1,7 @@
 <div class="container mt-4">
   <!-- Example: Display user info from JWT claims -->
-  @if (dashboardData) {
-    <div class="alert alert-info">
-      <h5>Dashboard Loaded from JWT Claims</h5>
-      <p><strong>{{ dashboardData['greeting'] }}</strong></p>
-      <p>Role: <code>{{ dashboardData['role'] }}</code></p>
-      <p>Company: <code>{{ dashboardData['company'] }}</code></p>
-    </div>
-  }
-
+  @let claims = (userClaims$ | async);
+  
   <div class="row">
     <div class="col-md-3">
       <div class="card mb-3">
@@ -16,14 +9,14 @@
           <h6 class="mb-0">User Profile</h6>
         </div>
         <div class="card-body">
-          @if (userClaims?.email) {
-            <p><strong>{{ userClaims.email }}</strong></p>
+          @if (claims?.email) {
+            <p><strong>{{ claims.email }}</strong></p>
           }
-          @if (userClaims?.role) {
-            <p class="text-muted">Role: {{ userClaims.role }}</p>
+          @if (claims?.role) {
+            <p class="text-muted">Role: {{ claims.role }}</p>
           }
-          @if (userClaims?.company) {
-            <p class="text-muted">Company: {{ userClaims.company }}</p>
+          @if (claims?.company) {
+            <p class="text-muted">Company: {{ claims.company }}</p>
           }
           <a class="btn btn-sm btn-outline-primary" href="/form">Edit Profile</a>
         </div>
@@ -46,38 +39,38 @@
             </tr>
             </thead>
             <tbody>
-            @if (userClaims?.email) {
+            @if (claims?.email) {
               <tr>
                 <td><code>email</code></td>
-                <td>{{ userClaims.email }}</td>
+                <td>{{ claims.email }}</td>
                 <td><code>Session["Email"]</code></td>
               </tr>
             }
-            @if (userClaims?.role) {
+            @if (claims?.role) {
               <tr>
                 <td><code>role</code></td>
-                <td>{{ userClaims.role }}</td>
+                <td>{{ claims.role }}</td>
                 <td><code>Session["UserRole"]</code></td>
               </tr>
             }
-            @if (userClaims?.company) {
+            @if (claims?.company) {
               <tr>
                 <td><code>company</code></td>
-                <td>{{ userClaims.company }}</td>
+                <td>{{ claims.company }}</td>
                 <td><code>Session["CompanyName"]</code></td>
               </tr>
             }
-            @if (userClaims?.provider) {
+            @if (claims?.provider) {
               <tr>
                 <td><code>provider</code></td>
-                <td>{{ userClaims.provider }}</td>
+                <td>{{ claims.provider }}</td>
                 <td><code>Session["ProviderType"]</code></td>
               </tr>
             }
-            @if (userClaims?.sub) {
+            @if (claims?.sub) {
               <tr>
                 <td><code>sub</code></td>
-                <td>{{ userClaims.sub }}</td>
+                <td>{{ claims.sub }}</td>
                 <td><code>Session["UserId"]</code></td>
               </tr>
             }

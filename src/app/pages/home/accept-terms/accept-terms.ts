@@ -1,4 +1,4 @@
-import {Component, inject, OnInit, ChangeDetectorRef} from '@angular/core';
+import {Component, inject, OnInit, ChangeDetectionStrategy, signal} from '@angular/core';
 import {CommonModule, NgOptimizedImage} from '@angular/common';
 import {FormBuilder, FormGroup, FormsModule, ReactiveFormsModule, Validators} from '@angular/forms';
 import {Router} from '@angular/router';
@@ -16,6 +16,7 @@ import {TempDataService} from '../../../services/temp-data';
   styleUrl: './accept-terms.css',
   standalone: true,
   imports: [CommonModule, FormsModule, ReactiveFormsModule, NgOptimizedImage],
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class AcceptTerms implements OnInit {
   eulaText = `
@@ -37,8 +38,8 @@ export class AcceptTerms implements OnInit {
 <p style="font-family: Arial, Helvetica, sans-serif; font-size: 1rem; line-height: 1.5; color: #333;">MSLC reserves the right to change, modify, suspend or terminate the site at anytime without prior notice.</p>
 <p style="font-family: Arial, Helvetica, sans-serif; font-size: 1rem; line-height: 1.5; color: #333;">Myers and Stauffer reserves the right to change or amend these Terms of Use or our Privacy Policy at any time without prior notice. If the terms of this agreement are amended, you will receive notice of the change.</p>
 `;
-  isLoading = false;
-  acceptError = '';
+  isLoading = signal(false);
+  acceptError = signal('');
   submitted = false;
   email = '';
   private titleService = inject(TitleService);
@@ -46,8 +47,6 @@ export class AcceptTerms implements OnInit {
   private loginService = inject(LoginService);
   private session = inject(SessionStorageService);
   private tempData = inject(TempDataService);
-  private cdr = inject(ChangeDetectorRef);
-
 
   private router = inject(Router);
   private fb = inject(FormBuilder);
@@ -83,17 +82,15 @@ export class AcceptTerms implements OnInit {
   }
 
   loadEULA(): void {
-    this.isLoading = true;
+    this.isLoading.set(true);
     this.loginService.getEULAText().subscribe({
       next: (response) => {
         this.eulaText = response.eulaText;
-        this.isLoading = false;
-        this.cdr.detectChanges();
+        this.isLoading.set(false);
       },
       error: () => {
-        this.acceptError = 'Failed to load Terms of Use. Please try again.';
-        this.isLoading = false;
-        this.cdr.detectChanges();
+        this.acceptError.set('Failed to load Terms of Use. Please try again.');
+        this.isLoading.set(false);
       },
     });
   }
@@ -113,7 +110,6 @@ export class AcceptTerms implements OnInit {
               this.session.setItem('ARUMUserValidations', response.arumValidation);
               let message = response.message;
               this.tempData.setTempData("errorMessage", {message});
-              this.cdr.detectChanges();
               this.router.navigate(['/projects/projects']);
             } else {
               this.router.navigate(['/login']);

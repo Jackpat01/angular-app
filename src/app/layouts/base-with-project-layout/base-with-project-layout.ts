@@ -1,4 +1,4 @@
-import {Component, OnInit, inject, ChangeDetectorRef} from '@angular/core';
+import {Component, OnInit, inject, ChangeDetectionStrategy} from '@angular/core';
 import {CommonModule, NgOptimizedImage} from '@angular/common';
 import {TitleService} from '../../services/title';
 import {AppConfigService} from '../../services/app-config';
@@ -22,6 +22,7 @@ import {RouterLink, RouterOutlet} from '@angular/router';
   selector: 'ohfi-base-with-project-layout',
   styleUrl: './base-with-project-layout.css',
   templateUrl: './base-with-project-layout.html',
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class BaseWithProjectLayout implements OnInit {
   private titleService = inject(TitleService);
@@ -29,7 +30,6 @@ export class BaseWithProjectLayout implements OnInit {
   private userService = inject(UserService);
   private portalConfig = inject(PortalConfigService);
   private storage = inject(SessionStorageService);
-  private cdr = inject(ChangeDetectorRef);
   userInfo: UserInfo | null = null;
   loginMessageFromConfig: string[] = [];
 
@@ -120,11 +120,9 @@ export class BaseWithProjectLayout implements OnInit {
     this.userInfo = this.userService.getUser();
     await this.portalConfig.waitForConfigLoad();
     this.loginMessageFromConfig = this.portalConfig.retrieveLoginMessage();
-    this.cdr.detectChanges();
     
     this.portalConfig.config$.subscribe((config) => {
       this.loginMessageFromConfig = config.loginMessage;
-      this.cdr.detectChanges();
     });
   }
 

@@ -1,4 +1,4 @@
-import {Component, inject, OnInit, ChangeDetectorRef} from '@angular/core';
+import {Component, inject, OnInit, ChangeDetectionStrategy, signal} from '@angular/core';
 import {CommonModule, NgOptimizedImage} from '@angular/common';
 import {FormBuilder, FormGroup, ReactiveFormsModule, Validators} from '@angular/forms';
 import {Router} from '@angular/router';
@@ -13,6 +13,7 @@ import {SessionStorageService} from '../../../services/session-storage-service';
   selector: 'ohfi-login',
   styleUrl: './login.css',
   templateUrl: './login.html',
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class Login implements OnInit {
   private titleService = inject(TitleService);
@@ -22,11 +23,10 @@ export class Login implements OnInit {
   private tempData = inject(TempDataService);
   private fb = inject(FormBuilder);
   private session = inject(SessionStorageService);
-  private cdr = inject(ChangeDetectorRef);
 
   loginForm!: FormGroup;
   submitted = false;
-  isLoading = false;
+  isLoading = signal(false);
 
   get f() {
     return this.loginForm.controls;
@@ -68,13 +68,12 @@ export class Login implements OnInit {
       return;
     }
 
-    this.isLoading = true;
+    this.isLoading.set(true);
     const {email, password} = this.loginForm.value;
 
     this.loginService.loginToPage({email, password}).subscribe({
       next: (response) => {
-        this.isLoading = false;
-        this.cdr.detectChanges();
+        this.isLoading.set(false);
 
         if (!response.successful) {
           let message = response.errorMessage;

@@ -1,4 +1,4 @@
-import {Component, OnInit, inject, ChangeDetectorRef} from '@angular/core';
+import {Component, OnInit, inject, ChangeDetectionStrategy} from '@angular/core';
 import {ActivatedRoute, Router} from '@angular/router';
 import {SessionStorageService} from '../../../services/session-storage-service';
 import {ARUMProxy_User} from '../../../models/ARUMProxy_User';
@@ -11,7 +11,8 @@ import {Classification} from '../../../models/Classification';
 @Component({
   selector: 'app-set-project',
   templateUrl: './set-project.html',
-  styleUrls: ['./set-project.css']
+  styleUrls: ['./set-project.css'],
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class SetProjectComponent implements OnInit {
   private route = inject(ActivatedRoute);
@@ -20,7 +21,6 @@ export class SetProjectComponent implements OnInit {
   private router = inject(Router);
   private tempData = inject(TempDataService);
   private portalConfig = inject(PortalConfigService);
-  private cdr = inject(ChangeDetectorRef);
 
 
   ngOnInit(): void {
@@ -74,7 +74,6 @@ export class SetProjectComponent implements OnInit {
               this.router.navigate(['/bulletinBoard/showAll']);
             }
           }
-          this.cdr.detectChanges();
           this.router.navigate(['/secure']);
         })
       });

@@ -1,14 +1,18 @@
 <div class="header-bar">
   <div style="background-color: #74c141; height: 40px;">
     <div style="color: white; font-size: 14px;">
-      @if (userEmail) {
-        <span>{{ userEmail }}</span>
+      @let email = (userEmail$ | async);
+      @let role = (userRole$ | async);
+      @let comp = (company$ | async);
+      
+      @if (email) {
+        <span>{{ email }}</span>
       }
-      @if (userRole) {
-        <span> | Role: {{ userRole }}</span>
+      @if (role) {
+        <span> | Role: {{ role }}</span>
       }
-      @if (company) {
-        <span> | {{ company }}</span>
+      @if (comp) {
+        <span> | {{ comp }}</span>
       }
     </div>
   </div>

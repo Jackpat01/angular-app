@@ -1,35 +1,26 @@
-import {Component, OnInit, inject, ChangeDetectorRef} from '@angular/core';
+import {Component, OnInit, inject, ChangeDetectionStrategy} from '@angular/core';
 import {CommonModule} from '@angular/common';
 import {TitleService} from '../../services/title';
 import {UserService} from '../../services/user';
 import {AuthService, UserClaims} from '../../services/auth';
+import {map, tap} from 'rxjs/operators';
 
 @Component({
   imports: [CommonModule],
   selector: 'ohfi-user-dashboard',
   styleUrl: './user-dashboard.css',
   templateUrl: './user-dashboard.html',
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class UserDashboard implements OnInit {
   private titleService = inject(TitleService);
   private userService = inject(UserService);
   private authService = inject(AuthService);
-  private cdr = inject(ChangeDetectorRef);
-  userClaims: UserClaims | null = null;
-  dashboardData: Record<string, unknown> | null = null;
+  
+  userClaims$ = this.authService.userClaims$;
 
   ngOnInit(): void {
     this.titleService.setTitle('User Dashboard');
-
-    // Example 1: Get claims from AuthService
-    // This replaces: Session["UserId"], Session["UserRole"], Session["CompanyName"], etc.
-    this.authService.userClaims$.subscribe((claims) => {
-      this.userClaims = claims;
-      if (claims) {
-        this.loadDashboardData(claims);
-      }
-      this.cdr.detectChanges();
-    });
   }
 
   /**
@@ -52,34 +43,7 @@ export class UserDashboard implements OnInit {
    * Example: Access all claims
    * Replaces: Session.Keys enumeration
    */
-  getAllClaimsKeys(): string[] {
-    return this.userClaims ? Object.keys(this.userClaims) : [];
-  }
-
-  /**
-   * Example: Load dashboard data using user claims
-   * This replaces the old pattern:
-   *
-   * [Old ASP.NET MVC]
-   * public ActionResult Dashboard()
-   * {
-   *   var userId = (string)Session["UserId"];
-   *   var userRole = (string)Session["UserRole"];
-   *   var data = GetUserDataByRole(userId, userRole);
-   *   return View(data);
-   * }
-   *
-   * [New Angular + JWT]
-   * Constructor receives claims via Observable
-   * Uses claims to fetch personalized data from API
-   */
-  private loadDashboardData(claims: UserClaims): void {
-    // Example: Use claims to build dashboard
-    this.dashboardData = {
-      greeting: `Welcome, ${claims.email}!`,
-      role: claims.role || 'User',
-      company: claims.company || 'N/A',
-      claims: claims, // Full claims object for debugging
-    };
+  getAllClaimsKeys(claims: UserClaims | null): string[] {
+    return claims ? Object.keys(claims) : [];
   }
 }

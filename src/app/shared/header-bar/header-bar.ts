@@ -1,32 +1,27 @@
-import {Component, OnInit, inject, ChangeDetectorRef} from '@angular/core';
+import {Component, OnInit, inject, ChangeDetectionStrategy} from '@angular/core';
 import {CommonModule} from '@angular/common';
 import {UserService} from '../../services/user';
 import {AuthService, UserClaims} from '../../services/auth';
+import {map} from 'rxjs/operators';
 
 @Component({
   imports: [CommonModule],
   selector: 'ohfi-header-bar',
   styleUrl: './header-bar.css',
   templateUrl: './header-bar.html',
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class HeaderBarComponent implements OnInit {
   private userService = inject(UserService);
   private authService = inject(AuthService);
-  private cdr = inject(ChangeDetectorRef);
-  userClaims: UserClaims | null = null;
-  userEmail: string | null = null;
-  userRole: string | null = null;
-  company: string | null = null;
+  
+  userClaims$ = this.authService.userClaims$;
+  userEmail$ = this.authService.userClaims$.pipe(map(claims => claims?.email || null));
+  userRole$ = this.authService.userClaims$.pipe(map(claims => claims?.role || null));
+  company$ = this.authService.userClaims$.pipe(map(claims => claims?.company || null));
 
   ngOnInit(): void {
-    // Subscribe to user claims updates
-    this.authService.userClaims$.subscribe((claims) => {
-      this.userClaims = claims;
-      this.userEmail = claims?.email || null;
-      this.userRole = claims?.role || null;
-      this.company = claims?.company || null;
-      this.cdr.detectChanges();
-    });
+    // No longer needed - async pipe handles subscriptions
   }
 
   /**
