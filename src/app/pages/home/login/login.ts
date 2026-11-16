@@ -81,15 +81,15 @@ export class Login implements OnInit {
         }
 
 
-        if (!response.ARUMUser) {
+        if (!response.arumUser) {
           let message = 'Username/password invalid';
           this.tempData.setTempData('errorMessage', {message});
           return;
         }
 
         // Store email in session storage for use in other components
-        this.session.setItem('email', response.ARUMUser.email);
-        this.session.setItem('arumUser', JSON.stringify(response.ARUMUser));
+        this.session.setItem('email', response.arumUser.email);
+        this.session.setItem('arumUser', JSON.stringify(response.arumUser));
 
         // Check if user needs to accept terms
         if (response.redirectToTerm) {

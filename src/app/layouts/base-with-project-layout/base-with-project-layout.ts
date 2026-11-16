@@ -57,7 +57,7 @@ export class BaseWithProjectLayout implements OnInit {
     const user = this.storage.getItem<ARUMProxy_User>('arumUser');
 
     if (user) {
-      return user.email.toLowerCase();
+      return user.email.toUpperCase();
     }
     return 'No UserName for User';
   }

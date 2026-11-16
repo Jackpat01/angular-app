@@ -1,0 +1,18 @@
+.page-layout {
+  width: 1320px;
+  background-color: #fff;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.flex-grow-1 {
+  flex-grow: 1 !important;
+}
+
+.align-items-center{
+  align-items: center !important;
+}
+
+.pl-1, .px1{
+  padding-left: .25rem !important;
+}

@@ -6,5 +6,5 @@ export interface LoginResponse {
   errorMessage: string;
   userName: string;
   email: string;
-  ARUMUser?: ARUMProxy_User;
+  arumUser?: ARUMProxy_User;
 }

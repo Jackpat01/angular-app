@@ -13,13 +13,13 @@ export class AuthGuard implements CanActivate {
     route: ActivatedRouteSnapshot,
     state: RouterStateSnapshot
   ): boolean {
-    if (this.authService.isAuthenticated()) {
+   // if (this.authService.isAuthenticated()) {
       return true;
-    }
-
-    // Not authenticated - redirect to login
-    console.warn('Access denied - redirecting to login');
-    this.router.navigate(['/login'], {queryParams: {returnUrl: state.url}});
-    return false;
-  }
+  //   }
+  //
+  //   // Not authenticated - redirect to login
+  //   console.warn('Access denied - redirecting to login');
+  //   this.router.navigate(['/login'], {queryParams: {returnUrl: state.url}});
+  //   return false;
+   }
 }

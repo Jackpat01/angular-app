@@ -35,8 +35,9 @@ export const routes: Routes = [
     canActivate: [AuthGuard],
     children: [
       {
-        path: '',
-        component: Projects
+        path: 'projects',
+        component: Projects,
+        data: { bodyClass: 'layout-projects'}
       }
     ]
   },
