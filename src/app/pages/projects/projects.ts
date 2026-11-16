@@ -1,4 +1,4 @@
-import {Component, computed, inject, OnInit, Signal} from '@angular/core';
+import {Component, computed, inject, OnInit, Signal, signal} from '@angular/core';
 import {TempDataService} from '../../services/temp-data';
 import {Classification} from '../../models/Classification';
 import {PortalConfigService} from '../../services/portal-config';
@@ -22,6 +22,8 @@ export class Projects implements OnInit {
   private functions = inject(FunctionsService);
   private session = inject(SessionStorageService);
   private router = inject(Router);
+  
+  private classificationSignal = signal<Classification[]>([]);
 
   ngOnInit(): void {
     this.titleService.setTitle('Projects');
@@ -34,6 +36,13 @@ export class Projects implements OnInit {
         this.router.navigate(['/sso/error']);
       }
     }
+
+    // Wait for portal config to load, then update classifications
+    this.portalConfig.waitForConfigLoad().then(() => {
+      this.updateClassifications();
+    }).catch(error => {
+      console.error('Error loading portal config:', error);
+    });
 
     this.session.setItem('selectedProviderID', 0);
     this.session.removeItem('AppNameFromSession');
@@ -55,7 +64,7 @@ export class Projects implements OnInit {
     this.session.removeItem(this.portalConfig.getClassificationSessionKey());
   }
 
-  get classifications(): Signal<Classification[]> {
+  private updateClassifications(): void {
     let classifications = this.portalConfig.getAllClassifications();
 
     let arumValidations = this.functions.getValidations();
@@ -66,10 +75,14 @@ export class Projects implements OnInit {
       );
     }
 
-    return computed(() =>
-      [...classifications].sort((a, b) =>
-        a.displayName.localeCompare(b.displayName)
-      )
+    classifications = classifications.sort((a, b) =>
+      a.displayName.localeCompare(b.displayName)
     );
+
+    this.classificationSignal.set(classifications);
+  }
+
+  get classifications(): Signal<Classification[]> {
+    return this.classificationSignal;
   }
 }
