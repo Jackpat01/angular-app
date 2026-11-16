@@ -74,64 +74,11 @@
   </div>
 
   <!-- Users Table -->
-  <div class="card">
-    <div class="card-header bg-light">
-      <h5 class="mb-0">Users ({{ filteredItems.length }} found)</h5>
-    </div>
-    <div class="card-body">
-      <div class="table-responsive">
-        <table class="table table-hover">
-          <thead class="table-light">
-          <tr>
-            <th>Email</th>
-            <th>Name</th>
-            <th>Role</th>
-            <th>Status</th>
-            <th>Join Date</th>
-            <th>Actions</th>
-          </tr>
-          </thead>
-          <tbody>
-          @for (user of filteredItems; track user.id) {
-            <tr>
-              <td>{{ user.email }}</td>
-              <td>{{ user.name }}</td>
-              <td>
-                <span class="badge bg-info">{{ user.role }}</span>
-              </td>
-              <td>
-                  <span
-                    [class.bg-danger]="user.status === 'inactive'"
-                    [class.bg-success]="user.status === 'active'"
-                    class="badge">
-                    {{ user.status | uppercase }}
-                  </span>
-              </td>
-              <td>{{ user.joinDate }}</td>
-              <td>
-                <button
-                  (click)="toggleUserStatus(user.id)"
-                  class="btn btn-sm btn-warning me-2">
-                  {{ user.status === 'active' ? 'Deactivate' : 'Activate' }}
-                </button>
-                <button
-                  (click)="delete(user.id)"
-                  class="btn btn-sm btn-danger">
-                  Delete
-                </button>
-              </td>
-            </tr>
-          }
-          @if (filteredItems.length === 0) {
-            <tr>
-              <td class="text-center text-muted py-4" colspan="6">
-                No users found
-              </td>
-            </tr>
-          }
-          </tbody>
-        </table>
-      </div>
-    </div>
-  </div>
+  <app-data-table
+    [items]="filteredItems"
+    [columns]="userColumns"
+    [actions]="userActions"
+    title="Users"
+    emptyMessage="No users found">
+  </app-data-table>
 </div>

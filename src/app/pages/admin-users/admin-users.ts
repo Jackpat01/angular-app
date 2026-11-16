@@ -3,6 +3,7 @@ import {CommonModule} from '@angular/common';
 import {FormBuilder, FormGroup, FormsModule, ReactiveFormsModule, Validators} from '@angular/forms';
 import {NgbModal} from '@ng-bootstrap/ng-bootstrap';
 import {BaseListCrudComponent} from '../../shared/base-list-crud.component';
+import {DataTableComponent, TableColumn, TableAction} from '../../shared/data-table.component';
 
 interface User {
   id: number;
@@ -14,13 +15,41 @@ interface User {
 }
 
 @Component({
-  imports: [CommonModule, ReactiveFormsModule, FormsModule],
+  imports: [CommonModule, ReactiveFormsModule, FormsModule, DataTableComponent],
   selector: 'ohfi-admin-users',
   styleUrl: './admin-users.css',
   templateUrl: './admin-users.html',
 })
 export class AdminUsersComponent extends BaseListCrudComponent<User> implements OnInit {
   private modalService = inject(NgbModal);
+
+  userColumns: TableColumn[] = [
+    { key: 'email', label: 'Email' },
+    { key: 'name', label: 'Name' },
+    { key: 'role', label: 'Role' },
+    { key: 'status', label: 'Status', format: (val) => (val as string)?.toUpperCase() },
+    { key: 'joinDate', label: 'Join Date' },
+  ];
+
+  userActions: TableAction[] = [
+    {
+      label: 'Deactivate',
+      class: 'btn btn-sm btn-warning me-2',
+      disabled: (user) => (user as User).status === 'inactive',
+      handler: (id) => this.toggleUserStatus(id as number)
+    },
+    {
+      label: 'Activate',
+      class: 'btn btn-sm btn-success me-2',
+      disabled: (user) => (user as User).status === 'active',
+      handler: (id) => this.toggleUserStatus(id as number)
+    },
+    {
+      label: 'Delete',
+      class: 'btn btn-sm btn-danger',
+      handler: (id) => this.delete(id)
+    }
+  ];
 
   constructor() {
     super();
