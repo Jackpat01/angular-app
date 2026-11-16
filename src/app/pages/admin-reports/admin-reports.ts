@@ -1,7 +1,7 @@
-import {Component, OnInit, inject} from '@angular/core';
+import {Component, OnInit} from '@angular/core';
 import {CommonModule} from '@angular/common';
-import {FormBuilder, FormGroup, ReactiveFormsModule, Validators} from '@angular/forms';
-import {BaseFormComponent} from '../../shared/base-form.component';
+import {FormBuilder, FormGroup, ReactiveFormsModule} from '@angular/forms';
+import {BaseListCrudComponent} from '../../shared/base-list-crud.component';
 
 interface Report {
   id: number;
@@ -19,49 +19,50 @@ interface Report {
   styleUrl: './admin-reports.css',
   templateUrl: './admin-reports.html',
 })
-export class AdminReportsComponent extends BaseFormComponent implements OnInit {
-  reports: Report[] = [
-    {
-      id: 1,
-      name: 'User Activity Report',
-      type: 'User Activity',
-      generatedBy: 'john.doe@example.com',
-      generatedDate: '2024-11-09',
-      status: 'completed',
-      fileSize: '2.4 MB',
-    },
-    {
-      id: 2,
-      name: 'System Performance Report',
-      type: 'Performance',
-      generatedBy: 'admin@example.com',
-      generatedDate: '2024-11-08',
-      status: 'completed',
-      fileSize: '1.8 MB',
-    },
-    {
-      id: 3,
-      name: 'Error Log Report',
-      type: 'Error Logs',
-      generatedBy: 'jane.smith@example.com',
-      generatedDate: '2024-11-08',
-      status: 'processing',
-      fileSize: 'N/A',
-    },
-    {
-      id: 4,
-      name: 'Database Report',
-      type: 'Database',
-      generatedBy: 'admin@example.com',
-      generatedDate: '2024-11-07',
-      status: 'failed',
-      fileSize: 'N/A',
-    },
-  ];
-
-  filteredReports: Report[] = [];
-  showForm = false;
+export class AdminReportsComponent extends BaseListCrudComponent<Report> implements OnInit {
   filterType = 'all';
+
+  constructor() {
+    super();
+    this.items = [
+      {
+        id: 1,
+        name: 'User Activity Report',
+        type: 'User Activity',
+        generatedBy: 'john.doe@example.com',
+        generatedDate: '2024-11-09',
+        status: 'completed',
+        fileSize: '2.4 MB',
+      },
+      {
+        id: 2,
+        name: 'System Performance Report',
+        type: 'Performance',
+        generatedBy: 'admin@example.com',
+        generatedDate: '2024-11-08',
+        status: 'completed',
+        fileSize: '1.8 MB',
+      },
+      {
+        id: 3,
+        name: 'Error Log Report',
+        type: 'Error Logs',
+        generatedBy: 'jane.smith@example.com',
+        generatedDate: '2024-11-08',
+        status: 'processing',
+        fileSize: 'N/A',
+      },
+      {
+        id: 4,
+        name: 'Database Report',
+        type: 'Database',
+        generatedBy: 'admin@example.com',
+        generatedDate: '2024-11-07',
+        status: 'failed',
+        fileSize: 'N/A',
+      },
+    ];
+  }
 
   protected getPageTitle(): string {
     return 'Reports Management';
@@ -75,23 +76,30 @@ export class AdminReportsComponent extends BaseFormComponent implements OnInit {
     });
   }
 
-  override ngOnInit(): void {
-    super.ngOnInit();
-    this.filteredReports = this.reports;
+  protected matchesSearchTerm(item: Report): boolean {
+    const term = this.searchTerm.toLowerCase();
+    return item.name.toLowerCase().includes(term) || 
+           item.type.toLowerCase().includes(term) ||
+           item.generatedBy.toLowerCase().includes(term);
   }
 
-  filterReports(): void {
+  protected onItemDeleted(id: number | string): void {
+    // Placeholder for post-delete logic (API call, notification, etc)
+  }
+
+  ngOnInit(): void {
+    this.loadItems();
+  }
+
+  protected loadItems(): void {
+    this.applyFilter();
+  }
+
+  filterReportsByStatus(): void {
     if (this.filterType === 'all') {
-      this.filteredReports = this.reports;
+      this.applyFilter();
     } else {
-      this.filteredReports = this.reports.filter(r => r.status === this.filterType);
-    }
-  }
-
-  toggleForm(): void {
-    this.showForm = !this.showForm;
-    if (!this.showForm) {
-      this.form.reset();
+      this.filteredItems = this.items.filter(r => r.status === this.filterType);
     }
   }
 
@@ -103,16 +111,9 @@ export class AdminReportsComponent extends BaseFormComponent implements OnInit {
   }
 
   downloadReport(id: number): void {
-    const report = this.reports.find(r => r.id === id);
+    const report = this.items.find(r => r.id === id);
     if (report && report.status === 'completed') {
       alert(`Downloading: ${report.name}`);
-    }
-  }
-
-  deleteReport(id: number): void {
-    if (confirm('Are you sure you want to delete this report?')) {
-      this.reports = this.reports.filter(r => r.id !== id);
-      this.filteredReports = this.filteredReports.filter(r => r.id !== id);
     }
   }
 
@@ -129,3 +130,4 @@ export class AdminReportsComponent extends BaseFormComponent implements OnInit {
     }
   }
 }
+

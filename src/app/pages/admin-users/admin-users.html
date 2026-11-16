@@ -66,7 +66,7 @@
   <!-- Search Bar -->
   <div class="mb-3">
     <input
-      (input)="filterUsers()"
+      (input)="applyFilter()"
       [(ngModel)]="searchTerm"
       class="form-control"
       placeholder="Search by email or name..."
@@ -76,7 +76,7 @@
   <!-- Users Table -->
   <div class="card">
     <div class="card-header bg-light">
-      <h5 class="mb-0">Users ({{ filteredUsers.length }} found)</h5>
+      <h5 class="mb-0">Users ({{ filteredItems.length }} found)</h5>
     </div>
     <div class="card-body">
       <div class="table-responsive">
@@ -92,7 +92,7 @@
           </tr>
           </thead>
           <tbody>
-          @for (user of filteredUsers; track user.id) {
+          @for (user of filteredItems; track user.id) {
             <tr>
               <td>{{ user.email }}</td>
               <td>{{ user.name }}</td>
@@ -115,14 +115,14 @@
                   {{ user.status === 'active' ? 'Deactivate' : 'Activate' }}
                 </button>
                 <button
-                  (click)="deleteUser(user.id)"
+                  (click)="delete(user.id)"
                   class="btn btn-sm btn-danger">
                   Delete
                 </button>
               </td>
             </tr>
           }
-          @if (filteredUsers.length === 0) {
+          @if (filteredItems.length === 0) {
             <tr>
               <td class="text-center text-muted py-4" colspan="6">
                 No users found

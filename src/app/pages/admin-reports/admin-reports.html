@@ -57,28 +57,28 @@
   <div class="mb-3">
     <div class="btn-group" role="group">
       <button
-        (click)="filterType = 'all'; filterReports()"
+        (click)="filterType = 'all'; filterReportsByStatus()"
         [class.active]="filterType === 'all'"
         class="btn btn-outline-primary"
         type="button">
         All Reports
       </button>
       <button
-        (click)="filterType = 'completed'; filterReports()"
+        (click)="filterType = 'completed'; filterReportsByStatus()"
         [class.active]="filterType === 'completed'"
         class="btn btn-outline-success"
         type="button">
         Completed
       </button>
       <button
-        (click)="filterType = 'processing'; filterReports()"
+        (click)="filterType = 'processing'; filterReportsByStatus()"
         [class.active]="filterType === 'processing'"
         class="btn btn-outline-warning"
         type="button">
         Processing
       </button>
       <button
-        (click)="filterType = 'failed'; filterReports()"
+        (click)="filterType = 'failed'; filterReportsByStatus()"
         [class.active]="filterType === 'failed'"
         class="btn btn-outline-danger"
         type="button">
@@ -90,7 +90,7 @@
   <!-- Reports Table -->
   <div class="card">
     <div class="card-header bg-light">
-      <h5 class="mb-0">Reports ({{ filteredReports.length }} found)</h5>
+      <h5 class="mb-0">Reports ({{ filteredItems.length }} found)</h5>
     </div>
     <div class="card-body">
       <div class="table-responsive">
@@ -107,7 +107,7 @@
           </tr>
           </thead>
           <tbody>
-          @for (report of filteredReports; track report.id) {
+          @for (report of filteredItems; track report.id) {
             <tr>
               <td>{{ report.name }}</td>
               <td>
@@ -131,14 +131,14 @@
                   Download
                 </button>
                 <button
-                  (click)="deleteReport(report.id)"
+                  (click)="delete(report.id)"
                   class="btn btn-sm btn-danger">
                   Delete
                 </button>
               </td>
             </tr>
           }
-          @if (filteredReports.length === 0) {
+          @if (filteredItems.length === 0) {
             <tr>
               <td class="text-center text-muted py-4" colspan="7">
                 No reports found
