@@ -1,6 +1,7 @@
 import {Injectable, inject} from '@angular/core';
-import {BehaviorSubject} from 'rxjs';
 import {ApiService} from './api';
+import {Observable} from 'rxjs';
+import {BaseConfigService} from './base-config.service';
 
 export interface AppConfig {
   appVersion: string;
@@ -10,44 +11,31 @@ export interface AppConfig {
 @Injectable({
   providedIn: 'root',
 })
-export class AppConfigService {
+export class AppConfigService extends BaseConfigService<AppConfig> {
   private apiService = inject(ApiService);
-  private configSubject = new BehaviorSubject<AppConfig>({
-    appVersion: '0.0.2',
-    currentYear: new Date().getFullYear()
-  });
-
-  config$ = this.configSubject.asObservable();
 
   constructor() {
+    super({
+      defaultValue: {
+        appVersion: '0.0.2',
+        currentYear: new Date().getFullYear()
+      },
+      endpoint: '/appConfiguration/config'
+    });
     this.loadConfig();
   }
 
-  getConfig(): AppConfig {
-    return this.configSubject.value;
+  protected loadFromApi(): Observable<AppConfig> {
+    return this.apiService.get<AppConfig>(this.endpoint);
   }
 
   getAppVersion(): string {
-    return this.configSubject.value.appVersion;
+    return this.getConfig().appVersion;
   }
 
   getCurrentYear(): number {
-    return this.configSubject.value.currentYear;
-  }
-
-  /**
-   * Load configuration from API
-   * Endpoint: GET /api/config
-   */
-  private loadConfig(): void {
-    this.apiService.get<AppConfig>('/appConfiguration/config').subscribe({
-      next: (config) => {
-        this.configSubject.next(config);
-      },
-      error: (error) => {
-        console.error('Failed to load config from API, using defaults', error);
-        // Keep using default values on error
-      }
-    });
+    return this.getConfig().currentYear;
   }
 }
+
+
