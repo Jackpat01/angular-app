@@ -55,14 +55,25 @@
               }
             </div>
             <div style="text-align: center">
-              <div class="myImage" style="display: none;">
-                <div class="center">
-                  <img alt="Loading" height="32" ngSrc="images/loading.GIF" width="32"/>
+              @if (isLoading) {
+                <div class="loading-spinner" style="margin: 20px 0;">
+                  <div style="display: flex; justify-content: center; align-items: center; gap: 10px;">
+                    <div style="
+                      width: 40px;
+                      height: 40px;
+                      border: 4px solid #f3f3f3;
+                      border-top: 4px solid #74c141;
+                      border-radius: 50%;
+                      animation: spin 1s linear infinite;
+                    "></div>
+                    <span style="font-size: 16px; color: #74c141; font-weight: bold;">Processing Login...</span>
+                  </div>
                 </div>
-              </div>
-              <div class="myControls">
-                <input class="btn btn-success" tabindex="3" type="submit" value="Login"/>
-              </div>
+              } @else {
+                <div class="myControls">
+                  <input class="btn btn-success" tabindex="3" type="submit" value="Login"/>
+                </div>
+              }
               <br/>
               @if (tempData.hasTempData('message')) {
                 <div [innerHTML]="tempData.getTempData('message')" class="errorLabel"
