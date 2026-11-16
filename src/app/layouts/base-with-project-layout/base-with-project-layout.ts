@@ -13,6 +13,7 @@ import {ARUMRole} from '../../models/ARUMRole';
 import {RouterLink, RouterOutlet} from '@angular/router';
 import {BaseReactiveComponent} from '../../shared/base-reactive.component';
 import {takeUntil} from 'rxjs/operators';
+import {LogoutService} from '../../services/logout.service';
 
 @Component({
   imports: [
@@ -32,6 +33,7 @@ export class BaseWithProjectLayout extends BaseReactiveComponent implements OnIn
   private userService = inject(UserService);
   private portalConfig = inject(PortalConfigService);
   private storage = inject(SessionStorageService);
+  private logoutService = inject(LogoutService);
   userInfo: UserInfo | null = null;
   loginMessageFromConfig: string[] = [];
 
@@ -129,18 +131,7 @@ export class BaseWithProjectLayout extends BaseReactiveComponent implements OnIn
   }
 
   logout(): void {
-    console.log('Logging out...');
-    this.userService.logout().subscribe({
-      next: () => {
-        this.userService.logoutLocal();
-        window.location.href = '/';
-      },
-      error: (error) => {
-        console.error('Logout failed:', error);
-        this.userService.logoutLocal();
-        window.location.href = '/';
-      }
-    });
+    this.logoutService.executeLogout('/');
   }
 }
 

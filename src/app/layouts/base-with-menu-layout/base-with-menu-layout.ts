@@ -11,6 +11,7 @@ import {Classification} from '../../models/Classification';
 import {Router, RouterLink, RouterOutlet} from '@angular/router';
 import {AppConfigService} from '../../services/app-config';
 import {UploadDownloadConfiguration} from '../../services/upload-download-configuration';
+import {LogoutService} from '../../services/logout.service';
 
 @Component({
   imports: [
@@ -31,6 +32,7 @@ export class BaseWithMenuLayout implements OnInit {
   private appConfig = inject(AppConfigService);
   private session=inject(SessionStorageService);
   private uploadDownloadConfiguration = inject(UploadDownloadConfiguration);
+  private logoutService = inject(LogoutService);
 
   private _loginMessages: string[] = [];
 
@@ -204,18 +206,7 @@ export class BaseWithMenuLayout implements OnInit {
   }
 
   logout(): void {
-    console.log('Logging out...');
-    this.userService.logout().subscribe({
-      next: () => {
-        this.userService.logoutLocal();
-        window.location.href = '/';
-      },
-      error: (error) => {
-        console.error('Logout failed:', error);
-        this.userService.logoutLocal();
-        window.location.href = '/';
-      }
-    });
+    this.logoutService.executeLogout('/');
   }
 }
 
