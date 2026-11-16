@@ -24,9 +24,33 @@ export class PortalConfigService {
   private apiService = inject(ApiService);
   private configSubject = new BehaviorSubject<PortalConfig>(this.defaultConfig);
   config$ = this.configSubject.asObservable();
+  private configLoadedSubject = new BehaviorSubject<boolean>(false);
+  configLoaded$ = this.configLoadedSubject.asObservable();
 
   constructor() {
     this.loadConfig();
+  }
+
+  /**
+   * Check if config has been loaded from API
+   */
+  isConfigLoaded(): boolean {
+    return this.configLoadedSubject.value;
+  }
+
+  /**
+   * Wait for config to load from API
+   */
+  async waitForConfigLoad(): Promise<void> {
+    if (this.isConfigLoaded()) {
+      return;
+    }
+    return firstValueFrom(this.configLoaded$.pipe(
+      map(loaded => {
+        if (!loaded) return false;
+        return true;
+      })
+    )).then(() => {});
   }
 
   /**
@@ -93,6 +117,7 @@ export class PortalConfigService {
       this.apiService.get<PortalConfig>('/portalConfiguration/get-config').subscribe({
         next: (config) => {
           this.configSubject.next(config);
+          this.configLoadedSubject.next(true);
           observer.next(config);
           observer.complete();
         },
@@ -112,10 +137,12 @@ export class PortalConfigService {
     this.apiService.get<PortalConfig>('/portalConfiguration/get-config').subscribe({
       next: (config) => {
         this.configSubject.next(config);
+        this.configLoadedSubject.next(true);
       },
       error: (error) => {
         console.error('Failed to load portal config from API', error);
-        // Keep using default config on error
+        // Keep using default config on error, but mark as "loaded" to prevent blocking
+        this.configLoadedSubject.next(true);
       }
     });
   }

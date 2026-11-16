@@ -32,9 +32,12 @@ export class Login implements OnInit {
   }
 
   ngOnInit(): void {
-    this.titleService.setTitle(
-      this.portalConfig.getWebPortalTitle() + ' - Home - Login'
-    );
+    // Wait for portal config to load before setting title
+    this.portalConfig.waitForConfigLoad().then(() => {
+      this.titleService.setTitle(
+        this.portalConfig.getWebPortalTitle() + ' - Home - Login'
+      );
+    });
 
     if (this.session.getItem<boolean>('IsSSO')) {
       this.router.navigate(['/sso/error']);
