@@ -1,4 +1,4 @@
-import {Component, computed, inject, OnInit, Signal, signal} from '@angular/core';
+import {Component, computed, inject, OnInit, Signal, signal, ChangeDetectorRef} from '@angular/core';
 import {TempDataService} from '../../services/temp-data';
 import {Classification} from '../../models/Classification';
 import {PortalConfigService} from '../../services/portal-config';
@@ -22,6 +22,7 @@ export class Projects implements OnInit {
   private functions = inject(FunctionsService);
   private session = inject(SessionStorageService);
   private router = inject(Router);
+  private cdr = inject(ChangeDetectorRef);
   
   private classificationSignal = signal<Classification[]>([]);
 
@@ -40,8 +41,15 @@ export class Projects implements OnInit {
     // Wait for portal config to load, then update classifications
     this.portalConfig.waitForConfigLoad().then(() => {
       this.updateClassifications();
+      this.cdr.detectChanges();
     }).catch(error => {
       console.error('Error loading portal config:', error);
+    });
+
+    // Subscribe to config changes to update classifications when they update
+    this.portalConfig.config$.subscribe(() => {
+      this.updateClassifications();
+      this.cdr.detectChanges();
     });
 
     this.session.setItem('selectedProviderID', 0);
