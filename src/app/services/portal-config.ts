@@ -134,7 +134,7 @@ export class PortalConfigService {
         const mappedConfig: PortalConfig = {
           webPortalTitle: (config as any).WebPortalTitle || config.webPortalTitle || this.defaultConfig.webPortalTitle,
           application: (config as any).ApplicationName || config.application || this.defaultConfig.application,
-          loginMessage: (config as any).LoginMessageHyperLink || (config as any).loginmessage || config.loginMessage || this.defaultConfig.loginMessage,
+          loginMessage: (config as any).LoginMessageHyperLink || (config as any).loginMessage || (config as any).loginmessage || config.loginMessage || this.defaultConfig.loginMessage,
           classificationSessionKey: (config as any).ClassificationSessionKey || config.classificationSessionKey || this.defaultConfig.classificationSessionKey,
           classificationReplacementTerm: (config as any).ClassificationReplacementTerm || config.classificationReplacementTerm || this.defaultConfig.classificationReplacementTerm,
           allClassifications: (config as any).AllClassifications || config.allClassifications || this.defaultConfig.allClassifications,
