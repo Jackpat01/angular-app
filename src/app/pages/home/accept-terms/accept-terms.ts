@@ -2,13 +2,13 @@ import {Component, inject, OnInit, ChangeDetectionStrategy, signal} from '@angul
 import {CommonModule, NgOptimizedImage} from '@angular/common';
 import {FormBuilder, FormGroup, FormsModule, ReactiveFormsModule, Validators} from '@angular/forms';
 import {Router} from '@angular/router';
-import {TitleService} from '../../../services/title';
 import {PortalConfigService} from '../../../services/portal-config';
 import {LoginService} from '../../../services/login';
 import {SessionStorageService} from '../../../services/session-storage-service';
 import {ARUMUserValidation} from '../../../models/ARUMUserValidation';
 import {TempDataService} from '../../../services/temp-data';
 import {AsyncHandlerService} from '../../../services/async-handler.service';
+import {BaseFormComponent} from '../../../shared/base-form.component';
 
 @Component({
   selector: 'ohfi-accept-terms',
@@ -18,7 +18,7 @@ import {AsyncHandlerService} from '../../../services/async-handler.service';
   imports: [CommonModule, FormsModule, ReactiveFormsModule, NgOptimizedImage],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class AcceptTerms implements OnInit {
+export class AcceptTerms extends BaseFormComponent implements OnInit {
   eulaText = `
 <p style="font-family: Arial, sans-serif; font-weight: bold; text-align: center;">
     <b>Myers and Stauffer xx_State_xx Web Portal<br/>Terms of Use Agreement:</b>
@@ -40,26 +40,25 @@ export class AcceptTerms implements OnInit {
 `;
   isLoading = signal(false);
   acceptError = signal('');
-  submitted = false;
   email = '';
-  private titleService = inject(TitleService);
   private portalConfig = inject(PortalConfigService);
   private loginService = inject(LoginService);
   private session = inject(SessionStorageService);
   private tempData = inject(TempDataService);
   private router = inject(Router);
-  private fb = inject(FormBuilder);
   private asyncHandler = inject(AsyncHandlerService);
-  acceptForm: FormGroup = this.fb.group({
-    acceptCheckbox: [false, [Validators.requiredTrue]],
-  });
 
-  get f() {
-    return this.acceptForm.controls;
+  protected getPageTitle(): string {
+    return 'Accept Terms of Use';
   }
 
-  ngOnInit(): void {
-    // Wait for portal config to load before setting title
+  protected buildForm(): FormGroup {
+    return this.fb.group({
+      acceptCheckbox: [false, [Validators.requiredTrue]],
+    });
+  }
+
+  override ngOnInit(): void {
     this.portalConfig.waitForConfigLoad().then(() => {
       this.titleService.setTitle(`${this.portalConfig.getConfig().application} - Accept Terms of Use`);
     }).catch(error => {
@@ -78,6 +77,7 @@ export class AcceptTerms implements OnInit {
       return;
     }
 
+    this.form = this.buildForm();
     this.loadEULA();
   }
 

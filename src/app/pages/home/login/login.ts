@@ -2,12 +2,12 @@ import {Component, inject, OnInit, ChangeDetectionStrategy, signal} from '@angul
 import {CommonModule, NgOptimizedImage} from '@angular/common';
 import {FormBuilder, FormGroup, ReactiveFormsModule, Validators} from '@angular/forms';
 import {Router} from '@angular/router';
-import {TitleService} from '../../../services/title';
 import {LoginService} from '../../../services/login';
 import {PortalConfigService} from '../../../services/portal-config';
 import {TempDataService} from '../../../services/temp-data';
 import {SessionStorageService} from '../../../services/session-storage-service';
 import {AsyncHandlerService} from '../../../services/async-handler.service';
+import {BaseFormComponent} from '../../../shared/base-form.component';
 
 @Component({
   imports: [CommonModule, ReactiveFormsModule, NgOptimizedImage],
@@ -16,26 +16,17 @@ import {AsyncHandlerService} from '../../../services/async-handler.service';
   templateUrl: './login.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class Login implements OnInit {
-  private titleService = inject(TitleService);
+export class Login extends BaseFormComponent implements OnInit {
   private loginService = inject(LoginService);
   private portalConfig = inject(PortalConfigService);
   private router = inject(Router);
   private tempData = inject(TempDataService);
-  private fb = inject(FormBuilder);
   private session = inject(SessionStorageService);
   private asyncHandler = inject(AsyncHandlerService);
 
-  loginForm!: FormGroup;
-  submitted = false;
   isLoading = signal(false);
 
-  get f() {
-    return this.loginForm.controls;
-  }
-
-  ngOnInit(): void {
-    // Wait for portal config to load before setting title
+  override ngOnInit(): void {
     this.portalConfig.waitForConfigLoad().then(() => {
       this.titleService.setTitle(
         this.portalConfig.getWebPortalTitle() + ' - Home - Login'
@@ -55,7 +46,18 @@ export class Login implements OnInit {
       this.session.removeItem('GlobalErrorMessage');
     }
 
-    this.initializeForm();
+    this.form = this.buildForm();
+  }
+
+  protected getPageTitle(): string {
+    return 'Login';
+  }
+
+  protected buildForm(): FormGroup {
+    return this.fb.group({
+      email: ['', [Validators.required, Validators.email]],
+      password: ['', [Validators.required, Validators.minLength(6)]],
+    });
   }
 
   onSubmit(): void {
@@ -65,11 +67,11 @@ export class Login implements OnInit {
       this.router.navigate(['/sso/error']);
     }
 
-    if (this.loginForm.invalid) {
+    if (this.form.invalid) {
       return;
     }
 
-    const {email, password} = this.loginForm.value;
+    const {email, password} = this.form.value;
 
     this.asyncHandler.executeAsync(
       this.loginService.loginToPage({email, password}),
@@ -105,12 +107,5 @@ export class Login implements OnInit {
 
   dismissError(): void {
     this.tempData.removeTempData('errorMessage');
-  }
-
-  private initializeForm(): void {
-    this.loginForm = this.fb.group({
-      email: ['', [Validators.required, Validators.email]],
-      password: ['', [Validators.required, Validators.minLength(6)]],
-    });
   }
 }

@@ -1,4 +1,4 @@
-<form (ngSubmit)="onSubmit()" [formGroup]="loginForm">
+<form (ngSubmit)="onSubmit()" [formGroup]="form">
   <div>
     <div class="center">
       <br/>
@@ -24,12 +24,12 @@
                   type="text"
                 />
               </div>
-              @if (loginForm.get('email')?.invalid && (loginForm.get('email')?.dirty || loginForm.get('email')?.touched)) {
+              @if (form.get('email')?.invalid && (form.get('email')?.dirty || form.get('email')?.touched)) {
                 <div class="errorLabel">
-                  @if (loginForm.get('email')?.errors?.['required']) {
+                  @if (form.get('email')?.errors?.['required']) {
                     <span>Email is required.</span>
                   }
-                  @if (loginForm.get('email')?.errors?.['email']) {
+                  @if (form.get('email')?.errors?.['email']) {
                     <span>Invalid Email Address</span>
                   }
                 </div>
@@ -46,9 +46,9 @@
                 tabindex="2"
                 type="password"
               />
-              @if (loginForm.get('password')?.invalid && (loginForm.get('password')?.dirty || loginForm.get('password')?.touched)) {
+              @if (form.get('password')?.invalid && (form.get('password')?.dirty || form.get('password')?.touched)) {
                 <div class="errorLabel">
-                  @if (loginForm.get('password')?.errors?.['required']) {
+                  @if (form.get('password')?.errors?.['required']) {
                     <span>Password is required.</span>
                   }
                 </div>

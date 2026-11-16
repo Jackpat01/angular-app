@@ -1,7 +1,7 @@
 import {Component, OnInit, inject} from '@angular/core';
 import {CommonModule} from '@angular/common';
-import {FormBuilder, FormGroup, ReactiveFormsModule} from '@angular/forms';
-import {TitleService} from '../../services/title';
+import {FormBuilder, FormGroup, ReactiveFormsModule, Validators} from '@angular/forms';
+import {BaseFormComponent} from '../../shared/base-form.component';
 
 interface Report {
   id: number;
@@ -19,9 +19,7 @@ interface Report {
   styleUrl: './admin-reports.css',
   templateUrl: './admin-reports.html',
 })
-export class AdminReportsComponent implements OnInit {
-  private titleService = inject(TitleService);
-  private fb = inject(FormBuilder);
+export class AdminReportsComponent extends BaseFormComponent implements OnInit {
   reports: Report[] = [
     {
       id: 1,
@@ -62,22 +60,24 @@ export class AdminReportsComponent implements OnInit {
   ];
 
   filteredReports: Report[] = [];
-  reportForm!: FormGroup;
   showForm = false;
   filterType = 'all';
 
-  ngOnInit(): void {
-    this.titleService.setTitle('Reports Management');
-    this.filteredReports = this.reports;
-    this.initializeForm();
+  protected getPageTitle(): string {
+    return 'Reports Management';
   }
 
-  initializeForm(): void {
-    this.reportForm = this.fb.group({
+  protected buildForm(): FormGroup {
+    return this.fb.group({
       reportType: ['User Activity'],
       startDate: [''],
       endDate: [''],
     });
+  }
+
+  override ngOnInit(): void {
+    super.ngOnInit();
+    this.filteredReports = this.reports;
   }
 
   filterReports(): void {
@@ -91,12 +91,12 @@ export class AdminReportsComponent implements OnInit {
   toggleForm(): void {
     this.showForm = !this.showForm;
     if (!this.showForm) {
-      this.reportForm.reset();
+      this.form.reset();
     }
   }
 
   generateReport(): void {
-    if (this.reportForm.valid) {
+    if (this.form.valid) {
       alert('Report generation started. You will be notified when it completes.');
       this.showForm = false;
     }

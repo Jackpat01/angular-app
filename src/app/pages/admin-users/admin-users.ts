@@ -2,7 +2,7 @@ import {Component, OnInit, inject} from '@angular/core';
 import {CommonModule} from '@angular/common';
 import {FormBuilder, FormGroup, FormsModule, ReactiveFormsModule, Validators} from '@angular/forms';
 import {NgbModal} from '@ng-bootstrap/ng-bootstrap';
-import {TitleService} from '../../services/title';
+import {BaseFormComponent} from '../../shared/base-form.component';
 
 interface User {
   id: number;
@@ -19,9 +19,7 @@ interface User {
   styleUrl: './admin-users.css',
   templateUrl: './admin-users.html',
 })
-export class AdminUsersComponent implements OnInit {
-  private titleService = inject(TitleService);
-  private fb = inject(FormBuilder);
+export class AdminUsersComponent extends BaseFormComponent implements OnInit {
   private modalService = inject(NgbModal);
   users: User[] = [
     {id: 1, email: 'john.doe@example.com', name: 'John Doe', role: 'Admin', status: 'active', joinDate: '2023-01-15'},
@@ -53,21 +51,23 @@ export class AdminUsersComponent implements OnInit {
 
   searchTerm = '';
   filteredUsers: User[] = [];
-  userForm!: FormGroup;
   showForm = false;
 
-  ngOnInit(): void {
-    this.titleService.setTitle('User Management');
-    this.filteredUsers = this.users;
-    this.initializeForm();
+  protected getPageTitle(): string {
+    return 'User Management';
   }
 
-  initializeForm(): void {
-    this.userForm = this.fb.group({
+  protected buildForm(): FormGroup {
+    return this.fb.group({
       email: ['', [Validators.required, Validators.email]],
       name: ['', [Validators.required, Validators.minLength(2)]],
       role: ['User', Validators.required],
     });
+  }
+
+  override ngOnInit(): void {
+    super.ngOnInit();
+    this.filteredUsers = this.users;
   }
 
   filterUsers(): void {
@@ -84,21 +84,21 @@ export class AdminUsersComponent implements OnInit {
   toggleForm(): void {
     this.showForm = !this.showForm;
     if (!this.showForm) {
-      this.userForm.reset();
+      this.form.reset();
     }
   }
 
   addUser(): void {
-    if (this.userForm.valid) {
+    if (this.form.valid) {
       const newUser: User = {
         id: Math.max(...this.users.map(u => u.id), 0) + 1,
-        ...this.userForm.value,
+        ...this.form.value,
         status: 'active',
         joinDate: new Date().toISOString().split('T')[0],
       };
       this.users.push(newUser);
       this.filteredUsers = this.users;
-      this.userForm.reset();
+      this.form.reset();
       this.showForm = false;
     }
   }
