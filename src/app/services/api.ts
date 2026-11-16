@@ -84,7 +84,10 @@ export class ApiService {
     if (error.error instanceof ErrorEvent) {
       errorMessage = `Error: ${error.error.message}`;
     } else {
-      errorMessage = `Error Code: ${error.status}\nMessage: ${error.message}`;
+      errorMessage = `Error Code: ${error.status}`;
+      if (error.message) {
+        errorMessage += `\nMessage: ${error.message}`;
+      }
       if (error.error && typeof error.error === "object") {
         const errorObj = error.error as Record<string, unknown>;
         if (errorObj['message']) {
@@ -93,7 +96,7 @@ export class ApiService {
       }
     }
 
-    console.error(errorMessage);
+    console.error('API Error:', errorMessage, error);
     return throwError(() => new Error(errorMessage));
   }
 }

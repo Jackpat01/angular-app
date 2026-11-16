@@ -1,7 +1,7 @@
 import {inject, Injectable} from '@angular/core';
 import {BehaviorSubject, firstValueFrom, Observable, of} from 'rxjs';
 import {ApiService} from './api';
-import {catchError, map} from 'rxjs/operators';
+import {catchError, filter, map, skip} from 'rxjs/operators';
 import {Classification} from '../models/Classification';
 import {PortalConfig} from '../models/portal-config';
 
@@ -46,10 +46,8 @@ export class PortalConfigService {
       return;
     }
     return firstValueFrom(this.configLoaded$.pipe(
-      map(loaded => {
-        if (!loaded) return false;
-        return true;
-      })
+      skip(1),
+      filter(loaded => loaded === true)
     )).then(() => {});
   }
 
@@ -136,11 +134,29 @@ export class PortalConfigService {
   private loadConfig(): void {
     this.apiService.get<PortalConfig>('/portalConfiguration/get-config').subscribe({
       next: (config) => {
-        this.configSubject.next(config);
+        console.log('Portal config received from API:', config);
+        console.log('WebPortalTitle from API:', (config as any).WebPortalTitle || (config as any).webPortalTitle);
+        
+        // Map API response to our interface - API might use different casing
+        const mappedConfig: PortalConfig = {
+          webPortalTitle: (config as any).WebPortalTitle || config.webPortalTitle || this.defaultConfig.webPortalTitle,
+          application: (config as any).ApplicationName || config.application || this.defaultConfig.application,
+          loginMessage: (config as any).LoginMessageHyperLink || config.loginMessage || this.defaultConfig.loginMessage,
+          classificationSessionKey: (config as any).ClassificationSessionKey || config.classificationSessionKey || this.defaultConfig.classificationSessionKey,
+          classificationReplacementTerm: (config as any).ClassificationReplacementTerm || config.classificationReplacementTerm || this.defaultConfig.classificationReplacementTerm,
+          allClassifications: (config as any).AllClassifications || config.allClassifications || this.defaultConfig.allClassifications,
+          enableBB: (config as any).EnableBB !== undefined ? (config as any).EnableBB : config.enableBB,
+          enableResource: (config as any).EnableResource !== undefined ? (config as any).EnableResource : config.enableResource,
+          auditTypeReplacementName: (config as any).AuditTypeReplacementName || config.auditTypeReplacementName || this.defaultConfig.auditTypeReplacementName,
+        };
+        
+        console.log('Mapped config:', mappedConfig);
+        this.configSubject.next(mappedConfig);
         this.configLoadedSubject.next(true);
       },
       error: (error) => {
         console.error('Failed to load portal config from API', error);
+        console.warn('Using default portal configuration');
         // Keep using default config on error, but mark as "loaded" to prevent blocking
         this.configLoadedSubject.next(true);
       }

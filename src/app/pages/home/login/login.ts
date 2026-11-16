@@ -37,6 +37,9 @@ export class Login implements OnInit {
       this.titleService.setTitle(
         this.portalConfig.getWebPortalTitle() + ' - Home - Login'
       );
+    }).catch(error => {
+      console.error('Error loading portal config:', error);
+      this.titleService.setTitle('OMES - Home - Login');
     });
 
     if (this.session.getItem<boolean>('IsSSO')) {
