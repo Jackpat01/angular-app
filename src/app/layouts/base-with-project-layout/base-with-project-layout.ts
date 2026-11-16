@@ -120,11 +120,9 @@ export class BaseWithProjectLayout implements OnInit {
     this.userInfo = this.userService.getUser();
     await this.portalConfig.waitForConfigLoad();
     this.loginMessageFromConfig = this.portalConfig.retrieveLoginMessage();
-    console.log('loginMessageFromConfig after wait:', this.loginMessageFromConfig);
     this.cdr.detectChanges();
     
     this.portalConfig.config$.subscribe((config) => {
-      console.log('Config updated, loginMessage:', config.loginMessage);
       this.loginMessageFromConfig = config.loginMessage;
       this.cdr.detectChanges();
     });

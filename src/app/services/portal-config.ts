@@ -127,10 +127,6 @@ export class PortalConfigService {
   private loadConfig(): void {
     this.apiService.get<PortalConfig>('/portalConfiguration/get-config').subscribe({
       next: (config) => {
-        console.log('Portal config received from API:', config);
-        console.log('WebPortalTitle from API:', (config as any).WebPortalTitle || (config as any).webPortalTitle);
-        console.log('loginMessage from API:', (config as any).loginMessage);
-
         // Map API response to our interface - API might use different casing
         const mappedConfig: PortalConfig = {
           webPortalTitle: (config as any).WebPortalTitle || config.webPortalTitle || this.defaultConfig.webPortalTitle,
@@ -144,8 +140,6 @@ export class PortalConfigService {
           auditTypeReplacementName: (config as any).AuditTypeReplacementName || config.auditTypeReplacementName || this.defaultConfig.auditTypeReplacementName,
         };
 
-        console.log('Mapped config:', mappedConfig);
-        console.log('Final loginMessage:', mappedConfig.loginMessage);
         this.configSubject.next(mappedConfig);
         this.configLoadedSubject.next(true);
       },
