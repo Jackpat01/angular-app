@@ -7,8 +7,8 @@ import {PortalConfigService} from '../../../services/portal-config';
 import {LoginService} from '../../../services/login';
 import {SessionStorageService} from '../../../services/session-storage-service';
 import {ARUMUserValidation} from '../../../models/ARUMUserValidation';
-import {ARUMUserWithToken} from '../../../models/ARUMUserWithToken';
 import {TempDataService} from '../../../services/temp-data';
+import {AsyncHandlerService} from '../../../services/async-handler.service';
 
 @Component({
   selector: 'ohfi-accept-terms',
@@ -47,9 +47,9 @@ export class AcceptTerms implements OnInit {
   private loginService = inject(LoginService);
   private session = inject(SessionStorageService);
   private tempData = inject(TempDataService);
-
   private router = inject(Router);
   private fb = inject(FormBuilder);
+  private asyncHandler = inject(AsyncHandlerService);
   acceptForm: FormGroup = this.fb.group({
     acceptCheckbox: [false, [Validators.requiredTrue]],
   });
@@ -82,17 +82,16 @@ export class AcceptTerms implements OnInit {
   }
 
   loadEULA(): void {
-    this.isLoading.set(true);
-    this.loginService.getEULAText().subscribe({
-      next: (response) => {
+    this.asyncHandler.executeAsync(
+      this.loginService.getEULAText(),
+      this.isLoading,
+      (response) => {
         this.eulaText = response.eulaText;
-        this.isLoading.set(false);
       },
-      error: () => {
+      () => {
         this.acceptError.set('Failed to load Terms of Use. Please try again.');
-        this.isLoading.set(false);
-      },
-    });
+      }
+    );
   }
 
   onSubmit(): void {
@@ -104,8 +103,10 @@ export class AcceptTerms implements OnInit {
 
     if (!this.session.getItem<ARUMUserValidation>('ARUMUserValidations')) {
       if (this.email) {
-        this.loginService.acceptTermsOfUse(this.email).subscribe({
-          next: (response) => {
+        this.asyncHandler.executeAsync(
+          this.loginService.acceptTermsOfUse(this.email),
+          this.isLoading,
+          (response) => {
             if (response.successful) {
               this.session.setItem('ARUMUserValidations', response.arumValidation);
               let message = response.message;
@@ -115,7 +116,7 @@ export class AcceptTerms implements OnInit {
               this.router.navigate(['/login']);
             }
           }
-        });
+        );
       } else {
         this.router.navigate(['/login']);
       }

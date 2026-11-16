@@ -10,14 +10,14 @@
         <table class="clean-table">
           <tr>
             <td>
-              @if (isLoading) {
+              @if (isLoading()) {
                 <div class="text-center">
                   <div class="spinner-border" role="status">
                     <span class="visually-hidden">Loading EULA...</span>
                   </div>
                 </div>
               }
-              @if (!isLoading && eulaText) {
+              @if (!isLoading() && eulaText) {
                 <div [innerHTML]="eulaText" class="eula-text" style="margin-top: 15px; margin-bottom: 15px;"></div>
               }
             </td>

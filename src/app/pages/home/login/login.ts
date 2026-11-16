@@ -7,6 +7,7 @@ import {LoginService} from '../../../services/login';
 import {PortalConfigService} from '../../../services/portal-config';
 import {TempDataService} from '../../../services/temp-data';
 import {SessionStorageService} from '../../../services/session-storage-service';
+import {AsyncHandlerService} from '../../../services/async-handler.service';
 
 @Component({
   imports: [CommonModule, ReactiveFormsModule, NgOptimizedImage],
@@ -23,6 +24,7 @@ export class Login implements OnInit {
   private tempData = inject(TempDataService);
   private fb = inject(FormBuilder);
   private session = inject(SessionStorageService);
+  private asyncHandler = inject(AsyncHandlerService);
 
   loginForm!: FormGroup;
   submitted = false;
@@ -63,24 +65,21 @@ export class Login implements OnInit {
       this.router.navigate(['/sso/error']);
     }
 
-
     if (this.loginForm.invalid) {
       return;
     }
 
-    this.isLoading.set(true);
     const {email, password} = this.loginForm.value;
 
-    this.loginService.loginToPage({email, password}).subscribe({
-      next: (response) => {
-        this.isLoading.set(false);
-
+    this.asyncHandler.executeAsync(
+      this.loginService.loginToPage({email, password}),
+      this.isLoading,
+      (response) => {
         if (!response.successful) {
           let message = response.errorMessage;
           this.tempData.setTempData('errorMessage', {message});
           return;
         }
-
 
         if (!response.arumUser) {
           let message = 'Username/password invalid';
@@ -88,24 +87,20 @@ export class Login implements OnInit {
           return;
         }
 
-        // Store email in session storage for use in other components
         this.session.setItem('email', response.arumUser.email);
         this.session.setItem('arumUser', JSON.stringify(response.arumUser));
 
-        // Check if user needs to accept terms
         if (response.redirectToTerm) {
           this.router.navigate(['/accept-terms']);
         } else {
-          // Navigate to projects/dashboard
           this.router.navigate(['/projects']);
         }
       },
-      error: (error) => {
-        this.isLoading = false;
+      (error) => {
         this.tempData.setTempData('errorMessage', error.message || 'Login failed. Please check your credentials and try again.');
         console.error('Login error:', error);
       }
-    });
+    );
   }
 
   dismissError(): void {
