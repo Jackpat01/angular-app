@@ -47,8 +47,8 @@ export class UserService {
    * Stores JWT token which contains claims (replaces session variables)
    */
   login(credentials: LoginRequest): Observable<LoginResponse> {
-    return this.apiService.post<LoginResponse>('/auth/login', credentials).pipe(
-      tap((response) => {
+    return this.apiService.post<LoginResponse>('/auth/login', credentials as unknown as Record<string, unknown>).pipe(
+      tap((response: LoginResponse) => {
         // Store tokens in localStorage
         this.authService.setTokens(response.token);
         // Set user data
@@ -62,7 +62,7 @@ export class UserService {
    * Endpoint: POST /api/auth/logout
    */
   logout(): Observable<Record<string, unknown>> {
-    return this.apiService.post('/auth/logout', {}).pipe(
+    return this.apiService.post<Record<string, unknown>>('/auth/logout', {}).pipe(
       tap(() => {
         this.logoutLocal();
       })

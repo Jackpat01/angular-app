@@ -120,12 +120,12 @@ export class AuthService {
     }
 
     const decoded = this.decodeToken(tokenToCheck);
-    if (!decoded || !decoded.exp) {
+    if (!decoded || !decoded['exp']) {
       return true;
     }
 
     const currentTime = Math.floor(Date.now() / 1000);
-    return decoded.exp < currentTime;
+    return (decoded['exp'] as number) < currentTime;
   }
 
   /**
@@ -147,28 +147,32 @@ export class AuthService {
    * Get user email from claims
    */
   getUserEmail(): string | null {
-    return this.getClaim('email');
+    const value = this.getClaim('email');
+    return typeof value === 'string' ? value : null;
   }
 
   /**
    * Get user role from claims
    */
   getUserRole(): string | null {
-    return this.getClaim('role');
+    const value = this.getClaim('role');
+    return typeof value === 'string' ? value : null;
   }
 
   /**
    * Get company from claims (custom claim)
    */
   getCompany(): string | null {
-    return this.getClaim('company');
+    const value = this.getClaim('company');
+    return typeof value === 'string' ? value : null;
   }
 
   /**
    * Get provider from claims (custom claim)
    */
   getProvider(): string | null {
-    return this.getClaim('provider');
+    const value = this.getClaim('provider');
+    return typeof value === 'string' ? value : null;
   }
 
   /**
@@ -187,14 +191,14 @@ export class AuthService {
     }
 
     return {
-      sub: decoded.sub,
-      email: decoded.email,
-      role: decoded.role,
-      company: decoded.company,
-      provider: decoded.provider,
-      nameIdentifier: decoded['http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier'],
-      exp: decoded.exp,
-      iat: decoded.iat,
+      sub: decoded['sub'] as string | undefined,
+      email: decoded['email'] as string | undefined,
+      role: decoded['role'] as string | undefined,
+      company: decoded['company'] as string | undefined,
+      provider: decoded['provider'] as string | undefined,
+      nameIdentifier: decoded['http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier'] as string | undefined,
+      exp: decoded['exp'] as number | undefined,
+      iat: decoded['iat'] as number | undefined,
       ...decoded, // Include all other claims
     };
   }

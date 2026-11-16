@@ -87,8 +87,8 @@ export class ApiService {
       errorMessage = `Error Code: ${error.status}\nMessage: ${error.message}`;
       if (error.error && typeof error.error === "object") {
         const errorObj = error.error as Record<string, unknown>;
-        if (errorObj.message) {
-          errorMessage = String(errorObj.message);
+        if (errorObj['message']) {
+          errorMessage = String(errorObj['message']);
         }
       }
     }

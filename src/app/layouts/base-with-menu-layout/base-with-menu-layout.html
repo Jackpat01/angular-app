@@ -152,7 +152,7 @@
     <div style="border-bottom: 2px solid #74c141;" class="d-flex align-items-center pl-1">
       @if (classification != null && portalConfig.enableBB()) {
         @if (isNotShowAllPage) {
-          <text>
+          <ng-container>
             <a
               id="ancShowBulletinBoard"
               class="OpenShowBulletinBoardModal pr-1"
@@ -164,7 +164,7 @@
                 title="Show Bulletin Board"
                 width="40"
                 height="40"/>
-            </a></text>
+            </a></ng-container>
         }
       }
       <a

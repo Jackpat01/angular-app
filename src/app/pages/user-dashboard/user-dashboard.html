@@ -3,9 +3,9 @@
   @if (dashboardData) {
     <div class="alert alert-info">
       <h5>Dashboard Loaded from JWT Claims</h5>
-      <p><strong>{{ dashboardData.greeting }}</strong></p>
-      <p>Role: <code>{{ dashboardData.role }}</code></p>
-      <p>Company: <code>{{ dashboardData.company }}</code></p>
+      <p><strong>{{ dashboardData['greeting'] }}</strong></p>
+      <p>Role: <code>{{ dashboardData['role'] }}</code></p>
+      <p>Company: <code>{{ dashboardData['company'] }}</code></p>
     </div>
   }
 

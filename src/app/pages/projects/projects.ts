@@ -12,7 +12,7 @@ import {TitleService} from '../../services/title';
 @Component({
   imports: [RouterLink],
   selector: 'ohfi-projects',
-  styleUrl: './projects.scss',
+  styleUrl: './projects.css',
   templateUrl: './projects.html',
 })
 export class Projects implements OnInit {
