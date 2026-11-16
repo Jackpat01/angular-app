@@ -129,6 +129,7 @@ export class PortalConfigService {
       next: (config) => {
         console.log('Portal config received from API:', config);
         console.log('WebPortalTitle from API:', (config as any).WebPortalTitle || (config as any).webPortalTitle);
+        console.log('loginMessage from API:', (config as any).loginMessage);
 
         // Map API response to our interface - API might use different casing
         const mappedConfig: PortalConfig = {
@@ -144,6 +145,7 @@ export class PortalConfigService {
         };
 
         console.log('Mapped config:', mappedConfig);
+        console.log('Final loginMessage:', mappedConfig.loginMessage);
         this.configSubject.next(mappedConfig);
         this.configLoadedSubject.next(true);
       },
