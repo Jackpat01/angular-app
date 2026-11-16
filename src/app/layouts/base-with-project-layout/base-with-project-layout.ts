@@ -1,4 +1,4 @@
-import {Component, OnInit, inject} from '@angular/core';
+import {Component, OnInit, inject, ChangeDetectorRef} from '@angular/core';
 import {CommonModule, NgOptimizedImage} from '@angular/common';
 import {TitleService} from '../../services/title';
 import {AppConfigService} from '../../services/app-config';
@@ -29,6 +29,7 @@ export class BaseWithProjectLayout implements OnInit {
   private userService = inject(UserService);
   private portalConfig = inject(PortalConfigService);
   private storage = inject(SessionStorageService);
+  private cdr = inject(ChangeDetectorRef);
   userInfo: UserInfo | null = null;
   loginMessageFromConfig: string[] = [];
 
@@ -120,10 +121,12 @@ export class BaseWithProjectLayout implements OnInit {
     await this.portalConfig.waitForConfigLoad();
     this.loginMessageFromConfig = this.portalConfig.retrieveLoginMessage();
     console.log('loginMessageFromConfig after wait:', this.loginMessageFromConfig);
+    this.cdr.detectChanges();
     
     this.portalConfig.config$.subscribe((config) => {
       console.log('Config updated, loginMessage:', config.loginMessage);
       this.loginMessageFromConfig = config.loginMessage;
+      this.cdr.detectChanges();
     });
   }
 
