@@ -1,3 +1,4 @@
+<!--suppress CheckImageSize -->
 <div class="page-layout">
   <div style="background-color: #74c141; height: 40px;"></div>
   <div style="border-bottom: 1px dashed #ccc; position: relative;">
@@ -45,11 +46,13 @@
                   <li><a [routerLink]="['/bulk-processing']">Batch File Upload</a></li>
                 }
                 @if (enableUpload && canAccessPortalUpload) {
-                  <li><a [routerLink]="['/upload']" title="Provider-specific Upload" alt="Provider-specific Upload">Upload</a>
+                  <li>
+                    <a [routerLink]="['/upload']" title="Provider-specific Upload">Upload</a>
                   </li>
+
                 }
                 @if (enableDownload && canAccessPortalDownload) {
-                  <li><a [routerLink]="['/download']" title="Download from MSLC" alt="Download from MSLC">Files to
+                  <li><a [routerLink]="['/download']" title="Download from MSLC">Files to
                     Download</a></li>
                 }
 
