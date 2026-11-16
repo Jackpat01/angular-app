@@ -14,7 +14,7 @@
         </th>
       </tr>
       </thead>
-      @if (classifications != null && classifications.length != 0) {
+      @if (classifications().length > 0) {
         <tbody>
           @for (singleClassification of classifications(); track singleClassification.id) {
             <tr>
