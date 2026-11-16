@@ -26,7 +26,7 @@ export class Projects implements OnInit {
   ngOnInit(): void {
     this.titleService.setTitle('Projects');
 
-    let arumUser = this.session.getItem<ARUMProxy_User>('armUser');
+    let arumUser = this.session.getItem<ARUMProxy_User>('arumUser');
     if (arumUser == null) {
       if (!this.session.getItem<boolean>('IsSSO')) {
         this.router.navigate(['/login']);
