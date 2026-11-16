@@ -1,4 +1,4 @@
-import {Component, inject, OnInit} from '@angular/core';
+import {Component, inject, OnInit, ChangeDetectorRef} from '@angular/core';
 import {CommonModule, NgOptimizedImage} from '@angular/common';
 import {FormBuilder, FormGroup, ReactiveFormsModule, Validators} from '@angular/forms';
 import {Router} from '@angular/router';
@@ -22,6 +22,7 @@ export class Login implements OnInit {
   private tempData = inject(TempDataService);
   private fb = inject(FormBuilder);
   private session = inject(SessionStorageService);
+  private cdr = inject(ChangeDetectorRef);
 
   loginForm!: FormGroup;
   submitted = false;
@@ -73,6 +74,7 @@ export class Login implements OnInit {
     this.loginService.loginToPage({email, password}).subscribe({
       next: (response) => {
         this.isLoading = false;
+        this.cdr.detectChanges();
 
         if (!response.successful) {
           let message = response.errorMessage;

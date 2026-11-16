@@ -1,4 +1,4 @@
-import {Component, OnInit, inject} from '@angular/core';
+import {Component, OnInit, inject, ChangeDetectorRef} from '@angular/core';
 import {CommonModule} from '@angular/common';
 import {TitleService} from '../../services/title';
 import {UserService} from '../../services/user';
@@ -14,6 +14,7 @@ export class UserDashboard implements OnInit {
   private titleService = inject(TitleService);
   private userService = inject(UserService);
   private authService = inject(AuthService);
+  private cdr = inject(ChangeDetectorRef);
   userClaims: UserClaims | null = null;
   dashboardData: Record<string, unknown> | null = null;
 
@@ -27,6 +28,7 @@ export class UserDashboard implements OnInit {
       if (claims) {
         this.loadDashboardData(claims);
       }
+      this.cdr.detectChanges();
     });
   }
 

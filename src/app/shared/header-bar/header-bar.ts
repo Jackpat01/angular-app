@@ -1,4 +1,4 @@
-import {Component, OnInit, inject} from '@angular/core';
+import {Component, OnInit, inject, ChangeDetectorRef} from '@angular/core';
 import {CommonModule} from '@angular/common';
 import {UserService} from '../../services/user';
 import {AuthService, UserClaims} from '../../services/auth';
@@ -12,6 +12,7 @@ import {AuthService, UserClaims} from '../../services/auth';
 export class HeaderBarComponent implements OnInit {
   private userService = inject(UserService);
   private authService = inject(AuthService);
+  private cdr = inject(ChangeDetectorRef);
   userClaims: UserClaims | null = null;
   userEmail: string | null = null;
   userRole: string | null = null;
@@ -24,6 +25,7 @@ export class HeaderBarComponent implements OnInit {
       this.userEmail = claims?.email || null;
       this.userRole = claims?.role || null;
       this.company = claims?.company || null;
+      this.cdr.detectChanges();
     });
   }
 

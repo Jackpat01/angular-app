@@ -1,4 +1,4 @@
-import {Component, OnInit, inject} from '@angular/core';
+import {Component, OnInit, inject, ChangeDetectorRef} from '@angular/core';
 import {ActivatedRoute, Router} from '@angular/router';
 import {SessionStorageService} from '../../../services/session-storage-service';
 import {ARUMProxy_User} from '../../../models/ARUMProxy_User';
@@ -20,6 +20,7 @@ export class SetProjectComponent implements OnInit {
   private router = inject(Router);
   private tempData = inject(TempDataService);
   private portalConfig = inject(PortalConfigService);
+  private cdr = inject(ChangeDetectorRef);
 
 
   ngOnInit(): void {
@@ -73,6 +74,7 @@ export class SetProjectComponent implements OnInit {
               this.router.navigate(['/bulletinBoard/showAll']);
             }
           }
+          this.cdr.detectChanges();
           this.router.navigate(['/secure']);
         })
       });

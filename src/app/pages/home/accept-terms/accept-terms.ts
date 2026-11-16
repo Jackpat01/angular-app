@@ -1,4 +1,4 @@
-import {Component, inject, OnInit} from '@angular/core';
+import {Component, inject, OnInit, ChangeDetectorRef} from '@angular/core';
 import {CommonModule, NgOptimizedImage} from '@angular/common';
 import {FormBuilder, FormGroup, FormsModule, ReactiveFormsModule, Validators} from '@angular/forms';
 import {Router} from '@angular/router';
@@ -46,6 +46,7 @@ export class AcceptTerms implements OnInit {
   private loginService = inject(LoginService);
   private session = inject(SessionStorageService);
   private tempData = inject(TempDataService);
+  private cdr = inject(ChangeDetectorRef);
 
 
   private router = inject(Router);
@@ -87,10 +88,12 @@ export class AcceptTerms implements OnInit {
       next: (response) => {
         this.eulaText = response.eulaText;
         this.isLoading = false;
+        this.cdr.detectChanges();
       },
       error: () => {
         this.acceptError = 'Failed to load Terms of Use. Please try again.';
         this.isLoading = false;
+        this.cdr.detectChanges();
       },
     });
   }
@@ -110,6 +113,7 @@ export class AcceptTerms implements OnInit {
               this.session.setItem('ARUMUserValidations', response.arumValidation);
               let message = response.message;
               this.tempData.setTempData("errorMessage", {message});
+              this.cdr.detectChanges();
               this.router.navigate(['/projects/projects']);
             } else {
               this.router.navigate(['/login']);
