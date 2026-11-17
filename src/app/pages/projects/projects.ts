@@ -25,7 +25,7 @@ export class Projects extends BaseReactiveComponent implements OnInit {
   private functions = inject(FunctionsService);
   private session = inject(SessionStorageService);
   private router = inject(Router);
-  
+
   private classificationSignal = signal<Classification[]>([]);
 
   ngOnInit(): void {
@@ -73,7 +73,7 @@ export class Projects extends BaseReactiveComponent implements OnInit {
   }
 
   private updateClassifications(): void {
-    const classifications = this.portalConfig.getAllClassifications();
+    let classifications = this.portalConfig.getAllClassifications();
 
     const arumValidations = this.functions.getValidations();
 

@@ -5,9 +5,6 @@ import {BaseWithMenuLayout} from './layouts/base-with-menu-layout/base-with-menu
 import {Home} from './pages/home/home';
 import {Login} from './pages/home/login/login';
 import {ErrorPage} from './pages/home/error/error';
-import {AdminDashboard} from './pages/admin-dashboard/admin-dashboard';
-import {AdminUsersComponent} from './pages/admin-users/admin-users';
-import {AdminReportsComponent} from './pages/admin-reports/admin-reports';
 import {AuthGuard} from './guards/auth.guard';
 import {AcceptTerms} from './pages/home/accept-terms/accept-terms';
 import {Projects} from './pages/projects/projects';
@@ -42,14 +39,10 @@ export const routes: Routes = [
     ]
   },
   {
-    path: 'admin',
+    path: '',
     component: BaseWithMenuLayout,
     canActivate: [AuthGuard],
     children: [
-      {path: '', component: AdminDashboard},
-      {path: 'dashboard', component: AdminDashboard},
-      {path: 'users', component: AdminUsersComponent},
-      {path: 'reports', component: AdminReportsComponent}
     ]
   }
 ];
