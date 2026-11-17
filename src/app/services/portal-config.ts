@@ -36,6 +36,15 @@ export class PortalConfigService extends BaseConfigService<PortalConfig> {
     return new Observable((observer) => {
       this.apiService.get<PortalConfig>(this.endpoint).subscribe({
         next: (config) => {
+          const loginMessageValue =
+            ((config as unknown as Record<string, unknown>)['loginMessage'] as string[]) ||
+            ((config as unknown as Record<string, unknown>)['loginmessage'] as string[]) ||
+            config.loginMessage ||
+            defaultConfig.loginMessage;
+
+          console.log('API Response:', config);
+          console.log('Mapped loginMessage:', loginMessageValue);
+
           const mappedConfig: PortalConfig = {
             webPortalTitle:
               ((config as unknown as Record<string, unknown>)['WebPortalTitle'] as string) ||
@@ -45,11 +54,7 @@ export class PortalConfigService extends BaseConfigService<PortalConfig> {
               ((config as unknown as Record<string, unknown>)['ApplicationName'] as string) ||
               config.application ||
               defaultConfig.application,
-            loginMessage:
-              ((config as unknown as Record<string, unknown>)['loginMessage'] as string[]) ||
-              ((config as unknown as Record<string, unknown>)['loginmessage'] as string[]) ||
-              config.loginMessage ||
-              defaultConfig.loginMessage,
+            loginMessage: loginMessageValue,
             classificationSessionKey:
               ((config as unknown as Record<string, unknown>)[
                 'ClassificationSessionKey'
