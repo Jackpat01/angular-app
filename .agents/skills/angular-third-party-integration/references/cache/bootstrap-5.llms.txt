@@ -1,0 +1,54 @@
+# Bootstrap 5 Integration Guide
+
+## Overview
+Bootstrap 5 is integrated into the angular-app as a CSS framework for responsive UI components.
+
+## Installation
+- **Package**: bootstrap@5.3.3
+- **Installation**: npm install bootstrap
+- **Import**: Added to angular.json styles array
+
+## Usage in Project
+
+### Global Styles
+Bootstrap CSS is globally imported via `angular.json`:
+```json
+"styles": [
+  "node_modules/bootstrap/dist/css/bootstrap.css",
+  "src/styles.css"
+]
+```
+
+### Available Bootstrap Classes
+The project uses Bootstrap utility classes for:
+- Layout: `d-flex`, `flex-grow-1`, `justify-content-between`
+- Spacing: `pl-1`, `pr-1`, `me-2`, `mb-0`, `p-2`, `ps-2`, `pe-2`
+- Colors: `bg-light`, `text-muted`, `text-danger`
+- Display: `d-flex`, `align-items-center`, `align-items-start`
+- Sizing: `me-2`, `gap-2`
+
+### Bootstrap Components Used
+1. **Alert Boxes**: `.alert`, `.alert-danger`, `.alert-warning`, `.alert-info`
+2. **Buttons**: `.btn`, `.btn-primary`, `.btn-info`, `.btn-danger`, `.btn-sm`
+3. **Cards**: `.card`, `.card-header`, `.card-body`
+4. **Tables**: `.table`, `.table-striped`, `.table-hover`
+5. **Forms**: `.form-control`, `.form-group`
+6. **Grid**: `.row`, `.col-*`
+
+## Key Files Using Bootstrap
+- `src/app/layouts/base-with-menu-layout/base-with-menu-layout.html`
+- `src/app/shared/data-table.component.ts`
+- `src/app/shared/error-display.component.ts`
+- Component templates throughout the app
+
+## Best Practices
+1. Use utility classes for spacing and layout
+2. Leverage Bootstrap's grid system for responsive design
+3. Combine Bootstrap classes with Angular components
+4. Avoid custom CSS when Bootstrap utilities suffice
+5. Use semantic HTML with Bootstrap classes for accessibility
+
+## Resources
+- Official Docs: https://getbootstrap.com/docs/5.3/
+- Bootstrap Grid: https://getbootstrap.com/docs/5.3/layout/grid/
+- Bootstrap Utilities: https://getbootstrap.com/docs/5.3/utilities/

@@ -1,4 +1,4 @@
-import {Component, computed, inject, OnInit, Signal, signal, ChangeDetectionStrategy} from '@angular/core';
+import {Component, inject, OnInit, Signal, signal, ChangeDetectionStrategy} from '@angular/core';
 import {TempDataService} from '../../services/temp-data';
 import {Classification} from '../../models/Classification';
 import {PortalConfigService} from '../../services/portal-config';
@@ -31,7 +31,7 @@ export class Projects extends BaseReactiveComponent implements OnInit {
   ngOnInit(): void {
     this.titleService.setTitle('Projects');
 
-    let arumUser = this.session.getItem<ARUMProxy_User>('arumUser');
+    const arumUser = this.session.getItem<ARUMProxy_User>('arumUser');
     if (arumUser == null) {
       if (!this.session.getItem<boolean>('IsSSO')) {
         this.router.navigate(['/login']);
@@ -73,9 +73,9 @@ export class Projects extends BaseReactiveComponent implements OnInit {
   }
 
   private updateClassifications(): void {
-    let classifications = this.portalConfig.getAllClassifications();
+    const classifications = this.portalConfig.getAllClassifications();
 
-    let arumValidations = this.functions.getValidations();
+    const arumValidations = this.functions.getValidations();
 
     if (arumValidations?.lstARUMUsers?.length) {
       classifications = classifications.filter(singClassification =>

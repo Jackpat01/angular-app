@@ -7,7 +7,7 @@ import {isPlatformBrowser} from '@angular/common';
 export class SessionStorageService {
   private platformId = inject(PLATFORM_ID);
 
-  canAccessFeature(featureName: string): boolean {
+  canAccessFeature(_featureName: string): boolean {
     return false;
   }
 
@@ -23,7 +23,7 @@ export class SessionStorageService {
     return false;
   }
 
-  checkUserRoles(role: string): boolean {
+  checkUserRoles(_role: string): boolean {
     return false;
   }
 

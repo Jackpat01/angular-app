@@ -13,10 +13,6 @@ export class ProjectService {
   private apiService = inject(ApiService);
   private session = inject(SessionStorageService);
 
-
-  constructor() {
-  }
-
   getProject(id: string | null): Observable<ProjectResponse> {
     return this.apiService.get<ProjectResponse>(`/project/${id}`);
   }

@@ -1,6 +1,6 @@
-import { Injectable, inject, Type } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable, BehaviorSubject, map } from 'rxjs';
+import { Observable, BehaviorSubject } from 'rxjs';
 
 /**
  * Service wrapping utility factory

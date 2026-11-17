@@ -37,15 +37,15 @@ export class PortalConfigService extends BaseConfigService<PortalConfig> {
       this.apiService.get<PortalConfig>(this.endpoint).subscribe({
         next: (config) => {
           const mappedConfig: PortalConfig = {
-            webPortalTitle: (config as any).WebPortalTitle || config.webPortalTitle || defaultConfig.webPortalTitle,
-            application: (config as any).ApplicationName || config.application || defaultConfig.application,
-            loginMessage: (config as any).LoginMessageHyperLink || (config as any).loginMessage || (config as any).loginmessage || config.loginMessage || defaultConfig.loginMessage,
-            classificationSessionKey: (config as any).ClassificationSessionKey || config.classificationSessionKey || defaultConfig.classificationSessionKey,
-            classificationReplacementTerm: (config as any).ClassificationReplacementTerm || config.classificationReplacementTerm || defaultConfig.classificationReplacementTerm,
-            allClassifications: (config as any).AllClassifications || config.allClassifications || defaultConfig.allClassifications,
-            enableBB: (config as any).EnableBB !== undefined ? (config as any).EnableBB : config.enableBB,
-            enableResource: (config as any).EnableResource !== undefined ? (config as any).EnableResource : config.enableResource,
-            auditTypeReplacementName: (config as any).AuditTypeReplacementName || config.auditTypeReplacementName || defaultConfig.auditTypeReplacementName,
+            webPortalTitle: (config as unknown as Record<string, unknown>)['WebPortalTitle'] as string || config.webPortalTitle || defaultConfig.webPortalTitle,
+            application: (config as unknown as Record<string, unknown>)['ApplicationName'] as string || config.application || defaultConfig.application,
+            loginMessage: (config as unknown as Record<string, unknown>)['LoginMessageHyperLink'] as string[] || (config as unknown as Record<string, unknown>)['loginMessage'] as string[] || (config as unknown as Record<string, unknown>)['loginmessage'] as string[] || config.loginMessage || defaultConfig.loginMessage,
+            classificationSessionKey: (config as unknown as Record<string, unknown>)['ClassificationSessionKey'] as string || config.classificationSessionKey || defaultConfig.classificationSessionKey,
+            classificationReplacementTerm: (config as unknown as Record<string, unknown>)['ClassificationReplacementTerm'] as string || config.classificationReplacementTerm || defaultConfig.classificationReplacementTerm,
+            allClassifications: (config as unknown as Record<string, unknown>)['AllClassifications'] as Classification[] || config.allClassifications || defaultConfig.allClassifications,
+            enableBB: (config as unknown as Record<string, unknown>)['EnableBB'] !== undefined ? (config as unknown as Record<string, unknown>)['EnableBB'] as boolean : config.enableBB,
+            enableResource: (config as unknown as Record<string, unknown>)['EnableResource'] !== undefined ? (config as unknown as Record<string, unknown>)['EnableResource'] as boolean : config.enableResource,
+            auditTypeReplacementName: (config as unknown as Record<string, unknown>)['AuditTypeReplacementName'] as string || config.auditTypeReplacementName || defaultConfig.auditTypeReplacementName,
           };
           observer.next(mappedConfig);
           observer.complete();

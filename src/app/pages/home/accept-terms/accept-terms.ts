@@ -1,6 +1,6 @@
 import {Component, inject, OnInit, ChangeDetectionStrategy, signal} from '@angular/core';
 import {CommonModule, NgOptimizedImage} from '@angular/common';
-import {FormBuilder, FormGroup, FormsModule, ReactiveFormsModule, Validators} from '@angular/forms';
+import {FormGroup, FormsModule, ReactiveFormsModule, Validators} from '@angular/forms';
 import {Router} from '@angular/router';
 import {PortalConfigService} from '../../../services/portal-config';
 import {LoginService} from '../../../services/login';
@@ -109,7 +109,7 @@ export class AcceptTerms extends BaseFormComponent implements OnInit {
           (response) => {
             if (response.successful) {
               this.session.setItem('ARUMUserValidations', response.arumValidation);
-              let message = response.message;
+              const message = response.message;
               this.tempData.setTempData("errorMessage", {message});
               this.router.navigate(['/projects/projects']);
             } else {

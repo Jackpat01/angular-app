@@ -19,7 +19,7 @@ import { TitleService } from '../services/title';
  * }
  */
 @Component({
-  selector: 'app-base-form',
+  selector: 'ohfi-base-form',
   template: '', // This is an abstract base component
 })
 export abstract class BaseFormComponent implements OnInit {

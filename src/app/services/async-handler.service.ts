@@ -19,7 +19,7 @@ export class AsyncHandlerService {
     observable: Observable<T>,
     isLoadingSignal: WritableSignal<boolean>,
     onSuccess: (data: T) => void,
-    onError?: (error: any) => void
+    onError?: (error: unknown) => void
   ): void {
     isLoadingSignal.set(true);
     observable.subscribe({
@@ -46,7 +46,7 @@ export class AsyncHandlerService {
     observable: Observable<T>,
     isLoadingSignal: WritableSignal<boolean>,
     onSuccess: (data: T) => void,
-    onError?: (error: any) => void
+    onError?: (error: unknown) => void
   ) {
     isLoadingSignal.set(true);
     return observable.subscribe({

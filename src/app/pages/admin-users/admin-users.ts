@@ -1,6 +1,6 @@
 import {Component, OnInit, inject} from '@angular/core';
 import {CommonModule} from '@angular/common';
-import {FormBuilder, FormGroup, FormsModule, ReactiveFormsModule, Validators} from '@angular/forms';
+import {FormGroup, FormsModule, ReactiveFormsModule, Validators} from '@angular/forms';
 import {NgbModal} from '@ng-bootstrap/ng-bootstrap';
 import {BaseListCrudComponent} from '../../shared/base-list-crud.component';
 import {DataTableComponent, TableColumn, TableAction} from '../../shared/data-table.component';
@@ -36,18 +36,18 @@ export class AdminUsersComponent extends BaseListCrudComponent<User> implements 
       label: 'Deactivate',
       class: 'btn btn-sm btn-warning me-2',
       disabled: (user) => (user as User).status === 'inactive',
-      handler: (id) => this.toggleUserStatus(id as number)
+      handler: (_id) => this.toggleUserStatus(_id as number)
     },
     {
       label: 'Activate',
       class: 'btn btn-sm btn-success me-2',
       disabled: (user) => (user as User).status === 'active',
-      handler: (id) => this.toggleUserStatus(id as number)
+      handler: (_id) => this.toggleUserStatus(_id as number)
     },
     {
       label: 'Delete',
       class: 'btn btn-sm btn-danger',
-      handler: (id) => this.delete(id)
+      handler: (_id) => this.delete(_id)
     }
   ];
 
@@ -99,7 +99,7 @@ export class AdminUsersComponent extends BaseListCrudComponent<User> implements 
     return item.email.toLowerCase().includes(term) || item.name.toLowerCase().includes(term);
   }
 
-  protected onItemDeleted(id: number | string): void {
+  protected onItemDeleted(_id: number | string): void {
     // Placeholder for post-delete logic (API call, notification, etc)
   }
 

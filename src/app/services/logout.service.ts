@@ -16,7 +16,7 @@ export class LogoutService {
    * Handles both success and error cases by clearing local session data
    * and redirecting to specified URL
    */
-  executeLogout(redirectUrl: string = '/'): void {
+  executeLogout(redirectUrl = '/'): void {
     console.log('Logging out...');
     this.userService.logout().subscribe({
       next: () => {

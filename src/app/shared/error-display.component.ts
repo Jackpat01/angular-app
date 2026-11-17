@@ -13,7 +13,7 @@ import { CommonModule } from '@angular/common';
  * </app-error-display>
  */
 @Component({
-  selector: 'app-error-display',
+  selector: 'ohfi-error-display',
   standalone: true,
   imports: [CommonModule],
   changeDetection: ChangeDetectionStrategy.OnPush,

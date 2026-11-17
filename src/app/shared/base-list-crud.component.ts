@@ -39,7 +39,7 @@ import { TitleService } from '../services/title';
  * }
  */
 @Component({
-  selector: 'app-base-list-crud',
+  selector: 'ohfi-base-list-crud',
   template: '', // This is an abstract base component
 })
 export abstract class BaseListCrudComponent<T extends { id: number | string }> {

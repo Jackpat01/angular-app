@@ -1,0 +1,18 @@
+# Dependencies
+node_modules/
+
+# Build outputs
+dist/
+build/
+.angular/
+
+# Third-party styles
+**/third-party/**
+**/vendor/**
+
+# Test files
+*.spec.css
+
+# Config files
+**/angular.json
+**/tsconfig.json

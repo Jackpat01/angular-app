@@ -8,6 +8,37 @@
   "routing": true,
   "rxjsLinting": "auto",
   "budgetProfile": "balanced",
+  "lintersConfigured": true,
+  "lintersInfo": {
+    "eslint": {
+      "status": "configured",
+      "version": "10.12.0",
+      "config": "eslint.config.js"
+    },
+    "prettier": {
+      "status": "configured",
+      "version": "3.10.1",
+      "config": ".prettierrc"
+    },
+    "stylelint": {
+      "status": "configured",
+      "version": "18.0.0",
+      "config": "stylelint.config.mjs"
+    },
+    "husky": {
+      "status": "configured",
+      "version": "9.1.7",
+      "hooks": [
+        ".husky/pre-commit",
+        ".husky/commit-msg"
+      ]
+    },
+    "commitlint": {
+      "status": "configured",
+      "version": "21.2.4",
+      "config": "commitlint.config.js"
+    }
+  },
   "skillVersions": {
     "angular-setup-project": "1.0",
     "angular-linters": "1.0",

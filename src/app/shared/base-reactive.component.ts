@@ -1,6 +1,5 @@
-import { Component, OnDestroy, inject, OnInit } from '@angular/core';
+import { Component, OnDestroy } from '@angular/core';
 import { Subject } from 'rxjs';
-import { takeUntil } from 'rxjs/operators';
 
 /**
  * Base component class for reactive components that subscribe to Observables.
@@ -23,7 +22,7 @@ import { takeUntil } from 'rxjs/operators';
  * }
  */
 @Component({
-  selector: 'app-base-reactive',
+  selector: 'ohfi-base-reactive',
   template: '', // This is an abstract base component
 })
 export abstract class BaseReactiveComponent implements OnDestroy {

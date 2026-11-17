@@ -1,6 +1,5 @@
 import {Component, OnInit, inject, signal} from '@angular/core';
 import {CommonModule, NgOptimizedImage} from '@angular/common';
-import {TitleService} from '../../services/title';
 import {UserService} from '../../services/user';
 import {PortalConfigService} from '../../services/portal-config';
 import {ARUMProxy_User} from '../../models/ARUMProxy_User';

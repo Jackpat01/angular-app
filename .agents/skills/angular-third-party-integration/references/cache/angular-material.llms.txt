@@ -1,0 +1,72 @@
+# Angular Material Integration Guide (Planned)
+
+## Overview
+Angular Material is a UI component library for Angular that provides Material Design components.
+
+## Current Status
+- **Status**: Partially integrated / Planned for future expansion
+- **Package**: Available in package.json but limited usage
+- **Configuration**: Angular CLI ready for Material schematic
+
+## Available Components
+
+### Currently Used (Minimal)
+- Some Material design principles applied to custom components
+- Bootstrap used as primary UI framework instead
+
+### Available for Future Use
+1. **Form Controls**
+   - MatFormField
+   - MatInput
+   - MatSelect
+   - MatCheckbox
+   - MatRadioButton
+
+2. **Navigation**
+   - MatToolbar
+   - MatSideNav
+   - MatMenu
+   - MatNavigation
+
+3. **Layouts**
+   - MatGrid
+   - MatCard
+   - MatExpansionPanel
+
+4. **Data Tables**
+   - MatTable
+   - MatPaginator
+   - MatSort
+
+5. **Dialogs**
+   - MatDialog
+   - MatSnackBar
+
+## Integration Points
+- Currently using custom components (DataTableComponent, ErrorDisplayComponent)
+- Bootstrap provides layout and utilities
+- Material could enhance form controls and dialogs
+
+## Best Practices for Future Integration
+1. Use MatFormField with reactive forms
+2. Leverage MatTable for complex data tables
+3. Use MatDialog for modals instead of custom solutions
+4. Apply Material Design guidelines consistently
+5. Import specific modules only (tree-shaking)
+
+## To Add Material
+```bash
+ng add @angular/material
+```
+
+This will:
+- Install @angular/material and @angular/cdk
+- Update angular.json with theme
+- Add Material icons
+- Configure Material typography
+
+## Resources
+- Official Docs: https://material.angular.io/
+- Components: https://material.angular.io/components/categories
+- Theming: https://material.angular.io/guide/theming
+- Getting Started: https://material.angular.io/guide/getting-started

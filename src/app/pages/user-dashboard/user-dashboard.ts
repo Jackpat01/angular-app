@@ -3,7 +3,6 @@ import {CommonModule} from '@angular/common';
 import {TitleService} from '../../services/title';
 import {UserService} from '../../services/user';
 import {AuthService, UserClaims} from '../../services/auth';
-import {map, tap} from 'rxjs/operators';
 
 @Component({
   imports: [CommonModule],

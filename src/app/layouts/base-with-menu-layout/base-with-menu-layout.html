@@ -10,7 +10,7 @@
       <div id="dvEmail">
         <b>Email: {{ userName }}</b>
       </div>
-      @if (catalog != null && providerType != null) {
+      @if (catalog !== null && providerType !== null) {
         <div id="dvRole">
           <b>Provider Role: </b><span id="dvRoleName"><b>{{ currentRoleName }}</b></span>
         </div>
@@ -23,7 +23,7 @@
   <div class="d-flex">
     <div id="cssmenu" class="d-flex justify-content-between flex-grow-1" style="z-index: 101;">
       <ul>
-        @if (classification != null) {
+        @if (classification !== null) {
           <li class="contact" style="float: left;"><a [routerLink]="['/projects/projects']">Projects</a>
           </li>
           @if (canAccessStatlogView) {
@@ -121,7 +121,7 @@
           <a [routerLink]="['/secure/logout']">Log Out</a>
         </li>
       </ul>
-      @if (classification != null &&
+      @if (classification !== null &&
       (canAccessStatlogConfiguration || canAccessStatlogAllProvidersEmail || canAccessOHFISettingsManagement)) {
         <ul>
           <li class='has-sub'>
@@ -150,7 +150,7 @@
       }
     </div>
     <div style="border-bottom: 2px solid #74c141;" class="d-flex align-items-center pl-1">
-      @if (classification != null && portalConfig.enableBB()) {
+      @if (classification !== null && portalConfig.enableBB()) {
         @if (isNotShowAllPage) {
           <ng-container>
             <a

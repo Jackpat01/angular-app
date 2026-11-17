@@ -2,8 +2,6 @@ import {Component, OnInit, inject, ChangeDetectionStrategy, signal} from '@angul
 import {ActivatedRoute, Router} from '@angular/router';
 import {SessionStorageService} from '../../../services/session-storage-service';
 import {ARUMProxy_User} from '../../../models/ARUMProxy_User';
-import {Projects} from '../projects';
-import {ProjectService} from '../../../services/project-service';
 import {TempDataService} from '../../../services/temp-data';
 import {PortalConfigService} from '../../../services/portal-config';
 import {Classification} from '../../../models/Classification';
@@ -12,7 +10,7 @@ import {BaseReactiveComponent} from '../../../shared/base-reactive.component';
 import {takeUntil} from 'rxjs/operators';
 
 @Component({
-  selector: 'app-set-project',
+  selector: 'ohfi-set-project',
   templateUrl: './set-project.html',
   styleUrls: ['./set-project.css'],
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -30,8 +28,8 @@ export class SetProjectComponent extends BaseReactiveComponent implements OnInit
   ngOnInit(): void {
     this.portalConfig.waitForConfigLoad().then(() => {
       this.route.queryParamMap.pipe(takeUntil(this.destroy$)).subscribe(params => {
-        let classificationId = params.get('cID');
-        let myUser = this.session.getItem<ARUMProxy_User>('arumUser');
+        const classificationId = params.get('cID');
+        const myUser = this.session.getItem<ARUMProxy_User>('arumUser');
 
         if (myUser == null) {
           this.router.navigate(['/login']);
@@ -43,7 +41,7 @@ export class SetProjectComponent extends BaseReactiveComponent implements OnInit
           this.isLoading,
           (project) => {
             if (!project.successful) {
-              let message = project.message;
+              const message = project.message;
               this.tempData.setTempData('message', {message});
               this.router.navigate([project.path]);
               return;
@@ -51,12 +49,12 @@ export class SetProjectComponent extends BaseReactiveComponent implements OnInit
 
             this.session.setItem(this.portalConfig.getClassificationSessionKey(), project.classification);
 
-            let classification = this.session.getItem<Classification>(this.portalConfig.getClassificationSessionKey());
+            const classification = this.session.getItem<Classification>(this.portalConfig.getClassificationSessionKey());
             if (classification != null) {
               this.session.setItem('InitialCatalogFromSession', classification?.arumToken);
               this.session.setItem('AppNameFromSession', classification?.type);
             } else {
-              let allClassifications = this.portalConfig.getAllClassifications();
+              const allClassifications = this.portalConfig.getAllClassifications();
               if (allClassifications.length != 1) {
                 this.session.setItem('InitialCatalogFromSession', null);
                 this.session.setItem('AppNameFromSession', null);

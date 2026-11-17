@@ -1,30 +1,7 @@
 import { Injectable } from '@angular/core';
-import { BehaviorSubject, firstValueFrom, Observable, Subject } from 'rxjs';
+import { BehaviorSubject, firstValueFrom, Observable } from 'rxjs';
 import { filter, skip } from 'rxjs/operators';
 
-/**
- * Base class for configuration services that load data from an API.
- * Provides common patterns for async config loading, caching, and observability.
- * 
- * Type parameter C: Configuration interface
- * 
- * Example usage:
- * ```
- * @Injectable({ providedIn: 'root' })
- * export class MyConfigService extends BaseConfigService<MyConfig> {
- *   constructor(private apiService: ApiService) {
- *     super({
- *       defaultValue: { ... },
- *       endpoint: '/api/my-config'
- *     });
- *   }
- *   
- *   protected loadFromApi(): Observable<MyConfig> {
- *     return this.apiService.get<MyConfig>(this.endpoint);
- *   }
- * }
- * ```
- */
 @Injectable()
 export abstract class BaseConfigService<C> {
   protected readonly defaultValue: C;
@@ -36,6 +13,7 @@ export abstract class BaseConfigService<C> {
   config$: Observable<C>;
   configLoaded$: Observable<boolean>;
 
+  // eslint-disable-next-line @angular-eslint/prefer-inject
   constructor(config: { defaultValue: C; endpoint: string }) {
     this.defaultValue = config.defaultValue;
     this.endpoint = config.endpoint;
@@ -58,10 +36,10 @@ export abstract class BaseConfigService<C> {
     if (this.isConfigLoaded()) {
       return;
     }
-    return firstValueFrom(this.configLoaded$.pipe(
+    await firstValueFrom(this.configLoaded$.pipe(
       skip(1),
       filter(loaded => loaded === true)
-    )).then(() => {});
+    ));
   }
 
   /**

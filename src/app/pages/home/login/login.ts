@@ -1,6 +1,6 @@
 import {Component, inject, OnInit, ChangeDetectionStrategy, signal} from '@angular/core';
 import {CommonModule, NgOptimizedImage} from '@angular/common';
-import {FormBuilder, FormGroup, ReactiveFormsModule, Validators} from '@angular/forms';
+import {FormGroup, ReactiveFormsModule, Validators} from '@angular/forms';
 import {Router} from '@angular/router';
 import {LoginService} from '../../../services/login';
 import {PortalConfigService} from '../../../services/portal-config';
@@ -40,7 +40,7 @@ export class Login extends BaseFormComponent implements OnInit {
       this.router.navigate(['/sso/error']);
     }
 
-    let message = this.session.getItem<string>('GlobalErrorMessage');
+    const message = this.session.getItem<string>('GlobalErrorMessage');
     if (message) {
       this.tempData.setTempData('errorMessage', {message});
       this.session.removeItem('GlobalErrorMessage');
@@ -78,13 +78,13 @@ export class Login extends BaseFormComponent implements OnInit {
       this.isLoading,
       (response) => {
         if (!response.successful) {
-          let message = response.errorMessage;
+          const message = response.errorMessage;
           this.tempData.setTempData('errorMessage', {message});
           return;
         }
 
         if (!response.arumUser) {
-          let message = 'Username/password invalid';
+          const message = 'Username/password invalid';
           this.tempData.setTempData('errorMessage', {message});
           return;
         }

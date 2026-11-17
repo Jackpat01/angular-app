@@ -1,7 +1,7 @@
 import {Component, OnInit, inject, ChangeDetectionStrategy} from '@angular/core';
 import {CommonModule} from '@angular/common';
 import {UserService} from '../../services/user';
-import {AuthService, UserClaims} from '../../services/auth';
+import {AuthService} from '../../services/auth';
 import {map} from 'rxjs/operators';
 
 @Component({
@@ -20,8 +20,10 @@ export class HeaderBarComponent implements OnInit {
   userRole$ = this.authService.userClaims$.pipe(map(claims => claims?.role || null));
   company$ = this.authService.userClaims$.pipe(map(claims => claims?.company || null));
 
+  // eslint-disable-next-line @angular-eslint/no-empty-lifecycle-method
   ngOnInit(): void {
-    // No longer needed - async pipe handles subscriptions
+    // Template subscriptions handled by async pipe
+    // Note: component uses async pipe for all subscriptions
   }
 
   /**

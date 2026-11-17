@@ -1,6 +1,6 @@
 import {Component, OnInit} from '@angular/core';
 import {CommonModule} from '@angular/common';
-import {FormBuilder, FormGroup, ReactiveFormsModule} from '@angular/forms';
+import {FormGroup, ReactiveFormsModule} from '@angular/forms';
 import {BaseListCrudComponent} from '../../shared/base-list-crud.component';
 import {DataTableComponent, TableColumn, TableAction} from '../../shared/data-table.component';
 
@@ -37,12 +37,12 @@ export class AdminReportsComponent extends BaseListCrudComponent<Report> impleme
       label: 'Download',
       class: 'btn btn-sm btn-info me-2',
       disabled: (report) => (report as Report).status !== 'completed',
-      handler: (id) => this.downloadReport(id as number)
+      handler: (_id) => this.downloadReport(_id as number)
     },
     {
       label: 'Delete',
       class: 'btn btn-sm btn-danger',
-      handler: (id) => this.delete(id)
+      handler: (_id) => this.delete(_id)
     }
   ];
 
@@ -107,7 +107,7 @@ export class AdminReportsComponent extends BaseListCrudComponent<Report> impleme
            item.generatedBy.toLowerCase().includes(term);
   }
 
-  protected onItemDeleted(id: number | string): void {
+  protected onItemDeleted(_id: number | string): void {
     // Placeholder for post-delete logic (API call, notification, etc)
   }
 

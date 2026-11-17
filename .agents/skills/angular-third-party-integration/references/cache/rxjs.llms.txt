@@ -1,0 +1,90 @@
+# RxJS Integration Guide
+
+## Overview
+RxJS (Reactive Extensions for JavaScript) is integrated for reactive programming patterns in the angular-app.
+
+## Installation
+- **Package**: rxjs@~7.8.0
+- **Installation**: npm install rxjs
+- **Used by**: Angular core (@angular/core uses RxJS for observables)
+
+## Usage in Project
+
+### Core RxJS Concepts Used
+1. **Observables**: Data streams that emit values over time
+   - `Observable<T>` - read-only stream
+   - `Subject<T>` - stream you can emit values to
+
+2. **Operators**: Transform and filter observable data
+   - `pipe()` - chain multiple operators
+   - `map()` - transform emitted values
+   - `filter()` - conditionally filter values
+   - `skip()` - skip first N emissions
+   - `takeUntil()` - unsubscribe when another observable emits
+   - `tap()` - side effects (logging, etc.)
+
+3. **Subscription Management**: Subscribe to observables and unsubscribe
+
+## Key Files Using RxJS
+- `src/app/services/async-handler.service.ts` - executeAsync() pattern
+- `src/app/services/base-config.service.ts` - config loading with observables
+- `src/app/shared/base-reactive.component.ts` - automatic subscription cleanup
+- `src/app/services/base-reactive.component.ts` - destroy$ pattern for memory leak prevention
+
+## Common Patterns in Project
+
+### Memory Leak Prevention
+```typescript
+export abstract class BaseReactiveComponent implements OnDestroy {
+  protected destroy$ = new Subject<void>();
+
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
+  }
+}
+```
+
+Usage:
+```typescript
+this.data$.pipe(takeUntil(this.destroy$)).subscribe(...);
+```
+
+### Async Service Pattern
+```typescript
+executeAsync(action: () => unknown): void {
+  this.isLoading.set(true);
+  try {
+    action();
+  } finally {
+    this.isLoading.set(false);
+  }
+}
+```
+
+### Configuration Loading
+```typescript
+loadConfig(): Observable<Config> {
+  return this.http.get<Config>(endpoint).pipe(
+    filter(config => !!config),
+    tap(config => this.configSubject.next(config))
+  );
+}
+```
+
+## RxJS Linting Configuration
+- **Status**: Enabled with `rxjsLinting: "auto"` in PROJECT_MANIFEST.json
+- **Rules**: ESLint monitors for proper RxJS usage patterns
+
+## Best Practices
+1. Always unsubscribe to prevent memory leaks
+2. Use `takeUntil(destroy$)` pattern in components
+3. Use `async` pipe in templates when possible (auto unsubscribe)
+4. Avoid nested subscriptions - use operators instead
+5. Type observables explicitly: `Observable<T>`
+
+## Resources
+- Official Docs: https://rxjs.dev/
+- Operators: https://rxjs.dev/api
+- Learning Observable: https://rxjs.dev/guide/observable
+- Subject: https://rxjs.dev/guide/subject

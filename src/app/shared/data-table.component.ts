@@ -31,7 +31,7 @@ export interface TableAction {
  * </app-data-table>
  */
 @Component({
-  selector: 'app-data-table',
+  selector: 'ohfi-data-table',
   standalone: true,
   imports: [CommonModule],
   template: `
