@@ -8,6 +8,7 @@ import { TempDataService } from '../../../services/temp-data';
 import { SessionStorageService } from '../../../services/session-storage-service';
 import { AsyncHandlerService } from '../../../services/async-handler.service';
 import { BaseFormComponent } from '../../../shared/base-form.component';
+import { ARUMUserValidation_Lightweight } from '../../../models/ARUMUserValidation_Lightweight';
 
 @Component({
   imports: [CommonModule, ReactiveFormsModule, NgOptimizedImage],
@@ -90,9 +91,19 @@ export class Login extends BaseFormComponent implements OnInit {
           return;
         }
 
-        this.session.setItem('arumUserValidations', response.arumValidation);
         this.session.setItem('email', response.arumUser.email);
         this.session.setItem('arumUser', JSON.stringify(response.arumUser));
+
+        if (response.arumValidation) {
+          const lightweightValidation: ARUMUserValidation_Lightweight = {
+            lstARUMUsers: response.arumValidation.lstARUMUsers.map((user) => ({
+              token: user.token,
+              isActive: user.isActive,
+            })),
+            results: response.arumValidation.results,
+          };
+          this.session.setItem('arumUserValidations', JSON.stringify(lightweightValidation));
+        }
 
         if (response.redirectToTerm) {
           this.router.navigate(['/accept-terms']);

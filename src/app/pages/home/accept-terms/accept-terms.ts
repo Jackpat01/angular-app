@@ -5,7 +5,7 @@ import { Router } from '@angular/router';
 import { PortalConfigService } from '../../../services/portal-config';
 import { LoginService } from '../../../services/login';
 import { SessionStorageService } from '../../../services/session-storage-service';
-import { ARUMUserValidation } from '../../../models/ARUMUserValidation';
+import { ARUMUserValidation_Lightweight } from '../../../models/ARUMUserValidation_Lightweight';
 import { TempDataService } from '../../../services/temp-data';
 import { AsyncHandlerService } from '../../../services/async-handler.service';
 import { BaseFormComponent } from '../../../shared/base-form.component';
@@ -106,14 +106,21 @@ export class AcceptTerms extends BaseFormComponent implements OnInit {
       this.router.navigate(['/sso/error']);
     }
 
-    if (!this.session.getItem<ARUMUserValidation>('arumUserValidations')) {
+    if (!this.session.getItem<ARUMUserValidation_Lightweight>('arumUserValidations')) {
       if (this.email) {
         this.asyncHandler.executeAsync(
           this.loginService.acceptTermsOfUse(this.email),
           this.isLoading,
           (response) => {
-            if (response.successful) {
-              this.session.setItem('arumUserValidations', response.arumValidation);
+            if (response.successful && response.arumValidation) {
+              const lightweightValidation: ARUMUserValidation_Lightweight = {
+                lstARUMUsers: response.arumValidation.lstARUMUsers.map((user) => ({
+                  token: user.token,
+                  isActive: user.isActive,
+                })),
+                results: response.arumValidation.results,
+              };
+              this.session.setItem('arumUserValidations', JSON.stringify(lightweightValidation));
               const message = response.message;
               this.tempData.setTempData('errorMessage', { message });
               this.router.navigate(['/projects/projects']);
