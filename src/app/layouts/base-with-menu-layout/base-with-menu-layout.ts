@@ -1,24 +1,19 @@
-import {Component, OnInit, inject, signal} from '@angular/core';
-import {CommonModule, NgOptimizedImage} from '@angular/common';
-import {UserService} from '../../services/user';
-import {PortalConfigService} from '../../services/portal-config';
-import {ARUMProxy_User} from '../../models/ARUMProxy_User';
-import {SessionStorageService} from '../../services/session-storage-service';
-import {ARUMRole} from '../../models/ARUMRole';
-import {ARUMUserProviders} from '../../models/ARUMUserProviders';
-import {Classification} from '../../models/Classification';
-import {Router, RouterLink, RouterOutlet} from '@angular/router';
-import {AppConfigService} from '../../services/app-config';
-import {UploadDownloadConfiguration} from '../../services/upload-download-configuration';
-import {LogoutService} from '../../services/logout.service';
+import { Component, OnInit, inject, signal } from '@angular/core';
+import { CommonModule, NgOptimizedImage } from '@angular/common';
+import { UserService } from '../../services/user';
+import { PortalConfigService } from '../../services/portal-config';
+import { ARUMProxy_User } from '../../models/ARUMProxy_User';
+import { SessionStorageService } from '../../services/session-storage-service';
+import { ARUMRole } from '../../models/ARUMRole';
+import { ARUMUserProviders } from '../../models/ARUMUserProviders';
+import { Classification } from '../../models/Classification';
+import { Router, RouterLink, RouterOutlet } from '@angular/router';
+import { AppConfigService } from '../../services/app-config';
+import { UploadDownloadConfiguration } from '../../services/upload-download-configuration';
+import { LogoutService } from '../../services/logout.service';
 
 @Component({
-  imports: [
-    CommonModule,
-    RouterOutlet,
-    RouterLink,
-    NgOptimizedImage,
-  ],
+  imports: [CommonModule, RouterOutlet, RouterLink, NgOptimizedImage],
   selector: 'ohfi-base-with-menu-layout',
   styleUrl: './base-with-menu-layout.css',
   templateUrl: './base-with-menu-layout.html',
@@ -29,14 +24,14 @@ export class BaseWithMenuLayout implements OnInit {
   private portalConfig = inject(PortalConfigService);
   private storage = inject(SessionStorageService);
   private appConfig = inject(AppConfigService);
-  private session=inject(SessionStorageService);
+  private session = inject(SessionStorageService);
   private uploadDownloadConfiguration = inject(UploadDownloadConfiguration);
   private logoutService = inject(LogoutService);
 
-  private _loginMessages: string[] = [];
+  private loginMessagesSignal = signal<string[]>([]);
 
   get loginMessage(): string[] {
-    return this._loginMessages;
+    return this.loginMessagesSignal();
   }
 
   get isNotShowAllPage(): boolean {
@@ -102,14 +97,16 @@ export class BaseWithMenuLayout implements OnInit {
     return this.session.canAccessFeature('CLPA:View');
   }
   get canAccessReports(): boolean {
-    return this.canAccessReportsARAP
-      || this.canAccessReportsUploadDownload
-      || this.canAccessReportsMassUpload
-      || this.canAccessReportsCostReportSubmissionMonitoring
-      || this.canAccessReportsCostReportDataWizard
-      || this.canAccessReportsMDS
-      || this.canAccessReportsMDSResidentListing
-      || this.canAccessReportsSectionQ;
+    return (
+      this.canAccessReportsARAP ||
+      this.canAccessReportsUploadDownload ||
+      this.canAccessReportsMassUpload ||
+      this.canAccessReportsCostReportSubmissionMonitoring ||
+      this.canAccessReportsCostReportDataWizard ||
+      this.canAccessReportsMDS ||
+      this.canAccessReportsMDSResidentListing ||
+      this.canAccessReportsSectionQ
+    );
   }
 
   get appVersion(): string {
@@ -121,13 +118,12 @@ export class BaseWithMenuLayout implements OnInit {
   }
 
   get classReplacementTerm(): string {
-    return this.portalConfig.getClassificationReplacementTerm()
+    return this.portalConfig.getClassificationReplacementTerm();
   }
 
   get currentYear(): number {
     return this.appConfig.getCurrentYear() || new Date().getFullYear();
   }
-
 
   get userName(): string {
     const user = this.storage.getItem<ARUMProxy_User>('arumUser');
@@ -148,17 +144,17 @@ export class BaseWithMenuLayout implements OnInit {
   }
 
   get classification(): Classification | null {
-    const classification = this.storage.getItem<Classification>(this.portalConfig.getClassificationSessionKey());
-    if (classification !== null)
-      return classification;
+    const classification = this.storage.getItem<Classification>(
+      this.portalConfig.getClassificationSessionKey(),
+    );
+    if (classification !== null) return classification;
     const allClassifications = this.portalConfig.getAllClassifications();
-    if (allClassifications.length !== 1)
-      return null;
+    if (allClassifications.length !== 1) return null;
     return allClassifications[0];
   }
 
   get currentRoleName(): string {
-    return this.currentRole?.roleName ?? "No Provider Selected";
+    return this.currentRole?.roleName ?? 'No Provider Selected';
   }
 
   get enableUpload(): boolean {
@@ -169,15 +165,18 @@ export class BaseWithMenuLayout implements OnInit {
   }
 
   get currentRole(): ARUMRole | null {
-    const arumUser = this.storage.getItem<ARUMProxy_User>('arumUser')
+    const arumUser = this.storage.getItem<ARUMProxy_User>('arumUser');
 
     let arumUserProviders;
     if (arumUser === null) {
       arumUserProviders = null;
     } else {
-      arumUserProviders = arumUser?.providers?.find(
-        c => c.providerId === this.storage.getItem<number>('selectedProviderID') && c.providerUserRole !== ''
-      ) ?? null;
+      arumUserProviders =
+        arumUser?.providers?.find(
+          (c) =>
+            c.providerId === this.storage.getItem<number>('selectedProviderID') &&
+            c.providerUserRole !== '',
+        ) ?? null;
     }
 
     const selectedProvider: ARUMUserProviders | null = arumUserProviders;
@@ -186,15 +185,15 @@ export class BaseWithMenuLayout implements OnInit {
       return null;
     }
 
-    return arumUser?.roles?.find(
-      (r: ARUMRole) => r.roleName === selectedProvider.providerUserRole
-    ) ?? null;
+    return (
+      arumUser?.roles?.find((r: ARUMRole) => r.roleName === selectedProvider.providerUserRole) ??
+      null
+    );
   }
 
   async ngOnInit(): Promise<void> {
-    this.portalConfig.refreshConfig();
-    this._loginMessages = await this.portalConfig.retrieveLoginMessage();
-
+    await this.portalConfig.waitForConfigLoad();
+    this.loginMessagesSignal.set(this.portalConfig.retrieveLoginMessage());
   }
 
   isHelpModalOpen = signal(false);
@@ -208,4 +207,3 @@ export class BaseWithMenuLayout implements OnInit {
     this.logoutService.executeLogout('/');
   }
 }
-

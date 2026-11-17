@@ -1,8 +1,8 @@
-import {Component, inject, OnInit} from '@angular/core';
-import {CommonModule} from '@angular/common';
-import {AppConfigService} from '../../services/app-config';
-import {RouterLink, RouterOutlet} from '@angular/router';
-import {PortalConfigService} from '../../services/portal-config';
+import { Component, inject, OnInit, signal } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { AppConfigService } from '../../services/app-config';
+import { RouterLink, RouterOutlet } from '@angular/router';
+import { PortalConfigService } from '../../services/portal-config';
 
 @Component({
   imports: [CommonModule, RouterOutlet, RouterLink],
@@ -13,10 +13,10 @@ import {PortalConfigService} from '../../services/portal-config';
 export class BaseLayout implements OnInit {
   protected readonly portalConfig = inject(PortalConfigService);
   private appConfig = inject(AppConfigService);
-  private _loginMessages: string[] = [];
+  private loginMessagesSignal = signal<string[]>([]);
 
   get loginMessage(): string[] {
-    return this._loginMessages;
+    return this.loginMessagesSignal();
   }
 
   get appVersion(): string {
@@ -28,9 +28,7 @@ export class BaseLayout implements OnInit {
   }
 
   async ngOnInit(): Promise<void> {
-    this.portalConfig.refreshConfig();
-    this._loginMessages = await this.portalConfig.retrieveLoginMessage();
-
+    await this.portalConfig.waitForConfigLoad();
+    this.loginMessagesSignal.set(this.portalConfig.retrieveLoginMessage());
   }
 }
-
