@@ -30,6 +30,27 @@ export class BaseWithMenuLayout implements OnInit {
 
   private loginMessagesSignal = signal<string[]>([]);
 
+  // Feature access signals
+  private canAccessOCRTSignal = signal<boolean>(false);
+  private canAccessRateSettingSignal = signal<boolean>(false);
+  private canAccessBulkProcessingViewSignal = signal<boolean>(false);
+  private canAccessStatlogViewSignal = signal<boolean>(false);
+  private canAccessStatlogConfigurationSignal = signal<boolean>(false);
+  private canAccessStatlogAllProvidersEmailSignal = signal<boolean>(false);
+  private canAccessOHFISettingsManagementSignal = signal<boolean>(false);
+  private canAccessLetterAutomationSignal = signal<boolean>(false);
+  private canAccessPortalUploadSignal = signal<boolean>(false);
+  private canAccessPortalDownloadSignal = signal<boolean>(false);
+  private canAccessReportsARAPSignal = signal<boolean>(false);
+  private canAccessReportsMDSSignal = signal<boolean>(false);
+  private canAccessReportsMDSResidentListingSignal = signal<boolean>(false);
+  private canAccessReportsSectionQSignal = signal<boolean>(false);
+  private canAccessReportsUploadDownloadSignal = signal<boolean>(false);
+  private canAccessReportsMassUploadSignal = signal<boolean>(false);
+  private canAccessReportsCostReportSubmissionMonitoringSignal = signal<boolean>(false);
+  private canAccessReportsCostReportDataWizardSignal = signal<boolean>(false);
+  private canAccessCLPAViewSignal = signal<boolean>(false);
+
   get loginMessage(): string[] {
     return this.loginMessagesSignal();
   }
@@ -39,62 +60,62 @@ export class BaseWithMenuLayout implements OnInit {
     return currentPath !== '/bulletin-board/show-all';
   }
   get canAccessOCRT(): boolean {
-    return this.session.canAccessFeature('CostReport:View');
+    return this.canAccessOCRTSignal();
   }
   get canAccessRateSetting(): boolean {
-    return this.session.canAccessFeature('RateSetting:View');
+    return this.canAccessRateSettingSignal();
   }
 
   get canAccessBulkProcessingView(): boolean {
-    return this.session.canAccessFeature('BulkProcessing:View');
+    return this.canAccessBulkProcessingViewSignal();
   }
   get canAccessStatlogView(): boolean {
-    return this.session.canAccessFeature('Statlog:View');
+    return this.canAccessStatlogViewSignal();
   }
   get canAccessStatlogConfiguration(): boolean {
-    return this.session.canAccessFeature('Statlog:Configuration');
+    return this.canAccessStatlogConfigurationSignal();
   }
   get canAccessStatlogAllProvidersEmail(): boolean {
-    return this.session.canAccessFeature('Statlog:AllProvidersEmail');
+    return this.canAccessStatlogAllProvidersEmailSignal();
   }
   get canAccessOHFISettingsManagement(): boolean {
-    return this.session.canAccessFeature('OHFI:SettingsManagement');
+    return this.canAccessOHFISettingsManagementSignal();
   }
   get canAccessLetterAutomation(): boolean {
-    return this.session.canAccessFeature('LetterAutomation:Access');
+    return this.canAccessLetterAutomationSignal();
   }
   get canAccessPortalUpload(): boolean {
-    return this.session.canAccessFeature('Portal:Upload');
+    return this.canAccessPortalUploadSignal();
   }
   get canAccessPortalDownload(): boolean {
-    return this.session.canAccessFeature('Portal:Download');
+    return this.canAccessPortalDownloadSignal();
   }
   get canAccessReportsARAP(): boolean {
-    return this.session.canAccessFeature('Reports:ARAP');
+    return this.canAccessReportsARAPSignal();
   }
   get canAccessReportsMDS(): boolean {
-    return this.session.canAccessFeature('Reports:MDS');
+    return this.canAccessReportsMDSSignal();
   }
   get canAccessReportsMDSResidentListing(): boolean {
-    return this.session.canAccessFeature('Reports:MDSResidentListing');
+    return this.canAccessReportsMDSResidentListingSignal();
   }
   get canAccessReportsSectionQ(): boolean {
-    return this.session.canAccessFeature('Reports:SectionQ');
+    return this.canAccessReportsSectionQSignal();
   }
   get canAccessReportsUploadDownload(): boolean {
-    return this.session.canAccessFeature('Reports:UploadDownload');
+    return this.canAccessReportsUploadDownloadSignal();
   }
   get canAccessReportsMassUpload(): boolean {
-    return this.session.canAccessFeature('Reports:MassUpload');
+    return this.canAccessReportsMassUploadSignal();
   }
   get canAccessReportsCostReportSubmissionMonitoring(): boolean {
-    return this.session.canAccessFeature('Reports:CostReportSubmissionMonitoring');
+    return this.canAccessReportsCostReportSubmissionMonitoringSignal();
   }
   get canAccessReportsCostReportDataWizard(): boolean {
-    return this.session.canAccessFeature('Reports:CostReportDataWizard');
+    return this.canAccessReportsCostReportDataWizardSignal();
   }
   get canAccessCLPAView(): boolean {
-    return this.session.canAccessFeature('CLPA:View');
+    return this.canAccessCLPAViewSignal();
   }
   get canAccessReports(): boolean {
     return (
@@ -194,6 +215,65 @@ export class BaseWithMenuLayout implements OnInit {
   async ngOnInit(): Promise<void> {
     await this.portalConfig.waitForConfigLoad();
     this.loginMessagesSignal.set(this.portalConfig.retrieveLoginMessage());
+
+    // Load all feature access permissions
+    this.session
+      .canAccessFeature('CostReport:View')
+      .subscribe((val) => this.canAccessOCRTSignal.set(val));
+    this.session
+      .canAccessFeature('RateSetting:View')
+      .subscribe((val) => this.canAccessRateSettingSignal.set(val));
+    this.session
+      .canAccessFeature('BulkProcessing:View')
+      .subscribe((val) => this.canAccessBulkProcessingViewSignal.set(val));
+    this.session
+      .canAccessFeature('Statlog:View')
+      .subscribe((val) => this.canAccessStatlogViewSignal.set(val));
+    this.session
+      .canAccessFeature('Statlog:Configuration')
+      .subscribe((val) => this.canAccessStatlogConfigurationSignal.set(val));
+    this.session
+      .canAccessFeature('Statlog:AllProvidersEmail')
+      .subscribe((val) => this.canAccessStatlogAllProvidersEmailSignal.set(val));
+    this.session
+      .canAccessFeature('OHFI:SettingsManagement')
+      .subscribe((val) => this.canAccessOHFISettingsManagementSignal.set(val));
+    this.session
+      .canAccessFeature('LetterAutomation:Access')
+      .subscribe((val) => this.canAccessLetterAutomationSignal.set(val));
+    this.session
+      .canAccessFeature('Portal:Upload')
+      .subscribe((val) => this.canAccessPortalUploadSignal.set(val));
+    this.session
+      .canAccessFeature('Portal:Download')
+      .subscribe((val) => this.canAccessPortalDownloadSignal.set(val));
+    this.session
+      .canAccessFeature('Reports:ARAP')
+      .subscribe((val) => this.canAccessReportsARAPSignal.set(val));
+    this.session
+      .canAccessFeature('Reports:MDS')
+      .subscribe((val) => this.canAccessReportsMDSSignal.set(val));
+    this.session
+      .canAccessFeature('Reports:MDSResidentListing')
+      .subscribe((val) => this.canAccessReportsMDSResidentListingSignal.set(val));
+    this.session
+      .canAccessFeature('Reports:SectionQ')
+      .subscribe((val) => this.canAccessReportsSectionQSignal.set(val));
+    this.session
+      .canAccessFeature('Reports:UploadDownload')
+      .subscribe((val) => this.canAccessReportsUploadDownloadSignal.set(val));
+    this.session
+      .canAccessFeature('Reports:MassUpload')
+      .subscribe((val) => this.canAccessReportsMassUploadSignal.set(val));
+    this.session
+      .canAccessFeature('Reports:CostReportSubmissionMonitoring')
+      .subscribe((val) => this.canAccessReportsCostReportSubmissionMonitoringSignal.set(val));
+    this.session
+      .canAccessFeature('Reports:CostReportDataWizard')
+      .subscribe((val) => this.canAccessReportsCostReportDataWizardSignal.set(val));
+    this.session
+      .canAccessFeature('CLPA:View')
+      .subscribe((val) => this.canAccessCLPAViewSignal.set(val));
   }
 
   isHelpModalOpen = signal(false);

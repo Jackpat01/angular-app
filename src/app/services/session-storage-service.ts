@@ -1,15 +1,25 @@
-import {Injectable, inject, PLATFORM_ID} from '@angular/core';
-import {isPlatformBrowser} from '@angular/common';
-import {ApiService} from './api';
+import { Injectable, inject, PLATFORM_ID } from '@angular/core';
+import { isPlatformBrowser } from '@angular/common';
+import { ApiService } from './api';
+import { Observable, of } from 'rxjs';
+import { catchError, map } from 'rxjs/operators';
 
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root',
 })
 export class SessionStorageService {
   private platformId = inject(PLATFORM_ID);
+  private apiService = inject(ApiService);
 
-  canAccessFeature(_featureName: string): boolean {
-    return false;
+  canAccessFeature(featureName: string): Observable<boolean> {
+    return this.apiService
+      .post<{ canAccess: boolean }>('/features/canAccess', {
+        featureName,
+      })
+      .pipe(
+        map((response) => response.canAccess),
+        catchError(() => of(false)),
+      );
   }
 
   isState(): boolean {
