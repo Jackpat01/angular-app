@@ -28,15 +28,11 @@ export class Login extends BaseFormComponent implements OnInit {
   isLoading = signal(false);
 
   override ngOnInit(): void {
-    this.portalConfig
-      .waitForConfigLoad()
-      .then(() => {
-        this.titleService.setTitle(this.portalConfig.getWebPortalTitle() + ' - Home - Login');
-      })
-      .catch((error) => {
-        console.error('Error loading portal config:', error);
-        this.titleService.setTitle('OMES - Home - Login');
-      });
+    super.ngOnInit();
+
+    this.portalConfig.waitForConfigLoad().catch((error) => {
+      console.error('Error loading portal config:', error);
+    });
 
     if (this.session.getItem<boolean>('isSSO')) {
       this.router.navigate(['/sso/error']);
