@@ -48,7 +48,7 @@ export class Login extends BaseFormComponent implements OnInit {
   }
 
   protected getPageTitle(): string {
-    return 'Login';
+    return this.portalConfig.getWebPortalTitle() + ' - Home - Login';
   }
 
   protected buildForm(): FormGroup {

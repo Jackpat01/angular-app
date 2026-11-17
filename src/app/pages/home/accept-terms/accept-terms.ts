@@ -49,7 +49,7 @@ export class AcceptTerms extends BaseFormComponent implements OnInit {
   private asyncHandler = inject(AsyncHandlerService);
 
   protected getPageTitle(): string {
-    return 'Accept Terms of Use';
+    return `${this.portalConfig.getConfig().application} - Accept Terms of Use`;
   }
 
   protected buildForm(): FormGroup {
