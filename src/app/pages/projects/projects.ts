@@ -1,15 +1,15 @@
-import {Component, inject, OnInit, Signal, signal, ChangeDetectionStrategy} from '@angular/core';
-import {TempDataService} from '../../services/temp-data';
-import {Classification} from '../../models/Classification';
-import {PortalConfigService} from '../../services/portal-config';
-import {Router, RouterLink} from '@angular/router';
-import {FunctionsService} from '../../services/functions-service';
-import {SessionStorageService} from '../../services/session-storage-service';
-import {ARUMProxy_User} from '../../models/ARUMProxy_User';
-import {SESSION_KEYS_OCRT} from '../../models/session-keys.constants';
-import {TitleService} from '../../services/title';
-import {BaseReactiveComponent} from '../../shared/base-reactive.component';
-import {takeUntil} from 'rxjs/operators';
+import { Component, inject, OnInit, Signal, signal, ChangeDetectionStrategy } from '@angular/core';
+import { TempDataService } from '../../services/temp-data';
+import { Classification } from '../../models/Classification';
+import { PortalConfigService } from '../../services/portal-config';
+import { Router, RouterLink } from '@angular/router';
+import { FunctionsService } from '../../services/functions-service';
+import { SessionStorageService } from '../../services/session-storage-service';
+import { ARUMProxy_User } from '../../models/ARUMProxy_User';
+import { SESSION_KEYS_OCRT } from '../../models/session-keys.constants';
+import { TitleService } from '../../services/title';
+import { BaseReactiveComponent } from '../../shared/base-reactive.component';
+import { takeUntil } from 'rxjs/operators';
 
 @Component({
   imports: [RouterLink],
@@ -41,11 +41,14 @@ export class Projects extends BaseReactiveComponent implements OnInit {
     }
 
     // Wait for portal config to load, then update classifications
-    this.portalConfig.waitForConfigLoad().then(() => {
-      this.updateClassifications();
-    }).catch(error => {
-      console.error('Error loading portal config:', error);
-    });
+    this.portalConfig
+      .waitForConfigLoad()
+      .then(() => {
+        this.updateClassifications();
+      })
+      .catch((error) => {
+        console.error('Error loading portal config:', error);
+      });
 
     // Subscribe to config changes to update classifications when they update
     this.portalConfig.config$.pipe(takeUntil(this.destroy$)).subscribe(() => {
@@ -77,15 +80,17 @@ export class Projects extends BaseReactiveComponent implements OnInit {
 
     const arumValidations = this.functions.getValidations();
 
+    // Only show classifications that the user has access to
     if (arumValidations?.lstARUMUsers?.length) {
-      classifications = classifications.filter(singClassification =>
-        arumValidations.lstARUMUsers.some(c => c.token === singClassification.arumToken)
+      classifications = classifications.filter((singClassification) =>
+        arumValidations.lstARUMUsers.some((c) => c.token === singClassification.arumToken),
       );
+    } else {
+      // If no validations, show no classifications
+      classifications = [];
     }
 
-    classifications = classifications.sort((a, b) =>
-      a.displayName.localeCompare(b.displayName)
-    );
+    classifications = classifications.sort((a, b) => a.displayName.localeCompare(b.displayName));
 
     this.classificationSignal.set(classifications);
   }
