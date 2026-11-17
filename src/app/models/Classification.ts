@@ -1,5 +1,5 @@
 export interface Classification{
-  id:number;
+  id:string;
 type:string;
 server:string;
 displayName:string;
