@@ -59,17 +59,11 @@ export class AcceptTerms extends BaseFormComponent implements OnInit {
   }
 
   override ngOnInit(): void {
-    this.portalConfig
-      .waitForConfigLoad()
-      .then(() => {
-        this.titleService.setTitle(
-          `${this.portalConfig.getConfig().application} - Accept Terms of Use`,
-        );
-      })
-      .catch((error) => {
-        console.error('Error loading portal config:', error);
-        this.titleService.setTitle('Accept Terms of Use');
-      });
+    super.ngOnInit();
+
+    this.portalConfig.waitForConfigLoad().catch((error) => {
+      console.error('Error loading portal config:', error);
+    });
 
     if (this.session.getItem<boolean>('isSSO')) {
       this.router.navigate(['/sso/error']);
