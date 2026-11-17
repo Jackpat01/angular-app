@@ -118,9 +118,11 @@ export class BaseWithProjectLayout extends BaseReactiveComponent implements OnIn
   }
 
   async ngOnInit(): Promise<void> {
+    console.log('BaseWithProjectLayout ngOnInit called');
     this.userInfo = this.userService.getUser();
     await this.portalConfig.waitForConfigLoad();
     this._loginMessages = this.portalConfig.retrieveLoginMessage();
+    console.log('loginMessages loaded:', this._loginMessages);
   }
 
   logout(): void {
