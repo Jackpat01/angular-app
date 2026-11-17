@@ -1,13 +1,13 @@
-import {Component, inject, OnInit, ChangeDetectionStrategy, signal} from '@angular/core';
-import {CommonModule, NgOptimizedImage} from '@angular/common';
-import {FormGroup, ReactiveFormsModule, Validators} from '@angular/forms';
-import {Router} from '@angular/router';
-import {LoginService} from '../../../services/login';
-import {PortalConfigService} from '../../../services/portal-config';
-import {TempDataService} from '../../../services/temp-data';
-import {SessionStorageService} from '../../../services/session-storage-service';
-import {AsyncHandlerService} from '../../../services/async-handler.service';
-import {BaseFormComponent} from '../../../shared/base-form.component';
+import { Component, inject, OnInit, ChangeDetectionStrategy, signal } from '@angular/core';
+import { CommonModule, NgOptimizedImage } from '@angular/common';
+import { FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import { Router } from '@angular/router';
+import { LoginService } from '../../../services/login';
+import { PortalConfigService } from '../../../services/portal-config';
+import { TempDataService } from '../../../services/temp-data';
+import { SessionStorageService } from '../../../services/session-storage-service';
+import { AsyncHandlerService } from '../../../services/async-handler.service';
+import { BaseFormComponent } from '../../../shared/base-form.component';
 
 @Component({
   imports: [CommonModule, ReactiveFormsModule, NgOptimizedImage],
@@ -27,14 +27,15 @@ export class Login extends BaseFormComponent implements OnInit {
   isLoading = signal(false);
 
   override ngOnInit(): void {
-    this.portalConfig.waitForConfigLoad().then(() => {
-      this.titleService.setTitle(
-        this.portalConfig.getWebPortalTitle() + ' - Home - Login'
-      );
-    }).catch(error => {
-      console.error('Error loading portal config:', error);
-      this.titleService.setTitle('OMES - Home - Login');
-    });
+    this.portalConfig
+      .waitForConfigLoad()
+      .then(() => {
+        this.titleService.setTitle(this.portalConfig.getWebPortalTitle() + ' - Home - Login');
+      })
+      .catch((error) => {
+        console.error('Error loading portal config:', error);
+        this.titleService.setTitle('OMES - Home - Login');
+      });
 
     if (this.session.getItem<boolean>('IsSSO')) {
       this.router.navigate(['/sso/error']);
@@ -42,7 +43,7 @@ export class Login extends BaseFormComponent implements OnInit {
 
     const message = this.session.getItem<string>('GlobalErrorMessage');
     if (message) {
-      this.tempData.setTempData('errorMessage', {message});
+      this.tempData.setTempData('errorMessage', { message });
       this.session.removeItem('GlobalErrorMessage');
     }
 
@@ -71,21 +72,21 @@ export class Login extends BaseFormComponent implements OnInit {
       return;
     }
 
-    const {email, password} = this.form.value;
+    const { email, password } = this.form.value;
 
     this.asyncHandler.executeAsync(
-      this.loginService.loginToPage({email, password}),
+      this.loginService.loginToPage({ email, password }),
       this.isLoading,
       (response) => {
         if (!response.successful) {
           const message = response.errorMessage;
-          this.tempData.setTempData('errorMessage', {message});
+          this.tempData.setTempData('errorMessage', { message });
           return;
         }
 
         if (!response.arumUser) {
           const message = 'Username/password invalid';
-          this.tempData.setTempData('errorMessage', {message});
+          this.tempData.setTempData('errorMessage', { message });
           return;
         }
 
@@ -98,10 +99,10 @@ export class Login extends BaseFormComponent implements OnInit {
           this.router.navigate(['/projects']);
         }
       },
-      (error) => {
-        this.tempData.setTempData('errorMessage', error.message || 'Login failed. Please check your credentials and try again.');
-        console.error('Login error:', error);
-      }
+      (errorMessage: string) => {
+        this.tempData.setTempData('errorMessage', { message: errorMessage });
+        console.error('Login error:', errorMessage);
+      },
     );
   }
 

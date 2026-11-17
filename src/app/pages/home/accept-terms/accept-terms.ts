@@ -1,14 +1,14 @@
-import {Component, inject, OnInit, ChangeDetectionStrategy, signal} from '@angular/core';
-import {CommonModule, NgOptimizedImage} from '@angular/common';
-import {FormGroup, FormsModule, ReactiveFormsModule, Validators} from '@angular/forms';
-import {Router} from '@angular/router';
-import {PortalConfigService} from '../../../services/portal-config';
-import {LoginService} from '../../../services/login';
-import {SessionStorageService} from '../../../services/session-storage-service';
-import {ARUMUserValidation} from '../../../models/ARUMUserValidation';
-import {TempDataService} from '../../../services/temp-data';
-import {AsyncHandlerService} from '../../../services/async-handler.service';
-import {BaseFormComponent} from '../../../shared/base-form.component';
+import { Component, inject, OnInit, ChangeDetectionStrategy, signal } from '@angular/core';
+import { CommonModule, NgOptimizedImage } from '@angular/common';
+import { FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
+import { Router } from '@angular/router';
+import { PortalConfigService } from '../../../services/portal-config';
+import { LoginService } from '../../../services/login';
+import { SessionStorageService } from '../../../services/session-storage-service';
+import { ARUMUserValidation } from '../../../models/ARUMUserValidation';
+import { TempDataService } from '../../../services/temp-data';
+import { AsyncHandlerService } from '../../../services/async-handler.service';
+import { BaseFormComponent } from '../../../shared/base-form.component';
 
 @Component({
   selector: 'ohfi-accept-terms',
@@ -59,12 +59,17 @@ export class AcceptTerms extends BaseFormComponent implements OnInit {
   }
 
   override ngOnInit(): void {
-    this.portalConfig.waitForConfigLoad().then(() => {
-      this.titleService.setTitle(`${this.portalConfig.getConfig().application} - Accept Terms of Use`);
-    }).catch(error => {
-      console.error('Error loading portal config:', error);
-      this.titleService.setTitle('Accept Terms of Use');
-    });
+    this.portalConfig
+      .waitForConfigLoad()
+      .then(() => {
+        this.titleService.setTitle(
+          `${this.portalConfig.getConfig().application} - Accept Terms of Use`,
+        );
+      })
+      .catch((error) => {
+        console.error('Error loading portal config:', error);
+        this.titleService.setTitle('Accept Terms of Use');
+      });
 
     if (this.session.getItem<boolean>('IsSSO')) {
       this.router.navigate(['/sso/error']);
@@ -88,9 +93,9 @@ export class AcceptTerms extends BaseFormComponent implements OnInit {
       (response) => {
         this.eulaText = response.eulaText;
       },
-      () => {
-        this.acceptError.set('Failed to load Terms of Use. Please try again.');
-      }
+      (errorMessage: string) => {
+        this.acceptError.set(errorMessage || 'Failed to load Terms of Use. Please try again.');
+      },
     );
   }
 
@@ -110,12 +115,12 @@ export class AcceptTerms extends BaseFormComponent implements OnInit {
             if (response.successful) {
               this.session.setItem('ARUMUserValidations', response.arumValidation);
               const message = response.message;
-              this.tempData.setTempData("errorMessage", {message});
+              this.tempData.setTempData('errorMessage', { message });
               this.router.navigate(['/projects/projects']);
             } else {
               this.router.navigate(['/login']);
             }
-          }
+          },
         );
       } else {
         this.router.navigate(['/login']);
