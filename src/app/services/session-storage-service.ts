@@ -1,5 +1,6 @@
 import {Injectable, inject, PLATFORM_ID} from '@angular/core';
 import {isPlatformBrowser} from '@angular/common';
+import {ApiService} from './api';
 
 @Injectable({
   providedIn: 'root'
