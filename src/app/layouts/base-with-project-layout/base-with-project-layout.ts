@@ -35,10 +35,9 @@ export class BaseWithProjectLayout extends BaseReactiveComponent implements OnIn
   private storage = inject(SessionStorageService);
   private logoutService = inject(LogoutService);
   userInfo: UserInfo | null = null;
-  loginMessageFromConfig: string[] = [];
 
   get loginMessage(): string[] {
-    return this.loginMessageFromConfig;
+    return this.portalConfig.retrieveLoginMessage();
   }
 
   get appVersion(): string {
@@ -123,11 +122,6 @@ export class BaseWithProjectLayout extends BaseReactiveComponent implements OnIn
   async ngOnInit(): Promise<void> {
     this.userInfo = this.userService.getUser();
     await this.portalConfig.waitForConfigLoad();
-    this.loginMessageFromConfig = this.portalConfig.retrieveLoginMessage();
-    
-    this.portalConfig.config$.pipe(takeUntil(this.destroy$)).subscribe((config) => {
-      this.loginMessageFromConfig = config.loginMessage;
-    });
   }
 
   logout(): void {
