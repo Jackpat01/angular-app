@@ -71,7 +71,7 @@ export class AcceptTerms extends BaseFormComponent implements OnInit {
         this.titleService.setTitle('Accept Terms of Use');
       });
 
-    if (this.session.getItem<boolean>('IsSSO')) {
+    if (this.session.getItem<boolean>('isSSO')) {
       this.router.navigate(['/sso/error']);
     }
 
@@ -102,7 +102,7 @@ export class AcceptTerms extends BaseFormComponent implements OnInit {
   onSubmit(): void {
     this.submitted = true;
 
-    if (this.session.getItem<boolean>('IsSSO')) {
+    if (this.session.getItem<boolean>('isSSO')) {
       this.router.navigate(['/sso/error']);
     }
 

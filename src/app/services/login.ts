@@ -1,7 +1,6 @@
 import {Injectable, inject} from '@angular/core';
 import {BehaviorSubject, Observable} from 'rxjs';
 import {ApiService} from './api';
-import {AuthService} from './auth';
 import {AcceptTermsResponse} from '../models/acceptTermsResponse';
 import {AcceptTermsRequest} from '../models/acceptTermsRequest';
 import {EULAResponse} from '../models/EULAResponse';
@@ -13,7 +12,6 @@ import {LoginRequest} from '../models/loginRequest';
 })
 export class LoginService {
   private apiService = inject(ApiService);
-  private authService = inject(AuthService);
   private isLoadingSubject = new BehaviorSubject<boolean>(false);
   isLoading$ = this.isLoadingSubject.asObservable();
 

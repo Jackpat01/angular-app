@@ -38,14 +38,14 @@ export class Login extends BaseFormComponent implements OnInit {
         this.titleService.setTitle('OMES - Home - Login');
       });
 
-    if (this.session.getItem<boolean>('IsSSO')) {
+    if (this.session.getItem<boolean>('isSSO')) {
       this.router.navigate(['/sso/error']);
     }
 
-    const message = this.session.getItem<string>('GlobalErrorMessage');
+    const message = this.session.getItem<string>('globalErrorMessage');
     if (message) {
       this.tempData.setTempData('errorMessage', { message });
-      this.session.removeItem('GlobalErrorMessage');
+      this.session.removeItem('globalErrorMessage');
     }
 
     this.form = this.buildForm();
@@ -65,7 +65,7 @@ export class Login extends BaseFormComponent implements OnInit {
   onSubmit(): void {
     this.submitted = true;
 
-    if (this.session.getItem<boolean>('IsSSO')) {
+    if (this.session.getItem<boolean>('isSSO')) {
       this.router.navigate(['/sso/error']);
     }
 

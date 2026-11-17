@@ -6,6 +6,7 @@ import { PortalConfigService } from '../services/portal-config';
 import { TempDataService } from '../services/temp-data';
 import { ARUMProxy_User } from '../models/ARUMProxy_User';
 import { Classification } from '../models/Classification';
+import {firstValueFrom} from 'rxjs';
 
 @Injectable({
   providedIn: 'root',
@@ -32,7 +33,7 @@ export class ProjectSelectionGuard implements CanActivate {
     }
 
     try {
-      const projectResponse = await this.project.getProject(classificationId).toPromise();
+      const projectResponse = await firstValueFrom(this.project.setProject(classificationId));
 
       if (!projectResponse || !projectResponse.successful) {
         const message = projectResponse?.message || 'Failed to load project';
@@ -50,19 +51,19 @@ export class ProjectSelectionGuard implements CanActivate {
         this.portalConfig.getClassificationSessionKey(),
       );
       if (classification != null) {
-        this.session.setItem('InitialCatalogFromSession', classification?.arumToken);
-        this.session.setItem('AppNameFromSession', classification?.type);
+        this.session.setItem('initialCatalogFromSession', classification?.arumToken);
+        this.session.setItem('appNameFromSession', classification?.type);
       } else {
         const allClassifications = this.portalConfig.getAllClassifications();
         if (allClassifications.length !== 1) {
-          this.session.setItem('InitialCatalogFromSession', null);
-          this.session.setItem('AppNameFromSession', null);
+          this.session.removeItem('initialCatalogFromSession');
+          this.session.removeItem('appNameFromSession');
         } else {
           this.session.setItem(
             this.portalConfig.getClassificationSessionKey(),
             allClassifications[0],
           );
-          this.session.setItem('InitialCatalogFromSession', allClassifications[0].arumToken);
+          this.session.setItem('initialCatalogFromSession', allClassifications[0].arumToken);
         }
       }
 
@@ -83,10 +84,11 @@ export class ProjectSelectionGuard implements CanActivate {
 
         if (newBulletinBoards >= 1) {
           this.router.navigate(['/bulletinBoard/showAll']);
-          return false;
+          return true;
         }
       }
 
+      this.router.navigate(['/bulletinBoard/showAll']);
       return true;
     } catch (error) {
       console.error('Error in ProjectSelectionGuard:', error);

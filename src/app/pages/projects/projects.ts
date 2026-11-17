@@ -33,7 +33,7 @@ export class Projects extends BaseReactiveComponent implements OnInit {
 
     const arumUser = this.session.getItem<ARUMProxy_User>('arumUser');
     if (arumUser == null) {
-      if (!this.session.getItem<boolean>('IsSSO')) {
+      if (!this.session.getItem<boolean>('isSSO')) {
         this.router.navigate(['/login']);
       } else {
         this.router.navigate(['/sso/error']);
@@ -56,9 +56,9 @@ export class Projects extends BaseReactiveComponent implements OnInit {
     });
 
     this.session.setItem('selectedProviderID', 0);
-    this.session.removeItem('AppNameFromSession');
-    this.session.removeItem('InitialCatalogFromSession');
-    this.session.removeItem('ProviderDictionary');
+    this.session.removeItem('appNameFromSession');
+    this.session.removeItem('initialCatalogFromSession');
+    this.session.removeItem('providerDictionary');
     this.session.removeItem(SESSION_KEYS_OCRT.SELECTED_COST_REPORT);
     this.session.removeItem(SESSION_KEYS_OCRT.PROVIDER_DATA);
     this.session.removeItem(SESSION_KEYS_OCRT.SCHEDULE_GRID_MASK);
@@ -71,7 +71,7 @@ export class Projects extends BaseReactiveComponent implements OnInit {
     this.session.removeItem(SESSION_KEYS_OCRT.SCHEDULE_EDITS_REQUIRED);
     this.session.removeItem(SESSION_KEYS_OCRT.SELECTED_SCHEDULE);
     this.session.setItem(SESSION_KEYS_OCRT.USE_LOCAL_CALCULATIONS, true);
-    this.session.removeItem('InternalIdMapping');
+    this.session.removeItem('internalIdMapping');
     this.session.removeItem(this.portalConfig.getClassificationSessionKey());
   }
 
