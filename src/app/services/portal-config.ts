@@ -42,9 +42,6 @@ export class PortalConfigService extends BaseConfigService<PortalConfig> {
             config.loginMessage ||
             defaultConfig.loginMessage;
 
-          console.log('API Response:', config);
-          console.log('Mapped loginMessage:', loginMessageValue);
-
           const mappedConfig: PortalConfig = {
             webPortalTitle:
               ((config as unknown as Record<string, unknown>)['WebPortalTitle'] as string) ||
