@@ -1,9 +1,9 @@
-import {inject, Injectable} from '@angular/core';
-import {Observable} from 'rxjs';
-import {ApiService} from './api';
-import {Classification} from '../models/Classification';
-import {PortalConfig} from '../models/portal-config';
-import {BaseConfigService} from './base-config.service';
+import { inject, Injectable } from '@angular/core';
+import { Observable } from 'rxjs';
+import { ApiService } from './api';
+import { Classification } from '../models/Classification';
+import { PortalConfig } from '../models/portal-config';
+import { BaseConfigService } from './base-config.service';
 
 @Injectable({
   providedIn: 'root',
@@ -26,33 +26,69 @@ export class PortalConfigService extends BaseConfigService<PortalConfig> {
 
     super({
       defaultValue: defaultConfig,
-      endpoint: '/portalConfiguration/get-config'
+      endpoint: '/portalConfiguration/get-config',
     });
     this.loadConfig();
   }
 
   protected loadFromApi(): Observable<PortalConfig> {
     const defaultConfig = this.defaultValue;
-    return new Observable(observer => {
+    return new Observable((observer) => {
       this.apiService.get<PortalConfig>(this.endpoint).subscribe({
         next: (config) => {
           const mappedConfig: PortalConfig = {
-            webPortalTitle: (config as unknown as Record<string, unknown>)['WebPortalTitle'] as string || config.webPortalTitle || defaultConfig.webPortalTitle,
-            application: (config as unknown as Record<string, unknown>)['ApplicationName'] as string || config.application || defaultConfig.application,
-            loginMessage: (config as unknown as Record<string, unknown>)['LoginMessageHyperLink'] as string[] || (config as unknown as Record<string, unknown>)['loginMessage'] as string[] || (config as unknown as Record<string, unknown>)['loginmessage'] as string[] || config.loginMessage || defaultConfig.loginMessage,
-            classificationSessionKey: (config as unknown as Record<string, unknown>)['ClassificationSessionKey'] as string || config.classificationSessionKey || defaultConfig.classificationSessionKey,
-            classificationReplacementTerm: (config as unknown as Record<string, unknown>)['ClassificationReplacementTerm'] as string || config.classificationReplacementTerm || defaultConfig.classificationReplacementTerm,
-            allClassifications: (config as unknown as Record<string, unknown>)['AllClassifications'] as Classification[] || config.allClassifications || defaultConfig.allClassifications,
-            enableBB: (config as unknown as Record<string, unknown>)['EnableBB'] !== undefined ? (config as unknown as Record<string, unknown>)['EnableBB'] as boolean : config.enableBB,
-            enableResource: (config as unknown as Record<string, unknown>)['EnableResource'] !== undefined ? (config as unknown as Record<string, unknown>)['EnableResource'] as boolean : config.enableResource,
-            auditTypeReplacementName: (config as unknown as Record<string, unknown>)['AuditTypeReplacementName'] as string || config.auditTypeReplacementName || defaultConfig.auditTypeReplacementName,
+            webPortalTitle:
+              ((config as unknown as Record<string, unknown>)['WebPortalTitle'] as string) ||
+              config.webPortalTitle ||
+              defaultConfig.webPortalTitle,
+            application:
+              ((config as unknown as Record<string, unknown>)['ApplicationName'] as string) ||
+              config.application ||
+              defaultConfig.application,
+            loginMessage:
+              ((config as unknown as Record<string, unknown>)['loginMessage'] as string[]) ||
+              ((config as unknown as Record<string, unknown>)['loginmessage'] as string[]) ||
+              config.loginMessage ||
+              defaultConfig.loginMessage,
+            classificationSessionKey:
+              ((config as unknown as Record<string, unknown>)[
+                'ClassificationSessionKey'
+              ] as string) ||
+              config.classificationSessionKey ||
+              defaultConfig.classificationSessionKey,
+            classificationReplacementTerm:
+              ((config as unknown as Record<string, unknown>)[
+                'ClassificationReplacementTerm'
+              ] as string) ||
+              config.classificationReplacementTerm ||
+              defaultConfig.classificationReplacementTerm,
+            allClassifications:
+              ((config as unknown as Record<string, unknown>)[
+                'AllClassifications'
+              ] as Classification[]) ||
+              config.allClassifications ||
+              defaultConfig.allClassifications,
+            enableBB:
+              (config as unknown as Record<string, unknown>)['EnableBB'] !== undefined
+                ? ((config as unknown as Record<string, unknown>)['EnableBB'] as boolean)
+                : config.enableBB,
+            enableResource:
+              (config as unknown as Record<string, unknown>)['EnableResource'] !== undefined
+                ? ((config as unknown as Record<string, unknown>)['EnableResource'] as boolean)
+                : config.enableResource,
+            auditTypeReplacementName:
+              ((config as unknown as Record<string, unknown>)[
+                'AuditTypeReplacementName'
+              ] as string) ||
+              config.auditTypeReplacementName ||
+              defaultConfig.auditTypeReplacementName,
           };
           observer.next(mappedConfig);
           observer.complete();
         },
         error: (error) => {
           observer.error(error);
-        }
+        },
       });
     });
   }
@@ -93,4 +129,3 @@ export class PortalConfigService extends BaseConfigService<PortalConfig> {
     return this.getConfig().classificationSessionKey;
   }
 }
-
