@@ -16,7 +16,6 @@ lastName :string;
 loginErrorCount :number;
 phoneNumber:string;
 providerCount:number;
-providers:ARUMUserProviders[]
 results:ARUMResults;
 roleCount:number;
 roles:ARUMRole[];

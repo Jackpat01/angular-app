@@ -9,8 +9,8 @@ export class FunctionsService {
   session = inject(SessionStorageService);
 
   getValidations(): ARUMUserValidation | null {
-    if (this.session.getItem('ARUMUserValidations') != null) {
-      return this.session.getItem<ARUMUserValidation>('ARUMUserValidations');
+    if (this.session.getItem('arumUserValidations') != null) {
+      return this.session.getItem<ARUMUserValidation>('arumUserValidations');
     }
 
     return null;

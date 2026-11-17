@@ -90,6 +90,7 @@ export class Login extends BaseFormComponent implements OnInit {
           return;
         }
 
+        this.session.setItem('arumUserValidations', response.arumValidation);
         this.session.setItem('email', response.arumUser.email);
         this.session.setItem('arumUser', JSON.stringify(response.arumUser));
 

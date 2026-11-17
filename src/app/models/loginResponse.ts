@@ -1,4 +1,5 @@
 import {ARUMProxy_User} from './ARUMProxy_User';
+import {ARUMUserValidation} from './ARUMUserValidation';
 
 export interface LoginResponse {
   successful: boolean;
@@ -7,4 +8,5 @@ export interface LoginResponse {
   userName: string;
   email: string;
   arumUser?: ARUMProxy_User;
+  arumValidation?: ARUMUserValidation
 }

@@ -106,14 +106,14 @@ export class AcceptTerms extends BaseFormComponent implements OnInit {
       this.router.navigate(['/sso/error']);
     }
 
-    if (!this.session.getItem<ARUMUserValidation>('ARUMUserValidations')) {
+    if (!this.session.getItem<ARUMUserValidation>('arumUserValidations')) {
       if (this.email) {
         this.asyncHandler.executeAsync(
           this.loginService.acceptTermsOfUse(this.email),
           this.isLoading,
           (response) => {
             if (response.successful) {
-              this.session.setItem('ARUMUserValidations', response.arumValidation);
+              this.session.setItem('arumUserValidations', response.arumValidation);
               const message = response.message;
               this.tempData.setTempData('errorMessage', { message });
               this.router.navigate(['/projects/projects']);
