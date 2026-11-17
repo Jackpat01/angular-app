@@ -6,7 +6,8 @@ import { PortalConfigService } from '../services/portal-config';
 import { TempDataService } from '../services/temp-data';
 import { ARUMProxy_User } from '../models/ARUMProxy_User';
 import { Classification } from '../models/Classification';
-import {firstValueFrom} from 'rxjs';
+import { SetProjectRequest } from '../models/SetProjectRequest';
+import { firstValueFrom } from 'rxjs';
 
 @Injectable({
   providedIn: 'root',
@@ -33,7 +34,15 @@ export class ProjectSelectionGuard implements CanActivate {
     }
 
     try {
-      const projectResponse = await firstValueFrom(this.project.setProject(classificationId));
+      const isSSOUser = this.session.getItem<boolean>('IsSSO') || false;
+
+      const setProjectRequest: SetProjectRequest = {
+        id: classificationId,
+        arumUser: myUser!,
+        isSSOUser,
+      };
+
+      const projectResponse = await firstValueFrom(this.project.setProject(setProjectRequest));
 
       if (!projectResponse || !projectResponse.successful) {
         const message = projectResponse?.message || 'Failed to load project';
