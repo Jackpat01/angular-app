@@ -10,6 +10,8 @@ import { AcceptTerms } from './pages/home/accept-terms/accept-terms';
 import { Projects } from './pages/projects/projects';
 import { SetProjectComponent } from './pages/projects/set-project/set-project';
 import { ProjectSelectionGuard } from './guards/project-selection.guard';
+import {BulletinBoard} from './pages/bulletin-board/bulletin-board';
+import {ShowAll} from './pages/bulletin-board/show-all/show-all';
 
 export const routes: Routes = [
   {
@@ -49,6 +51,15 @@ export const routes: Routes = [
     path: '',
     component: BaseWithMenuLayout,
     canActivate: [AuthGuard],
-    children: [],
+    children: [
+      {
+        path: 'bulletinBoard',
+        component: BulletinBoard,
+      },
+      {
+        path: 'bulletinBoard/showAll',
+        component: ShowAll,
+      }
+    ],
   },
 ];

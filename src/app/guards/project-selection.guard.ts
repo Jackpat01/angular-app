@@ -38,7 +38,7 @@ export class ProjectSelectionGuard implements CanActivate {
 
       const setProjectRequest: SetProjectRequest = {
         id: classificationId,
-        arumUser: myUser!,
+        email: myUser.email!,
         isSSOUser,
       };
 
