@@ -79,7 +79,11 @@ export class SetProjectComponent extends BaseReactiveComponent implements OnInit
               }
               this.project.setApplicationInformation(project.classification);
 
-              this.session.setItem('arumUser', project.arumUser);
+              const userToStore = {
+                ...project.arumUser,
+                bulletinBoards: [],
+              };
+              this.session.setItem('arumUser', JSON.stringify(userToStore));
 
               if (this.portalConfig.enableBB() && project.arumUser.bulletinBoards?.length != 0) {
                 const newBulletinBoards = project.arumUser.bulletinBoards.reduce((count, board) => {
