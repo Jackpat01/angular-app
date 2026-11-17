@@ -1,4 +1,4 @@
-import { Component, OnInit, inject, ChangeDetectionStrategy } from '@angular/core';
+import { Component, OnInit, inject, ChangeDetectionStrategy, signal } from '@angular/core';
 import { CommonModule, NgOptimizedImage } from '@angular/common';
 import { TitleService } from '../../services/title';
 import { AppConfigService } from '../../services/app-config';
@@ -29,10 +29,10 @@ export class BaseWithProjectLayout extends BaseReactiveComponent implements OnIn
   private storage = inject(SessionStorageService);
   private logoutService = inject(LogoutService);
   userInfo: UserInfo | null = null;
-  private _loginMessages: string[] = [];
+  private loginMessagesSignal = signal<string[]>([]);
 
   get loginMessage(): string[] {
-    return this._loginMessages;
+    return this.loginMessagesSignal();
   }
 
   get appVersion(): string {
@@ -121,8 +121,8 @@ export class BaseWithProjectLayout extends BaseReactiveComponent implements OnIn
     console.log('BaseWithProjectLayout ngOnInit called');
     this.userInfo = this.userService.getUser();
     await this.portalConfig.waitForConfigLoad();
-    this._loginMessages = this.portalConfig.retrieveLoginMessage();
-    console.log('loginMessages loaded:', this._loginMessages);
+    this.loginMessagesSignal.set(this.portalConfig.retrieveLoginMessage());
+    console.log('loginMessages loaded:', this.loginMessagesSignal());
   }
 
   logout(): void {
