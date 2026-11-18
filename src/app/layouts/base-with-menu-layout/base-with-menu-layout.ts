@@ -227,6 +227,7 @@ export class BaseWithMenuLayout implements OnInit {
   }
 
   async ngOnInit(): Promise<void> {
+    console.log('BaseWithMenuLayout ngOnInit starting');
     await this.portalConfig.waitForConfigLoad();
     this.loginMessagesSignal.set(this.portalConfig.retrieveLoginMessage());
 
@@ -234,6 +235,7 @@ export class BaseWithMenuLayout implements OnInit {
     console.log('session.isNF:', this.session.isNF);
     console.log('session.isICF:', this.session.isICF);
 
+    console.log('About to load feature access permissions...');
     // Load all feature access permissions
     this.session
       .canAccessFeature('CostReport:View')
