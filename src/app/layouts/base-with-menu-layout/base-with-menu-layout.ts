@@ -210,6 +210,10 @@ export class BaseWithMenuLayout implements OnInit {
     await this.portalConfig.waitForConfigLoad();
     this.loginMessagesSignal.set(this.portalConfig.retrieveLoginMessage());
 
+    console.log('session.classification:', this.session.classification);
+    console.log('session.isNF:', this.session.isNF);
+    console.log('session.isICF:', this.session.isICF);
+
     // Load all feature access permissions
     this.session
       .canAccessFeature('CostReport:View')
