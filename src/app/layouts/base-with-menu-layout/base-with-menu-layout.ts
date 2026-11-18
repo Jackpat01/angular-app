@@ -6,7 +6,6 @@ import { ARUMProxy_User } from '../../models/ARUMProxy_User';
 import { SessionStorageService } from '../../services/session-storage-service';
 import { ARUMRole } from '../../models/ARUMRole';
 import { ARUMUserProviders } from '../../models/ARUMUserProviders';
-import { Classification } from '../../models/Classification';
 import { Router, RouterLink, RouterOutlet } from '@angular/router';
 import { AppConfigService } from '../../services/app-config';
 import { UploadDownloadConfiguration } from '../../services/upload-download-configuration';
@@ -160,19 +159,10 @@ export class BaseWithMenuLayout implements OnInit {
   }
 
   get providerType(): string | null {
-    const classification = this.classification;
+    const classification = this.session.classification;
     return classification === null ? null : classification.displayName;
   }
 
-  get classification(): Classification | null {
-    const classification = this.storage.getItem<Classification>(
-      this.portalConfig.getClassificationSessionKey(),
-    );
-    if (classification !== null) return classification;
-    const allClassifications = this.portalConfig.getAllClassifications();
-    if (allClassifications.length !== 1) return null;
-    return allClassifications[0];
-  }
 
   get currentRoleName(): string {
     return this.currentRole?.roleName ?? 'No Provider Selected';
@@ -217,6 +207,8 @@ export class BaseWithMenuLayout implements OnInit {
     this.loginMessagesSignal.set(this.portalConfig.retrieveLoginMessage());
 
     // Load all feature access permissions
+    let classification = this.session.classification;
+    let user= this.storage.getItem<ARUMProxy_User>('arumUser');
     this.session
       .canAccessFeature('CostReport:View')
       .subscribe((val) => this.canAccessOCRTSignal.set(val));
@@ -280,7 +272,7 @@ export class BaseWithMenuLayout implements OnInit {
 
   openHelpModal(): void {
     this.isHelpModalOpen.set(true);
-    // this.dialog.open(HelpNumberModalComponent, { disableClose: true });
+    this.dialog.open(HelpNumberModalComponent, { disableClose: true });
   }
 
   logout(): void {

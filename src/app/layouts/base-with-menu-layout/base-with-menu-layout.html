@@ -23,7 +23,7 @@
   <div class="d-flex">
     <div id="cssmenu" class="d-flex justify-content-between flex-grow-1" style="z-index: 101;">
       <ul>
-        @if (classification !== null) {
+        @if (session.classification !== null) {
           <li class="contact" style="float: left;"><a [routerLink]="['/projects/projects']">Projects</a>
           </li>
           @if (canAccessStatlogView) {
@@ -59,17 +59,17 @@
               </ul>
             </li>
           }
-          @if (canAccessOCRT && ((session.isNF() && !session.checkUserRoles("CanHideCostReport")) || session.isICF())) {
+          @if (canAccessOCRT && ((session.isNF && !session.checkUserRoles("CanHideCostReport")) || session.isICF)) {
             <li class='has-sub'>
               <a [routerLink]="['/cost-report']">Cost Report</a>
             </li>
           }
-          @if ((session.isNF() || session.isICF()) && canAccessRateSetting) {
+          @if ((session.isNF || session.isICF) && canAccessRateSetting) {
             <li class='has-sub'>
               <a [routerLink]="['/rate']">Rate Setting</a>
             </li>
           }
-          @if (session.isState()) {
+          @if (session.isState) {
             <li class="last">
               <a [routerLink]="['/dashboard']">Dashboard</a>
             </li>
@@ -121,7 +121,7 @@
           <a [routerLink]="['/secure/logout']">Log Out</a>
         </li>
       </ul>
-      @if (classification !== null &&
+      @if (session.classification !== null &&
       (canAccessStatlogConfiguration || canAccessStatlogAllProvidersEmail || canAccessOHFISettingsManagement)) {
         <ul>
           <li class='has-sub'>
@@ -150,7 +150,7 @@
       }
     </div>
     <div style="border-bottom: 2px solid #74c141;" class="d-flex align-items-center pl-1">
-      @if (classification !== null && portalConfig.enableBB()) {
+      @if (session.classification !== null && portalConfig.enableBB()) {
         @if (isNotShowAllPage) {
           <ng-container>
             <a

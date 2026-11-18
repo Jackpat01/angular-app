@@ -1,8 +1,13 @@
-import { Injectable, inject, PLATFORM_ID } from '@angular/core';
-import { isPlatformBrowser } from '@angular/common';
-import { ApiService } from './api';
-import { Observable, of } from 'rxjs';
-import { catchError, map } from 'rxjs/operators';
+import {Injectable, inject, PLATFORM_ID} from '@angular/core';
+import {isPlatformBrowser} from '@angular/common';
+import {ApiService} from './api';
+import {Observable, of} from 'rxjs';
+import {catchError, map} from 'rxjs/operators';
+import {AccessFeatureRequest} from '../models/AccessFeatureRequest';
+import {ARUMProxy_User} from '../models/ARUMProxy_User';
+import {Classification} from '../models/Classification';
+import {ARUMRole} from '../models/ARUMRole';
+import {PortalConfigService} from './portal-config';
 
 @Injectable({
   providedIn: 'root',
@@ -10,32 +15,90 @@ import { catchError, map } from 'rxjs/operators';
 export class SessionStorageService {
   private platformId = inject(PLATFORM_ID);
   private apiService = inject(ApiService);
+  private portalConfig = inject(PortalConfigService);
+
 
   canAccessFeature(featureName: string): Observable<boolean> {
+    let userRoleNames: string[] = this.userRoleNames;
+
     return this.apiService
-      .post<{ canAccess: boolean }>('/features/canAccess', {
-        featureName,
-      })
+      .post<{ canAccess: boolean }>('/retrieveSession/canAccess', {})
       .pipe(
         map((response) => response.canAccess),
         catchError(() => of(false)),
       );
   }
 
-  isState(): boolean {
-    return false;
+  get userRoleNames(): string[] {
+    return (this.userRoles as ARUMRole[]).map(role => role.roleName);
   }
 
-  isNF(): boolean {
-    return false;
+  get userRoles(): ARUMRole[] {
+    let arumUser: ARUMProxy_User | null = this.getItem<ARUMProxy_User>('arumUser');
+    let arumRoleArray: ARUMRole[] | null;
+    if (arumUser == null) {
+      arumRoleArray = null;
+    } else {
+      let roles: ARUMRole[] = arumUser.roles;
+      arumRoleArray = roles ? [...roles].sort((a, b) => b.order - a.order) : null;
+    }
+    return arumRoleArray ?? [];
+
   }
 
-  isICF(): boolean {
-    return false;
+  getSimplifiedType(value: Classification | null): string | null {
+    if (value) {
+      switch (value.type) {
+        case "ICF_ProdRestore":
+          return "ICF";
+        case "NF_ProdRestore":
+          return "NF";
+        default:
+          return value.type;
+      }
+    }
+    return null;
+  }
+  getUserHasRole(roleName: string | null): boolean {
+    let userRoles: ARUMRole[]  = this.userRoles;
+    return userRoles?.some(
+      role => role.roleName?.trim().toUpperCase() === roleName?.toUpperCase()
+    ) ?? false;
   }
 
-  checkUserRoles(_role: string): boolean {
-    return false;
+  get isState(): boolean {
+    return this.getUserHasRole("STATE");
+  }
+
+  get isNF(): boolean {
+    return this.getSimplifiedType(this.classification)?.toLowerCase() === 'nf'
+  }
+
+
+  get isICF(): boolean {
+    return this.getSimplifiedType(this.classification)?.toLowerCase() === 'icf'
+  }
+
+  get classification(): Classification | null {
+    const classification = this.getItem<Classification>(
+      this.portalConfig.getClassificationSessionKey(),
+    );
+    if (classification !== null) return classification;
+    const allClassifications = this.portalConfig.getAllClassifications();
+    if (allClassifications.length !== 1) return null;
+    return allClassifications[0];
+  }
+
+
+  checkUserRoles(_role: string): Observable<boolean> {
+    return this.apiService
+      .post<{ success: boolean }>('/ohfiSession/checkUserRoles', {
+        _role,
+      })
+      .pipe(
+        map((response) => response.success),
+        catchError(() => of(false)),
+      );
   }
 
   getItem<T>(key: string): T | null {
