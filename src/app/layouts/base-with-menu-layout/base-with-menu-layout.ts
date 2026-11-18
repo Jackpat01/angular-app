@@ -11,7 +11,7 @@ import { AppConfigService } from '../../services/app-config';
 import { UploadDownloadConfiguration } from '../../services/upload-download-configuration';
 import { LogoutService } from '../../services/logout.service';
 import { HelpModalComponent } from '../../shared/help-modal/help-modal';
-import { MatDialog, MatDialogModule } from '@angular/material/dialog';
+import { MatDialog } from '@angular/material/dialog';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 @Component({
@@ -38,7 +38,7 @@ export class BaseWithMenuLayout implements OnInit {
   private canAccessOCRTSignal = signal<boolean>(false);
   private canAccessRateSettingSignal = signal<boolean>(false);
   private canAccessBulkProcessingViewSignal = signal<boolean>(false);
-  private canAccessStatlogViewSignal = signal<boolean>(false);
+  private canAccessStatlogViewSignal = signal<boolean>(true);
   private canAccessStatlogConfigurationSignal = signal<boolean>(false);
   private canAccessStatlogAllProvidersEmailSignal = signal<boolean>(false);
   private canAccessOHFISettingsManagementSignal = signal<boolean>(false);
@@ -290,13 +290,13 @@ export class BaseWithMenuLayout implements OnInit {
   }
 
   openHelpModal(): void {
-    let supportEmail = this.portalConfig.getHelpDeskEmail();
+    const supportEmail = this.portalConfig.getHelpDeskEmail();
     this.dialog.open(HelpModalComponent, {
       width: '450px',
       data: {
         // Replace with your Angular environment/config value
-        helpDeskEmail: `<a href="mailto:${{supportEmail}}">${{supportEmail}}</a>`
-      }
+        helpDeskEmail: `<a href="mailto:${{ supportEmail }}">${{ supportEmail }}</a>`,
+      },
     });
   }
   logout(): void {
