@@ -239,38 +239,37 @@ export class BaseWithMenuLayout implements OnInit {
     // Load all feature access permissions
     try {
       console.log('Creating CostReport:View subscription...');
-      this.session
-        .canAccessFeature('CostReport:View')
-        .pipe(takeUntilDestroyed(this.destroyRef))
-        .subscribe({
-          next: (val) => {
-            console.log('CostReport:View =', val);
-            this.canAccessOCRTSignal.set(val);
-          },
-          error: (err) => {
-            console.error('CostReport:View error:', err);
-            this.canAccessOCRTSignal.set(false);
-          },
-        });
+      const observable = this.session.canAccessFeature('CostReport:View');
+      console.log('Got observable for CostReport:View:', observable);
+      observable.pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
+        next: (val) => {
+          console.log('CostReport:View =', val);
+          this.canAccessOCRTSignal.set(val);
+        },
+        error: (err) => {
+          console.error('CostReport:View error:', err);
+          this.canAccessOCRTSignal.set(false);
+        },
+      });
       console.log('Created CostReport:View subscription');
     } catch (err) {
       console.error('Error creating CostReport:View subscription:', err);
     }
     try {
       console.log('Creating RateSetting:View subscription...');
-      this.session
-        .canAccessFeature('RateSetting:View')
-        .pipe(takeUntilDestroyed(this.destroyRef))
-        .subscribe({
-          next: (val) => {
-            console.log('RateSetting:View =', val);
-            this.canAccessRateSettingSignal.set(val);
-          },
-          error: (err) => {
-            console.error('RateSetting:View error:', err);
-            this.canAccessRateSettingSignal.set(false);
-          },
-        });
+      const observable = this.session.canAccessFeature('RateSetting:View');
+      console.log('Got observable for RateSetting:View:', observable);
+      observable.pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
+        next: (val) => {
+          console.log('RateSetting:View =', val);
+          this.canAccessRateSettingSignal.set(val);
+        },
+        error: (err) => {
+          console.error('RateSetting:View error:', err);
+          this.canAccessRateSettingSignal.set(false);
+        },
+      });
+      console.log('Created RateSetting:View subscription');
     } catch (err) {
       console.error('Error creating RateSetting:View subscription:', err);
     }
