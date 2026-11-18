@@ -273,10 +273,11 @@ export class BaseWithMenuLayout implements OnInit {
     } catch (err) {
       console.error('Error creating RateSetting:View subscription:', err);
     }
-    this.session
-      .canAccessFeature('BulkProcessing:View')
-      .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe({
+    try {
+      console.log('Creating BulkProcessing:View subscription...');
+      const observable = this.session.canAccessFeature('BulkProcessing:View');
+      console.log('Got observable for BulkProcessing:View:', observable);
+      observable.pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
         next: (val) => {
           console.log('BulkProcessing:View =', val);
           this.canAccessBulkProcessingViewSignal.set(val);
@@ -286,10 +287,15 @@ export class BaseWithMenuLayout implements OnInit {
           this.canAccessBulkProcessingViewSignal.set(false);
         },
       });
-    this.session
-      .canAccessFeature('Statlog:View')
-      .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe({
+      console.log('Created BulkProcessing:View subscription');
+    } catch (err) {
+      console.error('Error creating BulkProcessing:View subscription:', err);
+    }
+    try {
+      console.log('Creating Statlog:View subscription...');
+      const observable = this.session.canAccessFeature('Statlog:View');
+      console.log('Got observable for Statlog:View:', observable);
+      observable.pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
         next: (val) => {
           console.log('Statlog:View =', val);
           this.canAccessStatlogViewSignal.set(val);
@@ -299,66 +305,209 @@ export class BaseWithMenuLayout implements OnInit {
           this.canAccessStatlogViewSignal.set(false);
         },
       });
-    this.session
-      .canAccessFeature('Statlog:Configuration')
-      .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe((val) => this.canAccessStatlogConfigurationSignal.set(val));
-    this.session
-      .canAccessFeature('Statlog:AllProvidersEmail')
-      .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe((val) => this.canAccessStatlogAllProvidersEmailSignal.set(val));
-    this.session
-      .canAccessFeature('OHFI:SettingsManagement')
-      .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe((val) => this.canAccessOHFISettingsManagementSignal.set(val));
-    this.session
-      .canAccessFeature('LetterAutomation:Access')
-      .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe((val) => this.canAccessLetterAutomationSignal.set(val));
-    this.session
-      .canAccessFeature('Portal:Upload')
-      .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe((val) => this.canAccessPortalUploadSignal.set(val));
-    this.session
-      .canAccessFeature('Portal:Download')
-      .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe((val) => this.canAccessPortalDownloadSignal.set(val));
-    this.session
-      .canAccessFeature('Reports:ARAP')
-      .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe((val) => this.canAccessReportsARAPSignal.set(val));
-    this.session
-      .canAccessFeature('Reports:MDS')
-      .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe((val) => this.canAccessReportsMDSSignal.set(val));
-    this.session
-      .canAccessFeature('Reports:MDSResidentListing')
-      .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe((val) => this.canAccessReportsMDSResidentListingSignal.set(val));
-    this.session
-      .canAccessFeature('Reports:SectionQ')
-      .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe((val) => this.canAccessReportsSectionQSignal.set(val));
-    this.session
-      .canAccessFeature('Reports:UploadDownload')
-      .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe((val) => this.canAccessReportsUploadDownloadSignal.set(val));
-    this.session
-      .canAccessFeature('Reports:MassUpload')
-      .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe((val) => this.canAccessReportsMassUploadSignal.set(val));
-    this.session
-      .canAccessFeature('Reports:CostReportSubmissionMonitoring')
-      .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe((val) => this.canAccessReportsCostReportSubmissionMonitoringSignal.set(val));
-    this.session
-      .canAccessFeature('Reports:CostReportDataWizard')
-      .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe((val) => this.canAccessReportsCostReportDataWizardSignal.set(val));
-    this.session
-      .canAccessFeature('CLPA:View')
-      .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe((val) => this.canAccessCLPAViewSignal.set(val));
+      console.log('Created Statlog:View subscription');
+    } catch (err) {
+      console.error('Error creating Statlog:View subscription:', err);
+    }
+    console.log('ngOnInit feature subscriptions complete');
+
+    // Remaining features - simplified with logging
+    try {
+      console.log('Creating Statlog:Configuration subscription');
+      this.session
+        .canAccessFeature('Statlog:Configuration')
+        .pipe(takeUntilDestroyed(this.destroyRef))
+        .subscribe((val) => {
+          console.log('Statlog:Configuration =', val);
+          this.canAccessStatlogConfigurationSignal.set(val);
+        });
+    } catch (err) {
+      console.error('Error with Statlog:Configuration:', err);
+    }
+
+    try {
+      console.log('Creating Statlog:AllProvidersEmail subscription');
+      this.session
+        .canAccessFeature('Statlog:AllProvidersEmail')
+        .pipe(takeUntilDestroyed(this.destroyRef))
+        .subscribe((val) => {
+          console.log('Statlog:AllProvidersEmail =', val);
+          this.canAccessStatlogAllProvidersEmailSignal.set(val);
+        });
+    } catch (err) {
+      console.error('Error with Statlog:AllProvidersEmail:', err);
+    }
+
+    try {
+      console.log('Creating OHFI:SettingsManagement subscription');
+      this.session
+        .canAccessFeature('OHFI:SettingsManagement')
+        .pipe(takeUntilDestroyed(this.destroyRef))
+        .subscribe((val) => {
+          console.log('OHFI:SettingsManagement =', val);
+          this.canAccessOHFISettingsManagementSignal.set(val);
+        });
+    } catch (err) {
+      console.error('Error with OHFI:SettingsManagement:', err);
+    }
+
+    try {
+      console.log('Creating LetterAutomation:Access subscription');
+      this.session
+        .canAccessFeature('LetterAutomation:Access')
+        .pipe(takeUntilDestroyed(this.destroyRef))
+        .subscribe((val) => {
+          console.log('LetterAutomation:Access =', val);
+          this.canAccessLetterAutomationSignal.set(val);
+        });
+    } catch (err) {
+      console.error('Error with LetterAutomation:Access:', err);
+    }
+
+    try {
+      console.log('Creating Portal:Upload subscription');
+      this.session
+        .canAccessFeature('Portal:Upload')
+        .pipe(takeUntilDestroyed(this.destroyRef))
+        .subscribe((val) => {
+          console.log('Portal:Upload =', val);
+          this.canAccessPortalUploadSignal.set(val);
+        });
+    } catch (err) {
+      console.error('Error with Portal:Upload:', err);
+    }
+
+    try {
+      console.log('Creating Portal:Download subscription');
+      this.session
+        .canAccessFeature('Portal:Download')
+        .pipe(takeUntilDestroyed(this.destroyRef))
+        .subscribe((val) => {
+          console.log('Portal:Download =', val);
+          this.canAccessPortalDownloadSignal.set(val);
+        });
+    } catch (err) {
+      console.error('Error with Portal:Download:', err);
+    }
+
+    try {
+      console.log('Creating Reports:ARAP subscription');
+      this.session
+        .canAccessFeature('Reports:ARAP')
+        .pipe(takeUntilDestroyed(this.destroyRef))
+        .subscribe((val) => {
+          console.log('Reports:ARAP =', val);
+          this.canAccessReportsARAPSignal.set(val);
+        });
+    } catch (err) {
+      console.error('Error with Reports:ARAP:', err);
+    }
+
+    try {
+      console.log('Creating Reports:MDS subscription');
+      this.session
+        .canAccessFeature('Reports:MDS')
+        .pipe(takeUntilDestroyed(this.destroyRef))
+        .subscribe((val) => {
+          console.log('Reports:MDS =', val);
+          this.canAccessReportsMDSSignal.set(val);
+        });
+    } catch (err) {
+      console.error('Error with Reports:MDS:', err);
+    }
+
+    try {
+      console.log('Creating Reports:MDSResidentListing subscription');
+      this.session
+        .canAccessFeature('Reports:MDSResidentListing')
+        .pipe(takeUntilDestroyed(this.destroyRef))
+        .subscribe((val) => {
+          console.log('Reports:MDSResidentListing =', val);
+          this.canAccessReportsMDSResidentListingSignal.set(val);
+        });
+    } catch (err) {
+      console.error('Error with Reports:MDSResidentListing:', err);
+    }
+
+    try {
+      console.log('Creating Reports:SectionQ subscription');
+      this.session
+        .canAccessFeature('Reports:SectionQ')
+        .pipe(takeUntilDestroyed(this.destroyRef))
+        .subscribe((val) => {
+          console.log('Reports:SectionQ =', val);
+          this.canAccessReportsSectionQSignal.set(val);
+        });
+    } catch (err) {
+      console.error('Error with Reports:SectionQ:', err);
+    }
+
+    try {
+      console.log('Creating Reports:UploadDownload subscription');
+      this.session
+        .canAccessFeature('Reports:UploadDownload')
+        .pipe(takeUntilDestroyed(this.destroyRef))
+        .subscribe((val) => {
+          console.log('Reports:UploadDownload =', val);
+          this.canAccessReportsUploadDownloadSignal.set(val);
+        });
+    } catch (err) {
+      console.error('Error with Reports:UploadDownload:', err);
+    }
+
+    try {
+      console.log('Creating Reports:MassUpload subscription');
+      this.session
+        .canAccessFeature('Reports:MassUpload')
+        .pipe(takeUntilDestroyed(this.destroyRef))
+        .subscribe((val) => {
+          console.log('Reports:MassUpload =', val);
+          this.canAccessReportsMassUploadSignal.set(val);
+        });
+    } catch (err) {
+      console.error('Error with Reports:MassUpload:', err);
+    }
+
+    try {
+      console.log('Creating Reports:CostReportSubmissionMonitoring subscription');
+      this.session
+        .canAccessFeature('Reports:CostReportSubmissionMonitoring')
+        .pipe(takeUntilDestroyed(this.destroyRef))
+        .subscribe((val) => {
+          console.log('Reports:CostReportSubmissionMonitoring =', val);
+          this.canAccessReportsCostReportSubmissionMonitoringSignal.set(val);
+        });
+    } catch (err) {
+      console.error('Error with Reports:CostReportSubmissionMonitoring:', err);
+    }
+
+    try {
+      console.log('Creating Reports:CostReportDataWizard subscription');
+      this.session
+        .canAccessFeature('Reports:CostReportDataWizard')
+        .pipe(takeUntilDestroyed(this.destroyRef))
+        .subscribe((val) => {
+          console.log('Reports:CostReportDataWizard =', val);
+          this.canAccessReportsCostReportDataWizardSignal.set(val);
+        });
+    } catch (err) {
+      console.error('Error with Reports:CostReportDataWizard:', err);
+    }
+
+    try {
+      console.log('Creating CLPA:View subscription');
+      this.session
+        .canAccessFeature('CLPA:View')
+        .pipe(takeUntilDestroyed(this.destroyRef))
+        .subscribe((val) => {
+          console.log('CLPA:View =', val);
+          this.canAccessCLPAViewSignal.set(val);
+        });
+    } catch (err) {
+      console.error('Error with CLPA:View:', err);
+    }
+
+    console.log('ngOnInit COMPLETE');
   }
 
   openHelpModal(): void {
