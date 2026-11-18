@@ -22,7 +22,11 @@ export class SessionStorageService {
     let userRoleNames: string[] = this.userRoleNames;
 
     return this.apiService
-      .post<{ canAccess: boolean }>('/retrieveSession/canAccess', {})
+      .post<{ canAccess: boolean }>('/retrieveSession/canAccess', {
+        featureName: featureName,
+        userRoleNames: userRoleNames,
+        classification: this.classification
+      })
       .pipe(
         map((response) => response.canAccess),
         catchError(() => of(false)),
