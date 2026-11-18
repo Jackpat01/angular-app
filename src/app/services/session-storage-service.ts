@@ -24,13 +24,8 @@ export class SessionStorageService {
       classification: this.classification,
     };
 
-    console.log(`Calling canAccessFeature for ${featureName}:`, payload);
-
     return this.apiService.post<boolean>('/retrieveSession/canAccess', payload).pipe(
-      map((response) => {
-        console.log(`Response for ${featureName}:`, response);
-        return response;
-      }),
+      map((response) => response),
       catchError((error) => {
         console.error(`Error checking access for ${featureName}:`, error);
         return of(false);
