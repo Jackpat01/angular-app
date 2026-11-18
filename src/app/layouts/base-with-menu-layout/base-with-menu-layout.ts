@@ -1,4 +1,4 @@
-import { Component, OnInit, inject, signal, DestroyRef, Signal } from '@angular/core';
+import { Component, OnInit, inject, signal, DestroyRef, WritableSignal } from '@angular/core';
 import { CommonModule, NgOptimizedImage } from '@angular/common';
 import { UserService } from '../../services/user';
 import { PortalConfigService } from '../../services/portal-config';
@@ -55,7 +55,7 @@ export class BaseWithMenuLayout implements OnInit {
   private canAccessReportsCostReportDataWizardSignal = signal<boolean>(false);
   private canAccessCLPAViewSignal = signal<boolean>(false);
 
-  private featureAccessMap = new Map<string, Signal<boolean>>([
+  private featureAccessMap = new Map<string, WritableSignal<boolean>>([
     ['CostReport:View', this.canAccessOCRTSignal],
     ['RateSetting:View', this.canAccessRateSettingSignal],
     ['BulkProcessing:View', this.canAccessBulkProcessingViewSignal],
