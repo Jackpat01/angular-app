@@ -1,4 +1,4 @@
-import { Component, OnInit, inject, signal } from '@angular/core';
+import { Component, OnInit, inject, signal, DestroyRef } from '@angular/core';
 import { CommonModule, NgOptimizedImage } from '@angular/common';
 import { UserService } from '../../services/user';
 import { PortalConfigService } from '../../services/portal-config';
@@ -12,6 +12,7 @@ import { UploadDownloadConfiguration } from '../../services/upload-download-conf
 import { LogoutService } from '../../services/logout.service';
 import { HelpModalComponent } from '../../shared/help-modal/help-modal';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 @Component({
   imports: [CommonModule, RouterOutlet, RouterLink, NgOptimizedImage],
@@ -29,6 +30,7 @@ export class BaseWithMenuLayout implements OnInit {
   private uploadDownloadConfiguration = inject(UploadDownloadConfiguration);
   private logoutService = inject(LogoutService);
   private dialog = inject(MatDialog);
+  private destroyRef = inject(DestroyRef);
 
   private loginMessagesSignal = signal<string[]>([]);
 
@@ -211,60 +213,79 @@ export class BaseWithMenuLayout implements OnInit {
     // Load all feature access permissions
     this.session
       .canAccessFeature('CostReport:View')
+      .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe((val) => this.canAccessOCRTSignal.set(val));
     this.session
       .canAccessFeature('RateSetting:View')
+      .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe((val) => this.canAccessRateSettingSignal.set(val));
     this.session
       .canAccessFeature('BulkProcessing:View')
+      .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe((val) => this.canAccessBulkProcessingViewSignal.set(val));
     this.session
       .canAccessFeature('Statlog:View')
+      .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe((val) => this.canAccessStatlogViewSignal.set(val));
     this.session
       .canAccessFeature('Statlog:Configuration')
+      .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe((val) => this.canAccessStatlogConfigurationSignal.set(val));
     this.session
       .canAccessFeature('Statlog:AllProvidersEmail')
+      .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe((val) => this.canAccessStatlogAllProvidersEmailSignal.set(val));
     this.session
       .canAccessFeature('OHFI:SettingsManagement')
+      .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe((val) => this.canAccessOHFISettingsManagementSignal.set(val));
     this.session
       .canAccessFeature('LetterAutomation:Access')
+      .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe((val) => this.canAccessLetterAutomationSignal.set(val));
     this.session
       .canAccessFeature('Portal:Upload')
+      .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe((val) => this.canAccessPortalUploadSignal.set(val));
     this.session
       .canAccessFeature('Portal:Download')
+      .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe((val) => this.canAccessPortalDownloadSignal.set(val));
     this.session
       .canAccessFeature('Reports:ARAP')
+      .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe((val) => this.canAccessReportsARAPSignal.set(val));
     this.session
       .canAccessFeature('Reports:MDS')
+      .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe((val) => this.canAccessReportsMDSSignal.set(val));
     this.session
       .canAccessFeature('Reports:MDSResidentListing')
+      .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe((val) => this.canAccessReportsMDSResidentListingSignal.set(val));
     this.session
       .canAccessFeature('Reports:SectionQ')
+      .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe((val) => this.canAccessReportsSectionQSignal.set(val));
     this.session
       .canAccessFeature('Reports:UploadDownload')
+      .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe((val) => this.canAccessReportsUploadDownloadSignal.set(val));
     this.session
       .canAccessFeature('Reports:MassUpload')
+      .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe((val) => this.canAccessReportsMassUploadSignal.set(val));
     this.session
       .canAccessFeature('Reports:CostReportSubmissionMonitoring')
+      .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe((val) => this.canAccessReportsCostReportSubmissionMonitoringSignal.set(val));
     this.session
       .canAccessFeature('Reports:CostReportDataWizard')
+      .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe((val) => this.canAccessReportsCostReportDataWizardSignal.set(val));
     this.session
       .canAccessFeature('CLPA:View')
+      .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe((val) => this.canAccessCLPAViewSignal.set(val));
   }
 
