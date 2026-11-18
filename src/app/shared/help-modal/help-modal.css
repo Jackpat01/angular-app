@@ -1,0 +1,10 @@
+.dialog-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-right: 16px;
+}
+
+.dialog-header h2 {
+  margin: 0;
+}

@@ -1,9 +1,9 @@
-import { inject, Injectable } from '@angular/core';
-import { Observable } from 'rxjs';
-import { ApiService } from './api';
-import { Classification } from '../models/Classification';
-import { PortalConfig } from '../models/portal-config';
-import { BaseConfigService } from './base-config.service';
+import {inject, Injectable} from '@angular/core';
+import {Observable} from 'rxjs';
+import {ApiService} from './api';
+import {Classification} from '../models/Classification';
+import {PortalConfig} from '../models/portal-config';
+import {BaseConfigService} from './base-config.service';
 
 @Injectable({
   providedIn: 'root',
@@ -22,6 +22,7 @@ export class PortalConfigService extends BaseConfigService<PortalConfig> {
       enableBB: true,
       enableResource: true,
       auditTypeReplacementName: 'StatLog Type',
+      helpDeskEmail: 'OMESCR.RSwebportal@mslc.com'
     };
 
     super({
@@ -55,19 +56,19 @@ export class PortalConfigService extends BaseConfigService<PortalConfig> {
             classificationSessionKey:
               ((config as unknown as Record<string, unknown>)[
                 'ClassificationSessionKey'
-              ] as string) ||
+                ] as string) ||
               config.classificationSessionKey ||
               defaultConfig.classificationSessionKey,
             classificationReplacementTerm:
               ((config as unknown as Record<string, unknown>)[
                 'ClassificationReplacementTerm'
-              ] as string) ||
+                ] as string) ||
               config.classificationReplacementTerm ||
               defaultConfig.classificationReplacementTerm,
             allClassifications:
               ((config as unknown as Record<string, unknown>)[
                 'AllClassifications'
-              ] as Classification[]) ||
+                ] as Classification[]) ||
               config.allClassifications ||
               defaultConfig.allClassifications,
             enableBB:
@@ -81,9 +82,15 @@ export class PortalConfigService extends BaseConfigService<PortalConfig> {
             auditTypeReplacementName:
               ((config as unknown as Record<string, unknown>)[
                 'AuditTypeReplacementName'
-              ] as string) ||
+                ] as string) ||
               config.auditTypeReplacementName ||
               defaultConfig.auditTypeReplacementName,
+            helpDeskEmail: ((config as unknown as Record<string, unknown>)[
+                'HelpDeskEmail'
+                ] as string) ||
+              config.helpDeskEmail ||
+              defaultConfig.helpDeskEmail,
+
           };
           observer.next(mappedConfig);
           observer.complete();
@@ -125,6 +132,10 @@ export class PortalConfigService extends BaseConfigService<PortalConfig> {
 
   retrieveLoginMessage(): string[] {
     return this.getConfig().loginMessage;
+  }
+
+  getHelpDeskEmail(): string {
+    return this.getConfig().helpDeskEmail;
   }
 
   getClassificationSessionKey(): string {

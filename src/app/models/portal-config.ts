@@ -10,6 +10,7 @@ export interface PortalConfig {
   enableBB:boolean;
   enableResource:boolean;
   auditTypeReplacementName:string;
+  helpDeskEmail:string;
 
   [key: string]: unknown;
 }

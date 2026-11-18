@@ -1,6 +1,5 @@
 import { Component, OnInit, inject, signal } from '@angular/core';
 import { CommonModule, NgOptimizedImage } from '@angular/common';
-import { MatDialog } from '@angular/material/dialog';
 import { UserService } from '../../services/user';
 import { PortalConfigService } from '../../services/portal-config';
 import { ARUMProxy_User } from '../../models/ARUMProxy_User';
@@ -12,6 +11,7 @@ import { AppConfigService } from '../../services/app-config';
 import { UploadDownloadConfiguration } from '../../services/upload-download-configuration';
 import { LogoutService } from '../../services/logout.service';
 import { HelpModalComponent } from '../../shared/help-modal/help-modal';
+import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 
 @Component({
   imports: [CommonModule, RouterOutlet, RouterLink, NgOptimizedImage],
@@ -269,9 +269,15 @@ export class BaseWithMenuLayout implements OnInit {
   }
 
   openHelpModal(): void {
-    this.dialog.open(HelpModalComponent, { disableClose: false });
+    let supportEmail = this.portalConfig.getHelpDeskEmail();
+    this.dialog.open(HelpModalComponent, {
+      width: '450px',
+      data: {
+        // Replace with your Angular environment/config value
+        helpDeskEmail: `<a href="mailto:${{supportEmail}}">${{supportEmail}}</a>`
+      }
+    });
   }
-
   logout(): void {
     this.logoutService.executeLogout('/');
   }
