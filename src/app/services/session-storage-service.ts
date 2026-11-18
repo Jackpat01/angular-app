@@ -26,11 +26,10 @@ export class SessionStorageService {
 
     console.log(`Calling canAccessFeature for ${featureName}:`, payload);
 
-    return this.apiService.post<{ canAccess: boolean }>('/retrieveSession/canAccess', payload).pipe(
+    return this.apiService.post<boolean>('/retrieveSession/canAccess', payload).pipe(
       map((response) => {
-        console.log(`Full response for ${featureName}:`, response);
-        console.log(`Response.canAccess for ${featureName}:`, response.canAccess);
-        return response.canAccess;
+        console.log(`Response for ${featureName}:`, response);
+        return response;
       }),
       catchError((error) => {
         console.error(`Error checking access for ${featureName}:`, error);
