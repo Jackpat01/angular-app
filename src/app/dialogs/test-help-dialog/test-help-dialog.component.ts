@@ -1,6 +1,10 @@
 import { Component, inject } from '@angular/core';
-import { MatDialogModule, MatDialogRef } from '@angular/material/dialog';
+import { MAT_DIALOG_DATA, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
 import { CommonModule } from '@angular/common';
+
+export interface TestHelpDialogData {
+  email: string;
+}
 
 @Component({
   selector: 'ohfi-test-help-dialog',
@@ -11,6 +15,7 @@ import { CommonModule } from '@angular/common';
 })
 export class TestHelpDialogComponent {
   private dialogRef = inject(MatDialogRef<TestHelpDialogComponent>);
+  data = inject(MAT_DIALOG_DATA) as TestHelpDialogData;
 
   onClose(): void {
     this.dialogRef.close();
