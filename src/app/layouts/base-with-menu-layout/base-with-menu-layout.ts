@@ -1,5 +1,6 @@
 import { Component, OnInit, inject, signal } from '@angular/core';
 import { CommonModule, NgOptimizedImage } from '@angular/common';
+import { MatDialog } from '@angular/material/dialog';
 import { UserService } from '../../services/user';
 import { PortalConfigService } from '../../services/portal-config';
 import { ARUMProxy_User } from '../../models/ARUMProxy_User';
@@ -10,6 +11,7 @@ import { Router, RouterLink, RouterOutlet } from '@angular/router';
 import { AppConfigService } from '../../services/app-config';
 import { UploadDownloadConfiguration } from '../../services/upload-download-configuration';
 import { LogoutService } from '../../services/logout.service';
+import { HelpModalComponent } from '../../shared/help-modal/help-modal';
 
 @Component({
   imports: [CommonModule, RouterOutlet, RouterLink, NgOptimizedImage],
@@ -26,6 +28,7 @@ export class BaseWithMenuLayout implements OnInit {
   private session = inject(SessionStorageService);
   private uploadDownloadConfiguration = inject(UploadDownloadConfiguration);
   private logoutService = inject(LogoutService);
+  private dialog = inject(MatDialog);
 
   private loginMessagesSignal = signal<string[]>([]);
 
@@ -163,7 +166,6 @@ export class BaseWithMenuLayout implements OnInit {
     return classification === null ? null : classification.displayName;
   }
 
-
   get currentRoleName(): string {
     return this.currentRole?.roleName ?? 'No Provider Selected';
   }
@@ -207,8 +209,6 @@ export class BaseWithMenuLayout implements OnInit {
     this.loginMessagesSignal.set(this.portalConfig.retrieveLoginMessage());
 
     // Load all feature access permissions
-    let classification = this.session.classification;
-    let user= this.storage.getItem<ARUMProxy_User>('arumUser');
     this.session
       .canAccessFeature('CostReport:View')
       .subscribe((val) => this.canAccessOCRTSignal.set(val));
@@ -268,11 +268,8 @@ export class BaseWithMenuLayout implements OnInit {
       .subscribe((val) => this.canAccessCLPAViewSignal.set(val));
   }
 
-  isHelpModalOpen = signal(false);
-
   openHelpModal(): void {
-    this.isHelpModalOpen.set(true);
-    this.dialog.open(HelpNumberModalComponent, { disableClose: true });
+    this.dialog.open(HelpModalComponent, { disableClose: false });
   }
 
   logout(): void {
