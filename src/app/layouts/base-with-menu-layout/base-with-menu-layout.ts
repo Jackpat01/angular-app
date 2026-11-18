@@ -38,7 +38,7 @@ export class BaseWithMenuLayout implements OnInit {
   private canAccessOCRTSignal = signal<boolean>(false);
   private canAccessRateSettingSignal = signal<boolean>(false);
   private canAccessBulkProcessingViewSignal = signal<boolean>(false);
-  private canAccessStatlogViewSignal = signal<boolean>(true);
+  private canAccessStatlogViewSignal = signal<boolean>(false);
   private canAccessStatlogConfigurationSignal = signal<boolean>(false);
   private canAccessStatlogAllProvidersEmailSignal = signal<boolean>(false);
   private canAccessOHFISettingsManagementSignal = signal<boolean>(false);

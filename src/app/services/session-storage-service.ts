@@ -23,13 +23,9 @@ export class SessionStorageService {
       userRoleNames: userRoleNames,
       classification: this.classification,
     };
-    console.log(`Checking access for feature: ${featureName}`, payload);
 
     return this.apiService.post<{ canAccess: boolean }>('/retrieveSession/canAccess', payload).pipe(
-      map((response) => {
-        console.log(`Response for ${featureName}:`, response);
-        return response.canAccess;
-      }),
+      map((response) => response.canAccess),
       catchError((error) => {
         console.error(`Error checking access for ${featureName}:`, error);
         return of(false);
