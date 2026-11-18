@@ -237,32 +237,43 @@ export class BaseWithMenuLayout implements OnInit {
 
     console.log('About to load feature access permissions...');
     // Load all feature access permissions
-    this.session
-      .canAccessFeature('CostReport:View')
-      .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe({
-        next: (val) => {
-          console.log('CostReport:View =', val);
-          this.canAccessOCRTSignal.set(val);
-        },
-        error: (err) => {
-          console.error('CostReport:View error:', err);
-          this.canAccessOCRTSignal.set(false);
-        },
-      });
-    this.session
-      .canAccessFeature('RateSetting:View')
-      .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe({
-        next: (val) => {
-          console.log('RateSetting:View =', val);
-          this.canAccessRateSettingSignal.set(val);
-        },
-        error: (err) => {
-          console.error('RateSetting:View error:', err);
-          this.canAccessRateSettingSignal.set(false);
-        },
-      });
+    try {
+      console.log('Creating CostReport:View subscription...');
+      this.session
+        .canAccessFeature('CostReport:View')
+        .pipe(takeUntilDestroyed(this.destroyRef))
+        .subscribe({
+          next: (val) => {
+            console.log('CostReport:View =', val);
+            this.canAccessOCRTSignal.set(val);
+          },
+          error: (err) => {
+            console.error('CostReport:View error:', err);
+            this.canAccessOCRTSignal.set(false);
+          },
+        });
+      console.log('Created CostReport:View subscription');
+    } catch (err) {
+      console.error('Error creating CostReport:View subscription:', err);
+    }
+    try {
+      console.log('Creating RateSetting:View subscription...');
+      this.session
+        .canAccessFeature('RateSetting:View')
+        .pipe(takeUntilDestroyed(this.destroyRef))
+        .subscribe({
+          next: (val) => {
+            console.log('RateSetting:View =', val);
+            this.canAccessRateSettingSignal.set(val);
+          },
+          error: (err) => {
+            console.error('RateSetting:View error:', err);
+            this.canAccessRateSettingSignal.set(false);
+          },
+        });
+    } catch (err) {
+      console.error('Error creating RateSetting:View subscription:', err);
+    }
     this.session
       .canAccessFeature('BulkProcessing:View')
       .pipe(takeUntilDestroyed(this.destroyRef))
