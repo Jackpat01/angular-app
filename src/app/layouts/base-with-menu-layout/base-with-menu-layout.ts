@@ -134,6 +134,26 @@ export class BaseWithMenuLayout implements OnInit {
     );
   }
 
+  get sessionClassification() {
+    return this.session.classification;
+  }
+
+  get sessionIsNF() {
+    return this.session.isNF;
+  }
+
+  get sessionIsICF() {
+    return this.session.isICF;
+  }
+
+  get sessionIsState() {
+    return this.session.isState;
+  }
+
+  sessionGetUserHasRole(role: string): boolean {
+    return this.session.getUserHasRole(role);
+  }
+
   get appVersion(): string {
     return this.appConfig.getAppVersion() || '';
   }
@@ -218,19 +238,31 @@ export class BaseWithMenuLayout implements OnInit {
     this.session
       .canAccessFeature('CostReport:View')
       .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe((val) => this.canAccessOCRTSignal.set(val));
+      .subscribe((val) => {
+        console.log('CostReport:View =', val);
+        this.canAccessOCRTSignal.set(val);
+      });
     this.session
       .canAccessFeature('RateSetting:View')
       .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe((val) => this.canAccessRateSettingSignal.set(val));
+      .subscribe((val) => {
+        console.log('RateSetting:View =', val);
+        this.canAccessRateSettingSignal.set(val);
+      });
     this.session
       .canAccessFeature('BulkProcessing:View')
       .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe((val) => this.canAccessBulkProcessingViewSignal.set(val));
+      .subscribe((val) => {
+        console.log('BulkProcessing:View =', val);
+        this.canAccessBulkProcessingViewSignal.set(val);
+      });
     this.session
       .canAccessFeature('Statlog:View')
       .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe((val) => this.canAccessStatlogViewSignal.set(val));
+      .subscribe((val) => {
+        console.log('Statlog:View =', val);
+        this.canAccessStatlogViewSignal.set(val);
+      });
     this.session
       .canAccessFeature('Statlog:Configuration')
       .pipe(takeUntilDestroyed(this.destroyRef))

@@ -29,7 +29,7 @@
   <div class="d-flex">
     <div id="cssmenu" class="d-flex justify-content-between flex-grow-1" style="z-index: 101">
       <ul>
-        @if (session.classification !== null) {
+        @if (sessionClassification !== null) {
           <li class="contact" style="float: left">
             <a [routerLink]="['/projects/projects']">Projects</a>
           </li>
@@ -69,18 +69,18 @@
           }
           @if (
             canAccessOCRT &&
-            ((session.isNF && !session.getUserHasRole('CanHideCostReport')) || session.isICF)
+            ((sessionIsNF && !sessionGetUserHasRole('CanHideCostReport')) || sessionIsICF)
           ) {
             <li class="has-sub">
               <a [routerLink]="['/cost-report']">Cost Report</a>
             </li>
           }
-          @if ((session.isNF || session.isICF) && canAccessRateSetting) {
+          @if ((sessionIsNF || sessionIsICF) && canAccessRateSetting) {
             <li class="has-sub">
               <a [routerLink]="['/rate']">Rate Setting</a>
             </li>
           }
-          @if (session.isState) {
+          @if (sessionIsState) {
             <li class="last">
               <a [routerLink]="['/dashboard']">Dashboard</a>
             </li>
