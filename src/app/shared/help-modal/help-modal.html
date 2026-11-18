@@ -1,16 +1,12 @@
-<div class="dialog-header">
-  <h2 mat-dialog-title>Need Assistance?</h2>
-  <button mat-icon-button mat-dialog-close aria-label="Close">
-    <mat-icon>close</mat-icon>
-  </button>
-</div>
-
-<mat-dialog-content>
-  <div>
-    Please contact Customer Support at <span [innerHTML]="data.helpDeskEmail"></span>
+<div class="modal-content">
+  <div class="modal-header">
+    <h3>Need Assistance?</h3>
+    <button type="button" class="close" (click)="onClose()">&times;</button>
   </div>
-</mat-dialog-content>
-
-<mat-dialog-actions align="end">
-  <button mat-flat-button color="primary" mat-dialog-close>Close</button>
-</mat-dialog-actions>
+  <div class="modal-body">
+    <div>Please contact Customer Support at {{ data.email }}</div>
+  </div>
+  <div class="modal-footer">
+    <button type="button" class="btn btn-success" (click)="onClose()">Close</button>
+  </div>
+</div>

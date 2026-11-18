@@ -1,12 +1,12 @@
-import { Injectable, inject, PLATFORM_ID } from '@angular/core';
-import { isPlatformBrowser } from '@angular/common';
-import { ApiService } from './api';
-import { Observable, of } from 'rxjs';
-import { catchError, map } from 'rxjs/operators';
-import { ARUMProxy_User } from '../models/ARUMProxy_User';
-import { Classification } from '../models/Classification';
-import { ARUMRole } from '../models/ARUMRole';
-import { PortalConfigService } from './portal-config';
+import {Injectable, inject, PLATFORM_ID} from '@angular/core';
+import {isPlatformBrowser} from '@angular/common';
+import {ApiService} from './api';
+import {Observable, of} from 'rxjs';
+import {catchError, map} from 'rxjs/operators';
+import {ARUMProxy_User} from '../models/ARUMProxy_User';
+import {Classification} from '../models/Classification';
+import {ARUMRole} from '../models/ARUMRole';
+import {PortalConfigService} from './portal-config';
 
 @Injectable({
   providedIn: 'root',
@@ -37,6 +37,10 @@ export class SessionStorageService {
     return (this.userRoles as ARUMRole[]).map((role) => role.roleName);
   }
 
+  get ARUMUser(): ARUMProxy_User | null {
+    return this.getItem<ARUMProxy_User>('arumUser');
+  }
+
   get userRoles(): ARUMRole[] {
     const arumUser: ARUMProxy_User | null = this.getItem<ARUMProxy_User>('arumUser');
     let arumRoleArray: ARUMRole[] | null;
@@ -62,6 +66,7 @@ export class SessionStorageService {
     }
     return null;
   }
+
   getUserHasRole(roleName: string | null): boolean {
     const userRoles: ARUMRole[] = this.userRoles;
     return (

@@ -10,9 +10,10 @@ import { Router, RouterLink, RouterOutlet } from '@angular/router';
 import { AppConfigService } from '../../services/app-config';
 import { UploadDownloadConfiguration } from '../../services/upload-download-configuration';
 import { LogoutService } from '../../services/logout.service';
-import { HelpModalComponent } from '../../shared/help-modal/help-modal';
+import {HelpDialogComponent} from '../../shared/help-modal/help-modal';
 import { MatDialog } from '@angular/material/dialog';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import {TestHelpDialogComponent} from '../../dialogs/test-help-dialog/test-help-dialog.component';
 
 @Component({
   imports: [CommonModule, RouterOutlet, RouterLink, NgOptimizedImage],
@@ -272,12 +273,9 @@ export class BaseWithMenuLayout implements OnInit {
 
   openHelpModal(): void {
     const supportEmail = this.portalConfig.getHelpDeskEmail();
-    this.dialog.open(HelpModalComponent, {
-      width: '450px',
-      data: {
-        // Replace with your Angular environment/config value
-        helpDeskEmail: `<a href="mailto:${{ supportEmail }}">${{ supportEmail }}</a>`,
-      },
+    this.dialog.open(HelpDialogComponent, {
+      width: '500px',
+      data: { email: supportEmail },
     });
   }
   logout(): void {

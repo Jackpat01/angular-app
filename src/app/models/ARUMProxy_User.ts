@@ -1,5 +1,6 @@
 import {ARUMUserProviders} from './ARUMUserProviders';
 import {ARUMRole} from './ARUMRole';
+import {ARUMBulletinBoards} from './ARUMBulletinBoards';
 
 export interface ARUMProxy_User {
   userID: number;
@@ -9,4 +10,5 @@ export interface ARUMProxy_User {
   ipAddress: string;
   providers: ARUMUserProviders[];
   roles:ARUMRole[];
+  bulletinBoards:ARUMBulletinBoards[];
 }

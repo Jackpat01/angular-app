@@ -1,15 +1,23 @@
-import { Component, Inject } from '@angular/core';
-import { MAT_DIALOG_DATA, MatDialogModule } from '@angular/material/dialog';
-import { MatButtonModule } from '@angular/material/button';
-import { MatIconModule } from '@angular/material/icon';
+import { Component, inject } from '@angular/core';
+import { MAT_DIALOG_DATA, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
+import { CommonModule } from '@angular/common';
+
+export interface HelpDialogData {
+  email: string;
+}
 
 @Component({
-  imports: [MatDialogModule, MatButtonModule, MatIconModule],
   selector: 'ohfi-help-modal',
-  styleUrl: './help-modal.css',
+  standalone: true,
+  imports: [CommonModule, MatDialogModule],
   templateUrl: './help-modal.html',
+  styleUrls: ['./help-modal.css'],
 })
-export class HelpModalComponent {
-  constructor(@Inject(MAT_DIALOG_DATA) public data: { helpDeskEmail: string }) {}
+export class HelpDialogComponent {
+  private dialogRef = inject(MatDialogRef<HelpDialogComponent>);
+  data = inject(MAT_DIALOG_DATA) as HelpDialogData;
 
+  onClose(): void {
+    this.dialogRef.close();
+  }
 }
