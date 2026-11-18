@@ -26,7 +26,7 @@ export class BaseWithMenuLayout implements OnInit {
   private portalConfig = inject(PortalConfigService);
   private storage = inject(SessionStorageService);
   private appConfig = inject(AppConfigService);
-  private session = inject(SessionStorageService);
+  session = inject(SessionStorageService);
   private uploadDownloadConfiguration = inject(UploadDownloadConfiguration);
   private logoutService = inject(LogoutService);
   private dialog = inject(MatDialog);
