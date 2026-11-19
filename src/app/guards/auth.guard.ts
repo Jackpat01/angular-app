@@ -1,25 +1,11 @@
-import {Injectable, inject} from '@angular/core';
-import {ActivatedRouteSnapshot, CanActivate, Router, RouterStateSnapshot} from '@angular/router';
-import {AuthService} from '../services/auth';
+import {CanActivateFn} from '@angular/router';
 
-@Injectable({
-  providedIn: 'root',
-})
-export class AuthGuard implements CanActivate {
-  private authService = inject(AuthService);
-  private router = inject(Router);
-
-  canActivate(
-    _route: ActivatedRouteSnapshot,
-    _state: RouterStateSnapshot
-  ): boolean {
-   // if (this.authService.isAuthenticated()) {
-      return true;
-  //   }
-  //
-  //   // Not authenticated - redirect to login
-  //   console.warn('Access denied - redirecting to login');
-  //   this.router.navigate(['/login'], {queryParams: {returnUrl: state.url}});
-  //   return false;
-   }
-}
+export const authGuard: CanActivateFn = (_route, _state) => {
+  // Currently unrestricted — uncomment to enforce authentication:
+  // const authService = inject(AuthService);
+  // const router = inject(Router);
+  // if (authService.isAuthenticated()) return true;
+  // console.warn('Access denied - redirecting to login');
+  // return router.createUrlTree(['/login'], {queryParams: {returnUrl: _state.url}});
+  return true;
+};

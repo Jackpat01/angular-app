@@ -1,5 +1,4 @@
-import { Component, Input, Output, EventEmitter } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import {Component, input, output} from '@angular/core';
 
 export interface TableColumn {
   key: string;
@@ -32,31 +31,30 @@ export interface TableAction {
  */
 @Component({
 //  selector: 'ohfi-data-table',
-  imports: [CommonModule],
   template: `
     <div class="card">
       <div class="card-header bg-light">
-        <h5 class="mb-0">{{ title }} ({{ items.length }} found)</h5>
+        <h5 class="mb-0">{{ title() }} ({{ items().length }} found)</h5>
       </div>
       <div class="card-body">
         <div class="table-responsive">
           <table class="table table-hover">
             <thead class="table-light">
               <tr>
-                @for (column of columns; track column.key) {
+                @for (column of columns(); track column.key) {
                   <th [style.width]="column.width" [style.text-align]="column.align || 'left'">
                     {{ column.label }}
                   </th>
                 }
-                @if (actions && actions.length > 0) {
+                @if (actions()?.length) {
                   <th>Actions</th>
                 }
               </tr>
             </thead>
             <tbody>
-              @for (item of items; track getItemId(item)) {
+              @for (item of items(); track getItemId(item)) {
                 <tr>
-                  @for (column of columns; track column.key) {
+                  @for (column of columns(); track column.key) {
                     <td [style.text-align]="column.align || 'left'">
                       @if (column.format) {
                         {{ column.format(getNestedProperty(item, column.key)) }}
@@ -65,9 +63,9 @@ export interface TableAction {
                       }
                     </td>
                   }
-                  @if (actions && actions.length > 0) {
+                  @if (actions()?.length) {
                     <td>
-                      @for (action of actions; track action.label) {
+                      @for (action of actions()!; track action.label) {
                         <button
                           (click)="action.handler(getItemId(item))"
                           [disabled]="action.disabled && action.disabled(item)"
@@ -83,12 +81,12 @@ export interface TableAction {
                   }
                 </tr>
               }
-              @if (items.length === 0) {
+              @if (items().length === 0) {
                 <tr>
                   <td
                     class="text-center text-muted py-4"
-                    [attr.colspan]="columns.length + (actions && actions.length > 0 ? 1 : 0)">
-                    {{ emptyMessage }}
+                    [attr.colspan]="columns().length + (actions()?.length ? 1 : 0)">
+                    {{ emptyMessage() }}
                   </td>
                 </tr>
               }
@@ -100,20 +98,22 @@ export interface TableAction {
   `,
 })
 export class DataTableComponent {
-  @Input() items: unknown[] = [];
-  @Input() columns: TableColumn[] = [];
-  @Input() actions?: TableAction[];
-  @Input() title = 'Items';
-  @Input() emptyMessage = 'No items found';
+  items = input<unknown[]>([]);
+  columns = input<TableColumn[]>([]);
+  actions = input<TableAction[]>();
+  title = input('Items');
+  emptyMessage = input('No items found');
 
-  @Output() actionTriggered = new EventEmitter<{ action: string; id: number | string }>();
+  actionTriggered = output<{action: string; id: number | string}>();
 
   getItemId(item: unknown): number | string {
     return (item as Record<string, unknown>)['id'] as number | string;
   }
 
   getNestedProperty(obj: unknown, path: string): unknown {
-    return path.split('.').reduce((current, prop) =>
-      (current as Record<string, unknown>)?.[prop], obj);
+    return path.split('.').reduce(
+      (current, prop) => (current as Record<string, unknown>)?.[prop],
+      obj,
+    );
   }
 }
