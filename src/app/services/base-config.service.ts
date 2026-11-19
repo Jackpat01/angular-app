@@ -1,6 +1,5 @@
-import { Injectable } from '@angular/core';
-import { BehaviorSubject, firstValueFrom, Observable } from 'rxjs';
-import { filter, skip } from 'rxjs/operators';
+import {Injectable} from '@angular/core';
+import {BehaviorSubject, catchError, filter, firstValueFrom, Observable, skip, tap, throwError} from 'rxjs';
 
 @Injectable()
 export abstract class BaseConfigService<C> {
@@ -22,16 +21,10 @@ export abstract class BaseConfigService<C> {
     this.configLoaded$ = this.configLoadedSubject.asObservable();
   }
 
-  /**
-   * Check if config has been loaded from API
-   */
   isConfigLoaded(): boolean {
     return this.configLoadedSubject.value;
   }
 
-  /**
-   * Wait for config to load from API
-   */
   async waitForConfigLoad(): Promise<void> {
     if (this.isConfigLoaded()) {
       return;
@@ -42,43 +35,25 @@ export abstract class BaseConfigService<C> {
     ));
   }
 
-  /**
-   * Get the current configuration value (never null)
-   */
   getConfig(): C {
     return this.configSubject.value;
   }
 
-  /**
-   * Refresh configuration from API
-   * Returns an Observable that emits the new config
-   */
   refreshConfig(): Observable<C> {
-    return new Observable(observer => {
-      this.loadFromApi().subscribe({
-        next: (config) => {
-          this.configSubject.next(config);
-          this.configLoadedSubject.next(true);
-          observer.next(config);
-          observer.complete();
-        },
-        error: (error) => {
-          console.error(`Failed to refresh config from ${this.endpoint}`, error);
-          observer.error(error);
-        }
-      });
-    });
+    return this.loadFromApi().pipe(
+      tap((config) => {
+        this.configSubject.next(config);
+        this.configLoadedSubject.next(true);
+      }),
+      catchError((error) => {
+        console.error(`Failed to refresh config from ${this.endpoint}`, error);
+        return throwError(() => error);
+      }),
+    );
   }
 
-  /**
-   * Override this method to provide custom API loading logic
-   */
   protected abstract loadFromApi(): Observable<C>;
 
-  /**
-   * Load configuration from API and handle errors
-   * This is called automatically in the constructor
-   */
   protected loadConfig(): void {
     this.loadFromApi().subscribe({
       next: (config) => {
