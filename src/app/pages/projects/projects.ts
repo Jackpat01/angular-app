@@ -1,15 +1,15 @@
-import { Component, inject, OnInit, Signal, signal, ChangeDetectionStrategy } from '@angular/core';
-import { TempDataService } from '../../services/temp-data';
-import { Classification } from '../../models/Classification';
-import { PortalConfigService } from '../../services/portal-config';
-import { Router, RouterLink } from '@angular/router';
-import { FunctionsService } from '../../services/functions-service';
-import { SessionStorageService } from '../../services/session-storage-service';
-import { ARUMProxy_User } from '../../models/ARUMProxy_User';
-import { SESSION_KEYS_OCRT } from '../../models/session-keys.constants';
-import { TitleService } from '../../services/title';
-import { BaseReactiveComponent } from '../../shared/base-reactive.component';
-import { takeUntil } from 'rxjs/operators';
+import {ChangeDetectionStrategy, Component, inject, OnInit, signal} from '@angular/core';
+import {takeUntilDestroyed} from '@angular/core/rxjs-interop';
+import {TempDataService} from '../../services/temp-data';
+import {Classification} from '../../models/Classification';
+import {PortalConfigService} from '../../services/portal-config';
+import {Router, RouterLink} from '@angular/router';
+import {FunctionsService} from '../../services/functions-service';
+import {SessionStorageService} from '../../services/session-storage-service';
+import {ARUMProxy_User} from '../../models/ARUMProxy_User';
+import {SESSION_KEYS_OCRT} from '../../models/session-keys.constants';
+import {TitleService} from '../../services/title';
+import {BaseReactiveComponent} from '../../shared/base-reactive.component';
 
 @Component({
   imports: [RouterLink],
@@ -20,13 +20,14 @@ import { takeUntil } from 'rxjs/operators';
 })
 export class Projects extends BaseReactiveComponent implements OnInit {
   private titleService = inject(TitleService);
-  private tempData = inject(TempDataService);
+  protected tempData = inject(TempDataService);
   private portalConfig = inject(PortalConfigService);
   private functions = inject(FunctionsService);
   private session = inject(SessionStorageService);
   private router = inject(Router);
 
-  private classificationSignal = signal<Classification[]>([]);
+  private readonly classificationSignal = signal<Classification[]>([]);
+  readonly classifications = this.classificationSignal.asReadonly();
 
   ngOnInit(): void {
     this.titleService.setTitle('Projects');
@@ -40,20 +41,14 @@ export class Projects extends BaseReactiveComponent implements OnInit {
       }
     }
 
-    // Wait for portal config to load, then update classifications
     this.portalConfig
       .waitForConfigLoad()
-      .then(() => {
-        this.updateClassifications();
-      })
-      .catch((error) => {
-        console.error('Error loading portal config:', error);
-      });
+      .then(() => this.updateClassifications())
+      .catch((error) => console.error('Error loading portal config:', error));
 
-    // Subscribe to config changes to update classifications when they update
-    this.portalConfig.config$.pipe(takeUntil(this.destroy$)).subscribe(() => {
-      this.updateClassifications();
-    });
+    this.portalConfig.config$
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(() => this.updateClassifications());
 
     this.session.setItem('selectedProviderID', 0);
     this.session.removeItem('appNameFromSession');
@@ -77,25 +72,18 @@ export class Projects extends BaseReactiveComponent implements OnInit {
 
   private updateClassifications(): void {
     let classifications = this.portalConfig.getAllClassifications();
-
     const arumValidations = this.functions.getValidations();
 
-    // Only show classifications that the user has access to
     if (arumValidations?.lstARUMUsers?.length) {
       classifications = classifications.filter((singClassification) =>
         arumValidations.lstARUMUsers.some((c) => c.token === singClassification.arumToken),
       );
     } else {
-      // If no validations, show no classifications
       classifications = [];
     }
 
-    classifications = classifications.sort((a, b) => a.displayName.localeCompare(b.displayName));
-
-    this.classificationSignal.set(classifications);
-  }
-
-  get classifications(): Signal<Classification[]> {
-    return this.classificationSignal;
+    this.classificationSignal.set(
+      classifications.sort((a, b) => a.displayName.localeCompare(b.displayName)),
+    );
   }
 }

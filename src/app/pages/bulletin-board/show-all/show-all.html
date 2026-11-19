@@ -2,56 +2,38 @@
   <h3>Bulletin Board</h3>
 </div>
 <div style="padding: 25px; border: 1px solid #74c141; border-bottom-left-radius: 8px; border-bottom-right-radius: 8px;">
-  @if (myBulletinBoards) {
-    @if (myBulletinBoards.length != 0) {
-      @for (myBulletinBoardType of bulletinBoardTypes; track $index) {
-        <div class="pull-left"
-             style="font-weight: bold; font-size: 18px; margin-top: 5px;">{{ myBulletinBoardType }}
-        </div>
-        <div style="width: 100%; height: 1px; background: #dee2e6; overflow: hidden;"></div>
+  @if (facade.boards().length > 0) {
+    @for (boardType of facade.boardTypes(); track boardType) {
+      <div class="pull-left"
+           style="font-weight: bold; font-size: 18px; margin-top: 5px;">{{ boardType }}
+      </div>
+      <div style="width: 100%; height: 1px; background: #dee2e6; overflow: hidden;"></div>
 
-        @for (mySingleBulletinBoard of filteredBulletinBoards; track $index) {
-          <div style="margin-top: 5px; margin-bottom: 5px; border-radius: 12px;">
-            <table class="bulletin-table">
-              @if (mySingleBulletinBoard.isNewBulletinBoard) {
-                <tr>
-                  <td colspan="2">
-                    <label class="MandSOrange">New!</label>&nbsp;&nbsp;
-                  </td>
-                </tr>
-              }
+      @for (board of facade.getFilteredBoards(boardType); track board.title) {
+        <div style="margin-top: 5px; margin-bottom: 5px; border-radius: 12px;">
+          <table class="bulletin-table">
+            @if (board.isNewBulletinBoard) {
               <tr>
-                <td class="label-col">
-                  Date Posted:
-                </td>
-                <td>
-                  <div>
-                    {{ mySingleBulletinBoard.postedDate | date:'MMMM d, y' }}
-                  </div>
+                <td colspan="2">
+                  <label class="MandSOrange">New!</label>&nbsp;&nbsp;
                 </td>
               </tr>
-              <tr>
-                <td class="label-col">
-                  Title:
-                </td>
-                <td>
-                  {{ mySingleBulletinBoard.title }}
-                </td>
-              </tr>
-              <tr>
-                <td class="label-col">
-                  Message:
-                </td>
-                <td>
-                  {{ mySingleBulletinBoard.message }}
-                </td>
-              </tr>
-            </table>
-          </div>
-        }
+            }
+            <tr>
+              <td class="label-col">Date Posted:</td>
+              <td>{{ board.postedDate | date:'MMMM d, y' }}</td>
+            </tr>
+            <tr>
+              <td class="label-col">Title:</td>
+              <td>{{ board.title }}</td>
+            </tr>
+            <tr>
+              <td class="label-col">Message:</td>
+              <td>{{ board.message }}</td>
+            </tr>
+          </table>
+        </div>
       }
-    } @else {
-      Application Currently has no Bulletin Boards Available.
     }
   } @else {
     Application Currently has no Bulletin Boards Available.

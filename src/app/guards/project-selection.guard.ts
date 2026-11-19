@@ -1,109 +1,88 @@
-import { Injectable, inject } from '@angular/core';
-import { CanActivate, ActivatedRouteSnapshot, Router } from '@angular/router';
-import { SessionStorageService } from '../services/session-storage-service';
-import { ProjectService } from '../services/project-service';
-import { PortalConfigService } from '../services/portal-config';
-import { TempDataService } from '../services/temp-data';
-import { ARUMProxy_User } from '../models/ARUMProxy_User';
-import { Classification } from '../models/Classification';
-import { SetProjectRequest } from '../models/SetProjectRequest';
-import { firstValueFrom } from 'rxjs';
+import {inject} from '@angular/core';
+import {ActivatedRouteSnapshot, CanActivateFn, Router} from '@angular/router';
+import {firstValueFrom} from 'rxjs';
+import {SessionStorageService} from '../services/session-storage-service';
+import {ProjectService} from '../services/project-service';
+import {PortalConfigService} from '../services/portal-config';
+import {TempDataService} from '../services/temp-data';
+import {ARUMProxy_User} from '../models/ARUMProxy_User';
+import {Classification} from '../models/Classification';
+import {SetProjectRequest} from '../models/SetProjectRequest';
 
-@Injectable({
-  providedIn: 'root',
-})
-export class ProjectSelectionGuard implements CanActivate {
-  private session = inject(SessionStorageService);
-  private project = inject(ProjectService);
-  private portalConfig = inject(PortalConfigService);
-  private tempData = inject(TempDataService);
-  private router = inject(Router);
+export const projectSelectionGuard: CanActivateFn = async (route: ActivatedRouteSnapshot) => {
+  const session = inject(SessionStorageService);
+  const project = inject(ProjectService);
+  const portalConfig = inject(PortalConfigService);
+  const tempData = inject(TempDataService);
+  const router = inject(Router);
 
-  async canActivate(route: ActivatedRouteSnapshot): Promise<boolean> {
-    const classificationId = route.queryParams['cID'];
-    const myUser = this.session.getItem<ARUMProxy_User>('arumUser');
+  const classificationId = route.queryParams['cID'];
+  const myUser = session.getItem<ARUMProxy_User>('arumUser');
 
-    if (!myUser) {
-      this.router.navigate(['/login']);
-      return false;
-    }
-
-    if (!classificationId) {
-      this.router.navigate(['/projects']);
-      return false;
-    }
-
-    try {
-      const isSSOUser = this.session.getItem<boolean>('IsSSO') || false;
-
-      const setProjectRequest: SetProjectRequest = {
-        id: classificationId,
-        email: myUser.email!,
-        isSSOUser,
-      };
-
-      const projectResponse = await firstValueFrom(this.project.setProject(setProjectRequest));
-
-      if (!projectResponse || !projectResponse.successful) {
-        const message = projectResponse?.message || 'Failed to load project';
-        this.tempData.setTempData('message', { message });
-        this.router.navigate([projectResponse?.path || '/projects']);
-        return false;
-      }
-
-      this.session.setItem(
-        this.portalConfig.getClassificationSessionKey(),
-        projectResponse.classification,
-      );
-
-      const classification = this.session.getItem<Classification>(
-        this.portalConfig.getClassificationSessionKey(),
-      );
-      if (classification != null) {
-        this.session.setItem('initialCatalogFromSession', classification?.arumToken);
-        this.session.setItem('appNameFromSession', classification?.type);
-      } else {
-        const allClassifications = this.portalConfig.getAllClassifications();
-        if (allClassifications.length !== 1) {
-          this.session.removeItem('initialCatalogFromSession');
-          this.session.removeItem('appNameFromSession');
-        } else {
-          this.session.setItem(
-            this.portalConfig.getClassificationSessionKey(),
-            allClassifications[0],
-          );
-          this.session.setItem('initialCatalogFromSession', allClassifications[0].arumToken);
-        }
-      }
-
-      this.project.setApplicationInformation(projectResponse.classification);
-
-      const userToStore = {
-        ...projectResponse.arumUser,
-        bulletinBoards: [],
-      };
-      this.session.setItem('arumUser', JSON.stringify(userToStore));
-
-      if (this.portalConfig.enableBB() && projectResponse.arumUser.bulletinBoards?.length !== 0) {
-        const newBulletinBoards = projectResponse.arumUser.bulletinBoards.reduce((count, board) => {
-          if (board.isNewBulletinBoard) count++;
-          if (board.alwaysShow === true) count++;
-          return count;
-        }, 0);
-
-        if (newBulletinBoards >= 1) {
-          this.router.navigate(['/bulletinBoard/showAll']);
-          return true;
-        }
-      }
-
-      this.router.navigate(['/bulletinBoard/showAll']);
-      return true;
-    } catch (error) {
-      console.error('Error in ProjectSelectionGuard:', error);
-      this.tempData.setTempData('message', { message: 'Error loading project' });
-      this.router.navigate(['/projects']);
-      return false;
-    }
+  if (!myUser) {
+    return router.createUrlTree(['/login']);
   }
-}
+
+  if (!classificationId) {
+    return router.createUrlTree(['/projects']);
+  }
+
+  try {
+    const isSSOUser = session.getItem<boolean>('IsSSO') || false;
+    const setProjectRequest: SetProjectRequest = {
+      id: classificationId,
+      email: myUser.email!,
+      isSSOUser,
+    };
+
+    const projectResponse = await firstValueFrom(project.setProject(setProjectRequest));
+
+    if (!projectResponse || !projectResponse.successful) {
+      const message = projectResponse?.message || 'Failed to load project';
+      tempData.setTempData('message', {message});
+      return router.createUrlTree([projectResponse?.path || '/projects']);
+    }
+
+    session.setItem(portalConfig.getClassificationSessionKey(), projectResponse.classification);
+
+    const classification = session.getItem<Classification>(
+      portalConfig.getClassificationSessionKey(),
+    );
+    if (classification != null) {
+      session.setItem('initialCatalogFromSession', classification?.arumToken);
+      session.setItem('appNameFromSession', classification?.type);
+    } else {
+      const allClassifications = portalConfig.getAllClassifications();
+      if (allClassifications.length !== 1) {
+        session.removeItem('initialCatalogFromSession');
+        session.removeItem('appNameFromSession');
+      } else {
+        session.setItem(portalConfig.getClassificationSessionKey(), allClassifications[0]);
+        session.setItem('initialCatalogFromSession', allClassifications[0].arumToken);
+      }
+    }
+
+    project.setApplicationInformation(projectResponse.classification);
+
+    const userToStore = {...projectResponse.arumUser, bulletinBoards: []};
+    session.setItem('arumUser', JSON.stringify(userToStore));
+
+    if (portalConfig.enableBB() && projectResponse.arumUser.bulletinBoards?.length !== 0) {
+      const newBulletinBoards = projectResponse.arumUser.bulletinBoards.reduce((count, board) => {
+        if (board.isNewBulletinBoard) count++;
+        if (board.alwaysShow === true) count++;
+        return count;
+      }, 0);
+
+      if (newBulletinBoards >= 1) {
+        return router.createUrlTree(['/bulletinBoard/showAll']);
+      }
+    }
+
+    return router.createUrlTree(['/bulletinBoard/showAll']);
+  } catch (error) {
+    console.error('Error in projectSelectionGuard:', error);
+    tempData.setTempData('message', {message: 'Error loading project'});
+    return router.createUrlTree(['/projects']);
+  }
+};
