@@ -13,7 +13,7 @@ import { takeUntil } from 'rxjs/operators';
 
 @Component({
   imports: [RouterLink],
-  selector: 'ohfi-projects',
+//  selector: 'ohfi-projects',
   styleUrl: './projects.css',
   templateUrl: './projects.html',
   changeDetection: ChangeDetectionStrategy.OnPush,

@@ -5,11 +5,11 @@ import { TitleService } from '../services/title';
 /**
  * Base component class for form-based components.
  * Provides common form initialization and title management patterns.
- * 
+ *
  * Example usage:
  * export class LoginComponent extends BaseFormComponent {
  *   protected getPageTitle() { return 'Login'; }
- *   
+ *
  *   protected buildForm(): FormGroup {
  *     return this.fb.group({
  *       email: ['', [Validators.required, Validators.email]],
@@ -19,7 +19,7 @@ import { TitleService } from '../services/title';
  * }
  */
 @Component({
-  selector: 'ohfi-base-form',
+//  selector: 'ohfi-base-form',
   template: '', // This is an abstract base component
 })
 export abstract class BaseFormComponent implements OnInit {

@@ -16,7 +16,7 @@ import { LogoutService } from '../../services/logout.service';
 
 @Component({
   imports: [CommonModule, NgOptimizedImage, RouterOutlet, RouterLink],
-  selector: 'ohfi-base-with-project-layout',
+//  selector: 'ohfi-base-with-project-layout',
   styleUrl: './base-with-project-layout.css',
   templateUrl: './base-with-project-layout.html',
   changeDetection: ChangeDetectionStrategy.OnPush,

@@ -4,7 +4,7 @@ import { CommonModule } from '@angular/common';
 /**
  * Reusable error display component for forms and pages.
  * Shows error messages with consistent styling.
- * 
+ *
  * Example usage:
  * <app-error-display
  *   [message]="errorMessage"
@@ -13,8 +13,7 @@ import { CommonModule } from '@angular/common';
  * </app-error-display>
  */
 @Component({
-  selector: 'ohfi-error-display',
-  standalone: true,
+//  selector: 'ohfi-error-display',
   imports: [CommonModule],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `

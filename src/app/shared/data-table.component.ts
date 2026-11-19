@@ -21,7 +21,7 @@ export interface TableAction {
 /**
  * Reusable table component for displaying and managing lists of items.
  * Supports custom columns, actions, and empty states.
- * 
+ *
  * Example usage:
  * <app-data-table
  *   [items]="users"
@@ -31,8 +31,7 @@ export interface TableAction {
  * </app-data-table>
  */
 @Component({
-  selector: 'ohfi-data-table',
-  standalone: true,
+//  selector: 'ohfi-data-table',
   imports: [CommonModule],
   template: `
     <div class="card">
@@ -114,7 +113,7 @@ export class DataTableComponent {
   }
 
   getNestedProperty(obj: unknown, path: string): unknown {
-    return path.split('.').reduce((current, prop) => 
+    return path.split('.').reduce((current, prop) =>
       (current as Record<string, unknown>)?.[prop], obj);
   }
 }

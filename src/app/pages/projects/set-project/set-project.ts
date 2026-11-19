@@ -3,7 +3,7 @@ import { Router } from '@angular/router';
 import { BaseReactiveComponent } from '../../../shared/base-reactive.component';
 
 @Component({
-  selector: 'ohfi-set-project',
+//  selector: 'ohfi-set-project',
   templateUrl: './set-project.html',
   styleUrls: ['./set-project.css'],
   changeDetection: ChangeDetectionStrategy.OnPush,

@@ -10,14 +10,13 @@ import { Router, RouterLink, RouterOutlet } from '@angular/router';
 import { AppConfigService } from '../../services/app-config';
 import { UploadDownloadConfiguration } from '../../services/upload-download-configuration';
 import { LogoutService } from '../../services/logout.service';
-import {HelpDialogComponent} from '../../shared/help-modal/help-modal';
 import { MatDialog } from '@angular/material/dialog';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import {TestHelpDialogComponent} from '../../dialogs/test-help-dialog/test-help-dialog.component';
+import {HelpDialogComponent} from '../../dialogs/help-modal/help-modal';
 
 @Component({
   imports: [CommonModule, RouterOutlet, RouterLink, NgOptimizedImage],
-  selector: 'ohfi-base-with-menu-layout',
+//  selector: 'ohfi-base-with-menu-layout',
   styleUrl: './base-with-menu-layout.css',
   templateUrl: './base-with-menu-layout.html',
 })

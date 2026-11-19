@@ -11,15 +11,14 @@ import { AsyncHandlerService } from '../../../services/async-handler.service';
 import { BaseFormComponent } from '../../../shared/base-form.component';
 
 @Component({
-  selector: 'ohfi-accept-terms',
+//  selector: 'ohfi-accept-terms',
   templateUrl: './accept-terms.html',
   styleUrl: './accept-terms.css',
-  standalone: true,
   imports: [CommonModule, FormsModule, ReactiveFormsModule, NgOptimizedImage],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class AcceptTerms extends BaseFormComponent implements OnInit {
-  eulaText = `
+  protected eulaText = `
 <p style="font-family: Arial, sans-serif; font-weight: bold; text-align: center;">
     <b>Myers and Stauffer xx_State_xx Web Portal<br/>Terms of Use Agreement:</b>
 </p>
@@ -38,7 +37,7 @@ export class AcceptTerms extends BaseFormComponent implements OnInit {
 <p style="font-family: Arial, Helvetica, sans-serif; font-size: 1rem; line-height: 1.5; color: #333;">MSLC reserves the right to change, modify, suspend or terminate the site at anytime without prior notice.</p>
 <p style="font-family: Arial, Helvetica, sans-serif; font-size: 1rem; line-height: 1.5; color: #333;">Myers and Stauffer reserves the right to change or amend these Terms of Use or our Privacy Policy at any time without prior notice. If the terms of this agreement are amended, you will receive notice of the change.</p>
 `;
-  isLoading = signal(false);
+  protected isLoading = signal(false);
   acceptError = signal('');
   email = '';
   private portalConfig = inject(PortalConfigService);
@@ -61,6 +60,7 @@ export class AcceptTerms extends BaseFormComponent implements OnInit {
   override ngOnInit(): void {
     super.ngOnInit();
 
+    this.titleService.setTitle(this.getPageTitle());
     this.portalConfig.waitForConfigLoad().catch((error) => {
       console.error('Error loading portal config:', error);
     });
@@ -93,7 +93,7 @@ export class AcceptTerms extends BaseFormComponent implements OnInit {
     );
   }
 
-  onSubmit(): void {
+  protected onSubmit(): void {
     this.submitted = true;
 
     if (this.session.getItem<boolean>('isSSO')) {

@@ -6,7 +6,7 @@ import { PortalConfigService } from '../../services/portal-config';
 
 @Component({
   imports: [CommonModule, RouterOutlet, RouterLink],
-  selector: 'ohfi-base-layout',
+//  selector: 'ohfi-base-layout',
   styleUrl: './base-layout.css',
   templateUrl: './base-layout.html',
 })

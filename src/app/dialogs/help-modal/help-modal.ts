@@ -7,8 +7,7 @@ export interface HelpDialogData {
 }
 
 @Component({
-  selector: 'ohfi-help-modal',
-  standalone: true,
+//  selector: 'ohfi-help-modal',
   imports: [CommonModule, MatDialogModule],
   templateUrl: './help-modal.html',
   styleUrls: ['./help-modal.css'],

@@ -12,7 +12,7 @@ import { ARUMUserValidation_Lightweight } from '../../../models/ARUMUserValidati
 
 @Component({
   imports: [CommonModule, ReactiveFormsModule, NgOptimizedImage],
-  selector: 'ohfi-login',
+//  selector: 'ohfi-login',
   styleUrl: './login.css',
   templateUrl: './login.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -25,7 +25,7 @@ export class Login extends BaseFormComponent implements OnInit {
   private session = inject(SessionStorageService);
   private asyncHandler = inject(AsyncHandlerService);
 
-  isLoading = signal(false);
+  protected isLoading = signal(false);
 
   override ngOnInit(): void {
     super.ngOnInit();
@@ -112,9 +112,5 @@ export class Login extends BaseFormComponent implements OnInit {
         console.error('Login error:', errorMessage);
       },
     );
-  }
-
-  dismissError(): void {
-    this.tempData.removeTempData('errorMessage');
   }
 }

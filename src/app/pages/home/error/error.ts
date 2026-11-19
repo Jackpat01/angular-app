@@ -4,7 +4,7 @@ import {PortalConfigService} from '../../../services/portal-config';
 
 @Component({
   imports: [],
-  selector: 'ohfi-error',
+//  selector: 'ohfi-error',
   styleUrl: './error.css',
   templateUrl: './error.html',
 })

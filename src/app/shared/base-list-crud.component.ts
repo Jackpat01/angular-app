@@ -5,41 +5,41 @@ import { TitleService } from '../services/title';
 /**
  * Base component class for list/CRUD operations.
  * Provides common patterns for displaying, filtering, and managing lists of items.
- * 
+ *
  * Type parameter T should have at least an 'id' property.
- * 
+ *
  * Example usage:
  * interface User {
  *   id: number;
  *   email: string;
  *   name: string;
  * }
- * 
+ *
  * export class UsersComponent extends BaseListCrudComponent<User> {
  *   protected getPageTitle() { return 'Users'; }
- *   
+ *
  *   protected buildForm(): FormGroup {
  *     return this.fb.group({ email: [''], name: [''] });
  *   }
- *   
+ *
  *   protected loadItems(): void {
  *     this.items = [...];
  *     this.applyFilter();
  *   }
- *   
+ *
  *   protected matchesSearchTerm(item: User): boolean {
  *     const term = this.searchTerm.toLowerCase();
  *     return item.email.toLowerCase().includes(term) ||
  *            item.name.toLowerCase().includes(term);
  *   }
- *   
+ *
  *   protected onItemDeleted(id: number): void {
  *     // Handle post-delete logic (API call, notifications, etc)
  *   }
  * }
  */
 @Component({
-  selector: 'ohfi-base-list-crud',
+//  selector: 'ohfi-base-list-crud',
   template: '', // This is an abstract base component
 })
 export abstract class BaseListCrudComponent<T extends { id: number | string }> {
