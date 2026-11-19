@@ -1,5 +1,6 @@
 import {inject, Injectable} from '@angular/core';
 import {Observable} from 'rxjs';
+import {map} from 'rxjs/operators';
 import {ApiService} from './api';
 import {Classification} from '../models/Classification';
 import {PortalConfig} from '../models/portal-config';
@@ -34,72 +35,48 @@ export class PortalConfigService extends BaseConfigService<PortalConfig> {
 
   protected loadFromApi(): Observable<PortalConfig> {
     const defaultConfig = this.defaultValue;
-    return new Observable((observer) => {
-      this.apiService.get<PortalConfig>(this.endpoint).subscribe({
-        next: (config) => {
-          const loginMessageValue =
-            ((config as unknown as Record<string, unknown>)['loginMessage'] as string[]) ||
-            ((config as unknown as Record<string, unknown>)['loginmessage'] as string[]) ||
+    return this.apiService.get<PortalConfig>(this.endpoint).pipe(
+      map((config) => {
+        const c = config as unknown as Record<string, unknown>;
+        return {
+          webPortalTitle:
+            (c['WebPortalTitle'] as string) || config.webPortalTitle || defaultConfig.webPortalTitle,
+          application:
+            (c['ApplicationName'] as string) || config.application || defaultConfig.application,
+          loginMessage:
+            (c['loginMessage'] as string[]) ||
+            (c['loginmessage'] as string[]) ||
             config.loginMessage ||
-            defaultConfig.loginMessage;
-
-          const mappedConfig: PortalConfig = {
-            webPortalTitle:
-              ((config as unknown as Record<string, unknown>)['WebPortalTitle'] as string) ||
-              config.webPortalTitle ||
-              defaultConfig.webPortalTitle,
-            application:
-              ((config as unknown as Record<string, unknown>)['ApplicationName'] as string) ||
-              config.application ||
-              defaultConfig.application,
-            loginMessage: loginMessageValue,
-            classificationSessionKey:
-              ((config as unknown as Record<string, unknown>)[
-                'ClassificationSessionKey'
-                ] as string) ||
-              config.classificationSessionKey ||
-              defaultConfig.classificationSessionKey,
-            classificationReplacementTerm:
-              ((config as unknown as Record<string, unknown>)[
-                'ClassificationReplacementTerm'
-                ] as string) ||
-              config.classificationReplacementTerm ||
-              defaultConfig.classificationReplacementTerm,
-            allClassifications:
-              ((config as unknown as Record<string, unknown>)[
-                'AllClassifications'
-                ] as Classification[]) ||
-              config.allClassifications ||
-              defaultConfig.allClassifications,
-            enableBB:
-              (config as unknown as Record<string, unknown>)['EnableBB'] !== undefined
-                ? ((config as unknown as Record<string, unknown>)['EnableBB'] as boolean)
-                : config.enableBB,
-            enableResource:
-              (config as unknown as Record<string, unknown>)['EnableResource'] !== undefined
-                ? ((config as unknown as Record<string, unknown>)['EnableResource'] as boolean)
-                : config.enableResource,
-            auditTypeReplacementName:
-              ((config as unknown as Record<string, unknown>)[
-                'AuditTypeReplacementName'
-                ] as string) ||
-              config.auditTypeReplacementName ||
-              defaultConfig.auditTypeReplacementName,
-            helpDeskEmail: ((config as unknown as Record<string, unknown>)[
-                'HelpDeskEmail'
-                ] as string) ||
-              config.helpDeskEmail ||
-              defaultConfig.helpDeskEmail,
-
-          };
-          observer.next(mappedConfig);
-          observer.complete();
-        },
-        error: (error) => {
-          observer.error(error);
-        },
-      });
-    });
+            defaultConfig.loginMessage,
+          classificationSessionKey:
+            (c['ClassificationSessionKey'] as string) ||
+            config.classificationSessionKey ||
+            defaultConfig.classificationSessionKey,
+          classificationReplacementTerm:
+            (c['ClassificationReplacementTerm'] as string) ||
+            config.classificationReplacementTerm ||
+            defaultConfig.classificationReplacementTerm,
+          allClassifications:
+            (c['AllClassifications'] as Classification[]) ||
+            config.allClassifications ||
+            defaultConfig.allClassifications,
+          enableBB:
+            c['EnableBB'] !== undefined ? (c['EnableBB'] as boolean) : config.enableBB,
+          enableResource:
+            c['EnableResource'] !== undefined
+              ? (c['EnableResource'] as boolean)
+              : config.enableResource,
+          auditTypeReplacementName:
+            (c['AuditTypeReplacementName'] as string) ||
+            config.auditTypeReplacementName ||
+            defaultConfig.auditTypeReplacementName,
+          helpDeskEmail:
+            (c['HelpDeskEmail'] as string) ||
+            config.helpDeskEmail ||
+            defaultConfig.helpDeskEmail,
+        };
+      }),
+    );
   }
 
   getAuditTypeReplacementName(): string {

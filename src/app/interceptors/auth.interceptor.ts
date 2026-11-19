@@ -1,38 +1,24 @@
-import {Injectable, inject} from '@angular/core';
-import {HttpErrorResponse, HttpEvent, HttpHandler, HttpInterceptor, HttpRequest,} from '@angular/common/http';
-import {Observable, throwError} from 'rxjs';
-import {catchError} from 'rxjs/operators';
+import {inject} from '@angular/core';
+import {HttpErrorResponse, HttpInterceptorFn} from '@angular/common/http';
+import {catchError, throwError} from 'rxjs';
 import {AuthService} from '../services/auth';
 
-@Injectable()
-export class AuthInterceptor implements HttpInterceptor {
-  private authService = inject(AuthService);
+export const authInterceptor: HttpInterceptorFn = (req, next) => {
+  const authService = inject(AuthService);
+  const token = authService.getAccessToken();
 
-  intercept(
-    request: HttpRequest<unknown>,
-    next: HttpHandler
-  ): Observable<HttpEvent<unknown>> {
-    // Add authorization header if token exists
-    const token = this.authService.getAccessToken();
-    if (token) {
-      request = request.clone({
-        setHeaders: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
-    }
+  const authReq = token
+    ? req.clone({setHeaders: {Authorization: `Bearer ${token}`}})
+    : req;
 
-    return next.handle(request).pipe(
-      catchError((error: HttpErrorResponse) => {
-        if (error.status === 401) {
-          // Unauthorized - token expired or invalid
-          console.warn('Unauthorized - clearing tokens and redirecting to login');
-          this.authService.clearTokens();
-          window.location.href = '/login';
-        }
-
-        return throwError(() => error);
-      })
-    );
-  }
-}
+  return next(authReq).pipe(
+    catchError((error: HttpErrorResponse) => {
+      if (error.status === 401) {
+        console.warn('Unauthorized - clearing tokens and redirecting to login');
+        authService.clearTokens();
+        window.location.href = '/login';
+      }
+      return throwError(() => error);
+    }),
+  );
+};

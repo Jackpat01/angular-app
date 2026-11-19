@@ -41,31 +41,22 @@ export class UserService {
     this.initializeUserFromClaims();
   }
 
-  /**
-   * Login user
-   * Endpoint: POST /api/auth/login
-   * Stores JWT token which contains claims (replaces session variables)
-   */
   login(credentials: LoginRequest): Observable<LoginResponse> {
-    return this.apiService.post<LoginResponse>('/auth/login', credentials as unknown as Record<string, unknown>).pipe(
-      tap((response: LoginResponse) => {
-        // Store tokens in localStorage
-        this.authService.setTokens(response.token);
-        // Set user data
-        this.userSubject.next({...response.user, isAuthenticated: true});
-      })
-    );
+    return this.apiService
+      .post<LoginResponse>('/auth/login', credentials as unknown as Record<string, unknown>)
+      .pipe(
+        tap((response: LoginResponse) => {
+          this.authService.setTokens(response.token);
+          this.userSubject.next({...response.user, isAuthenticated: true});
+        }),
+      );
   }
 
-  /**
-   * Logout user
-   * Endpoint: POST /api/auth/logout
-   */
   logout(): Observable<Record<string, unknown>> {
     return this.apiService.post<Record<string, unknown>>('/auth/logout', {}).pipe(
       tap(() => {
         this.logoutLocal();
-      })
+      }),
     );
   }
 
@@ -82,46 +73,26 @@ export class UserService {
     this.userSubject.next({...current, isAuthenticated: isAuth});
   }
 
-  /**
-   * Get user claims from JWT token
-   * Replaces Session["UserId"], Session["UserRole"], etc.
-   */
   getUserClaims(): UserClaims | null {
     return this.authService.getClaims();
   }
 
-  /**
-   * Get specific claim value by key
-   * Example: getClaim('company') replaces Session["CompanyName"]
-   */
   getClaim(key: string): unknown {
     return this.authService.getClaim(key);
   }
 
-  /**
-   * Get user email from JWT claims
-   */
   getUserEmail(): string | null {
     return this.authService.getUserEmail();
   }
 
-  /**
-   * Get user role from JWT claims
-   */
   getUserRole(): string | null {
     return this.authService.getUserRole();
   }
 
-  /**
-   * Get company/organization from JWT claims
-   */
   getCompany(): string | null {
     return this.authService.getCompany();
   }
 
-  /**
-   * Get provider type from JWT claims
-   */
   getProvider(): string | null {
     return this.authService.getProvider();
   }
@@ -137,10 +108,6 @@ export class UserService {
     });
   }
 
-  /**
-   * Initialize user data from JWT claims
-   * This replaces session variables from old ASP.NET pattern
-   */
   private initializeUserFromClaims(): void {
     if (!this.authService.isAuthenticated()) {
       return;
@@ -156,26 +123,5 @@ export class UserService {
         isAuthenticated: true,
       });
     }
-  }
-
-  /**
-   * Load current user from API
-   * Endpoint: GET /api/auth/user
-   */
-  private loadCurrentUser(): void {
-    if (!this.authService.isAuthenticated()) {
-      return;
-    }
-
-    this.apiService.get<UserInfo>('/auth/user').subscribe({
-      next: (user) => {
-        this.userSubject.next({...user, isAuthenticated: true});
-      },
-      error: (error) => {
-        console.error('Failed to load current user', error);
-        // User stays logged out on error
-        this.authService.clearTokens();
-      }
-    });
   }
 }

@@ -32,9 +32,6 @@ export class AuthService {
   private userClaimsSubject = new BehaviorSubject<UserClaims | null>(this.extractClaims());
   userClaims$ = this.userClaimsSubject.asObservable();
 
-  /**
-   * Store tokens in localStorage
-   */
   setTokens(authToken: AuthToken): void {
     localStorage.setItem(this.tokenKey, authToken.accessToken);
     if (authToken.refreshToken) {
@@ -44,37 +41,20 @@ export class AuthService {
     this.userClaimsSubject.next(this.extractClaims());
   }
 
-  /**
-   * Get access token from localStorage
-   */
   getAccessToken(): string | null {
     return localStorage.getItem(this.tokenKey);
   }
 
-  /**
-   * Get refresh token from localStorage
-   */
   getRefreshToken(): string | null {
     return localStorage.getItem(this.refreshTokenKey);
   }
 
-  /**
-   * Check if token exists and is not expired
-   */
   hasValidToken(): boolean {
     const token = this.getAccessToken();
-    if (!token) {
-      return false;
-    }
-
-    // Basic check - token exists
-    // For production, you'd decode JWT and check expiration
-    return true;
+    if (!token) return false;
+    return !this.isTokenExpired(token);
   }
 
-  /**
-   * Clear all authentication data
-   */
   clearTokens(): void {
     localStorage.removeItem(this.tokenKey);
     localStorage.removeItem(this.refreshTokenKey);
@@ -82,17 +62,10 @@ export class AuthService {
     this.userClaimsSubject.next(null);
   }
 
-  /**
-   * Check if user is authenticated
-   */
   isAuthenticated(): boolean {
     return this.hasValidToken();
   }
 
-  /**
-   * Decode JWT token (basic implementation)
-   * For production, use a library like jwt-decode
-   */
   decodeToken(token: string): Record<string, unknown> | null {
     try {
       const base64Url = token.split('.')[1];
@@ -110,9 +83,6 @@ export class AuthService {
     }
   }
 
-  /**
-   * Check if token is expired
-   */
   isTokenExpired(token?: string): boolean {
     const tokenToCheck = token || this.getAccessToken();
     if (!tokenToCheck) {
@@ -128,57 +98,35 @@ export class AuthService {
     return (decoded['exp'] as number) < currentTime;
   }
 
-  /**
-   * Get current user claims synchronously
-   */
   getClaims(): UserClaims | null {
     return this.userClaimsSubject.getValue();
   }
 
-  /**
-   * Get specific claim value
-   */
   getClaim(key: string): unknown {
     const claims = this.getClaims();
     return claims ? claims[key] : null;
   }
 
-  /**
-   * Get user email from claims
-   */
   getUserEmail(): string | null {
     const value = this.getClaim('email');
     return typeof value === 'string' ? value : null;
   }
 
-  /**
-   * Get user role from claims
-   */
   getUserRole(): string | null {
     const value = this.getClaim('role');
     return typeof value === 'string' ? value : null;
   }
 
-  /**
-   * Get company from claims (custom claim)
-   */
   getCompany(): string | null {
     const value = this.getClaim('company');
     return typeof value === 'string' ? value : null;
   }
 
-  /**
-   * Get provider from claims (custom claim)
-   */
   getProvider(): string | null {
     const value = this.getClaim('provider');
     return typeof value === 'string' ? value : null;
   }
 
-  /**
-   * Extract claims from current token
-   * Maps JWT standard claims to UserClaims interface
-   */
   private extractClaims(): UserClaims | null {
     const token = this.getAccessToken();
     if (!token) {
@@ -199,7 +147,7 @@ export class AuthService {
       nameIdentifier: decoded['http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier'] as string | undefined,
       exp: decoded['exp'] as number | undefined,
       iat: decoded['iat'] as number | undefined,
-      ...decoded, // Include all other claims
+      ...decoded,
     };
   }
 }
