@@ -1,0 +1,24 @@
+.center-container {
+  margin-top: 2rem;
+  display: flex;
+  justify-content: center;
+  text-align: center;
+}
+
+.legendTable {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.legendTable th,
+.legendTable td {
+  padding: 5px;
+}
+
+.icon-link-btn {
+  background: none;
+  border: none;
+  padding: 0;
+  text-decoration: none;
+  color: inherit;
+}

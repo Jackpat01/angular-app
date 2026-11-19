@@ -14,6 +14,14 @@ export class TempDataService {
     this.tempDataSubject.next(currentData);
   }
 
+  consume(key: string): Record<string, unknown> | null  {
+    const value = this.getTempData(key);
+    if (value !== null) {
+      this.removeTempData(key);
+    }
+    return value;
+  }
+
   getTempData(key: string): Record<string, unknown> | null {
     const data = this.tempDataSubject.getValue().get(key);
     return data !== undefined ? data : null;
