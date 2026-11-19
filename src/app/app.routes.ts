@@ -12,6 +12,7 @@ import {SetProjectComponent} from './features/projects/pages/set-project/set-pro
 import {ProjectSelectionGuard} from './features/projects/guards/project-selection.guard';
 import {ShowAll} from './features/bulletin-board/pages/show-all/show-all';
 import {Secure} from './features/secure/secure';
+import {StatLog} from './features/stat-log/stat-log';
 
 export const routes: Routes = [
   {
@@ -59,7 +60,10 @@ export const routes: Routes = [
       {
         path: 'secure',
         component: Secure,
+      },
+      {
+        path: 'stat-log',
+        component: StatLog,
       }
     ],
-  },
-];
+  }];
