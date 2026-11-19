@@ -1,0 +1,9 @@
+<div>
+  Please select an option from the above menu.
+
+  @if (message()) {
+    <br /><br />
+    <div class="errorLabel" [innerHTML]="message()"></div>
+    <br /><br />
+  }
+</div>
