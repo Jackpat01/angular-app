@@ -1,11 +1,11 @@
 ---
 name: angular-setup-project
-description: Generic workflow for bootstrapping a production-ready Angular project with modern defaults (latest Angular CLI, detected package manager, default test runner) and modular feature selection.
+description: Generic workflow for bootstrapping a production-ready Angular project with modern defaults (latest Angular CLI, detected package manager, default test runner), modular feature selection, and Angular 22 architecture patterns.
 ---
 
 # Angular Setup Project Skill
 
-This skill provides a standardized workflow for bootstrapping a production-ready Angular setup application with modern defaults and modular feature selection.
+This skill provides a standardized workflow for bootstrapping a production-ready Angular application with modern defaults and modular feature selection. All generated code follows the Angular 22 architecture patterns defined in this skill.
 
 ## Prerequisites Check
 
@@ -65,7 +65,7 @@ At the end of Phase 1, generate this file in the project root:
   "rxjsLinting": "auto | enabled | disabled",
   "budgetProfile": "strict | balanced | permissive",
   "skillVersions": {
-    "angular-setup-project": "1.0",
+    "angular-setup-project": "1.1",
     "angular-linters": "1.0",
     "angular-third-party-integration": "1.0"
   }
@@ -84,6 +84,235 @@ At the end of Phase 1, generate this file in the project root:
 1. The calling skill **MUST** write `PROJECT_MANIFEST.json` before invoking a sub-skill.
 2. The sub-skill **MUST** read `PROJECT_MANIFEST.json` as its first step.
 3. If `PROJECT_MANIFEST.json` is missing, the sub-skill **MUST** stop and ask the user for the required values (`packageManager`, `style`, `angularMajorVersion`) before proceeding. Do NOT assume defaults.
+
+---
+
+## Angular 22 Architecture Patterns (Mandatory Coding Standards)
+
+> **These patterns are MANDATORY** for all code generated in this project. Apply them consistently throughout the codebase. When reviewing or writing any Angular code, verify compliance with every applicable pattern.
+
+### Pattern 1: Feature-First Architecture (Structural)
+
+The scaffold creates three top-level folders inside `src/app/`. Use them strictly:
+
+| Folder | Purpose | Sub-structure |
+|---|---|---|
+| `core/` | Cross-cutting concerns shared across **all** features | `auth/`, `guards/`, `interceptors/`, `models/`, `services/` |
+| `shared/` | Reusable UI and base classes with **zero** business logic | `base/` (abstract component classes), `components/` (pure UI) |
+| `features/` | Self-contained feature modules — one subfolder per feature | Each feature gets: `models/`, `services/`, `pages/`, optionally `guards/` and `facades/` |
+
+**Decision rule:** When adding any new file, ask: *"Does this belong to exactly one feature, or is it used by multiple?"*
+- One feature → `features/[feature-name]/`
+- Multiple features → `core/` (services/models) or `shared/` (UI components)
+
+**Removing a feature should be as simple as deleting its folder.**
+
+### Pattern 2: Standalone Components (Default — No NgModule)
+
+All components are standalone. **Never use NgModule** unless a third-party library explicitly requires it.
+
+```typescript
+@Component({
+  selector: 'app-example',
+  imports: [CommonModule, RouterLink],  // ← explicit, visible dependencies
+  templateUrl: './example.html',
+  changeDetection: ChangeDetectionStrategy.OnPush,
+})
+export class ExampleComponent { }
+```
+
+### Pattern 3: Container / Presentational Components
+
+**Always separate data-fetching logic from display logic.**
+
+- **Container (page-level)**: injects services/facades, manages state, orchestrates API calls, passes data down.
+- **Presentational**: receives data via `input.required<T>()`, emits user actions via `output<T>()`. Has **zero** service injections.
+
+Use the modern signal-based input/output API — not `@Input`/`@Output` decorators:
+
+```typescript
+// ✅ Presentational — receives data, emits events
+@Component({ selector: 'app-user-list', ... })
+export class UserListComponent {
+  users = input.required<User[]>();
+  deleteUser = output<number>();
+}
+
+// ✅ Container — owns the data
+@Component({ selector: 'app-users-page', ... })
+export class UsersPageComponent {
+  private facade = inject(UserFacade);
+  users = this.facade.users;
+  removeUser(id: number) { this.facade.removeUser(id); }
+}
+```
+
+**Rule:** A presentational component must have no `inject()` calls for services — only `input()` / `output()`.
+
+### Pattern 4: Signal-Based State
+
+**Use `signal()` for mutable state. Use `computed()` for derived state. Never duplicate state.**
+
+```typescript
+// ✅ Store minimum state; derive everything else
+items = signal<Product[]>([]);
+totalItems = computed(() => this.items().length);
+totalPrice = computed(() => this.items().reduce((sum, p) => sum + p.price, 0));
+
+// ❌ Never maintain redundant signals that must be kept in sync manually
+totalItems = signal(0);   // bad — duplicates items.length
+totalPrice = signal(0);   // bad — duplicates a derivable value
+```
+
+**Additional rules:**
+- Always use `ChangeDetectionStrategy.OnPush` on components that read signals.
+- Expose writable signals as readonly outside the owning class: `readonly items = this._items.asReadonly()`.
+- Prefer `signal()` for local state; reserve `BehaviorSubject`/`Observable` for event streams, WebSockets, and multi-source compositions.
+- Replace `takeUntil(destroy$)` with `takeUntilDestroyed(destroyRef)` — no manual `OnDestroy` needed.
+
+### Pattern 5: Facade Pattern
+
+**For every feature, create a `[feature].facade.ts`** as the single boundary between the UI layer and the data/state layer.
+
+```
+Component → Facade → Services / State → Backend
+```
+
+A Facade:
+- Owns feature-level `signal()` state (private writable, public readonly)
+- Exposes `computed()` derived state
+- Wraps API calls and business logic methods
+- Is `providedIn: 'root'` (or at the feature route level for lazy-loaded features)
+
+```typescript
+@Injectable({ providedIn: 'root' })
+export class UserFacade {
+  private readonly userApi = inject(UserApiService);
+  private readonly _users = signal<User[]>([]);
+
+  readonly users = this._users.asReadonly();
+  readonly activeUsers = computed(() => this._users().filter(u => u.active));
+
+  loadUsers(): void {
+    this.userApi.getAll().subscribe(users => this._users.set(users));
+  }
+
+  removeUser(id: number): void {
+    this._users.update(users => users.filter(u => u.id !== id));
+  }
+}
+```
+
+**Rule:** A page component should inject exactly **one** facade — not multiple services. If a page needs data from two domains, create a composite facade or reconsider the page design.
+
+### Pattern 6: Reactive Server-State with `httpResource`
+
+For read-only server data, prefer `httpResource` over manual Observable + loading/error state management:
+
+```typescript
+import { httpResource } from '@angular/common/http';
+
+export class UsersComponent {
+  users = httpResource<User[]>(() => '/api/users');
+}
+```
+
+```html
+@if (users.isLoading()) {
+  <p>Loading...</p>
+} @else if (users.error()) {
+  <p>Unable to load users.</p>
+} @else {
+  @for (user of users.value() ?? []; track user.id) {
+    <p>{{ user.name }}</p>
+  }
+}
+```
+
+**Use `httpResource` for:** read-only GET requests where `value`, `isLoading`, and `error` are displayed in the template.
+**Use Observables for:** mutations (POST/PUT/DELETE), WebSockets, and complex multi-source stream compositions.
+
+### Pattern 7: Dependency Injection + Strategy Pattern
+
+For behaviour that varies by context (discount rules, validators, formatters), use an `InjectionToken` with a strategy interface instead of `if/else` chains:
+
+```typescript
+export interface DiscountStrategy {
+  calculate(total: number): number;
+}
+
+export const DISCOUNT_STRATEGY =
+  new InjectionToken<DiscountStrategy>('DISCOUNT_STRATEGY');
+
+// Provide at route or component level:
+providers: [{ provide: DISCOUNT_STRATEGY, useClass: PremiumDiscountStrategy }]
+
+// Consume — the component does not know the implementation:
+export class CheckoutComponent {
+  private discount = inject(DISCOUNT_STRATEGY);
+  finalPrice(total: number) { return this.discount.calculate(total); }
+}
+```
+
+This keeps components open for extension and closed for modification (OCP).
+
+### Pattern 8: Lazy Loading + Deferred UI
+
+**All feature routes MUST use `loadComponent()`** — never static component imports in `app.routes.ts`:
+
+```typescript
+// ✅ Lazy-loaded routes
+export const routes: Routes = [
+  {
+    path: 'users',
+    loadComponent: () =>
+      import('./features/users/pages/users-page/users-page')
+        .then(m => m.UsersPageComponent),
+  },
+];
+```
+
+**Use route-level guards as functional `CanActivateFn`** — not class-based `CanActivate`:
+
+```typescript
+export const authGuard: CanActivateFn = (_route, state) => {
+  const auth = inject(AuthService);
+  const router = inject(Router);
+  return auth.isAuthenticated()
+    ? true
+    : router.createUrlTree(['/login'], { queryParams: { returnUrl: state.url } });
+};
+```
+
+**Use `@defer` for heavy below-the-fold components:**
+
+```html
+@defer (on viewport) {
+  <app-analytics-chart />
+} @placeholder {
+  <p>Chart will load here...</p>
+}
+```
+
+Apply `@defer` to: charts, analytics widgets, editors, admin-only sections, and heavy third-party components.
+
+### Bonus: Signal Forms
+
+For new signal-first forms, prefer the Signal Forms API over Reactive Forms:
+
+```typescript
+import { email, form, minLength, required } from '@angular/forms/signals';
+
+loginModel = signal({ email: '', password: '' });
+loginForm = form(this.loginModel, path => {
+  required(path.email);
+  email(path.email);
+  required(path.password);
+  minLength(path.password, 8);
+});
+```
+
+**Migration rule:** Do not rewrite existing Reactive Forms. Use Signal Forms only for new forms in new features.
 
 ---
 
@@ -141,7 +370,7 @@ Before any interactive discovery, detect the Angular CLI version and derive defa
     - **Standard (CLI defaults)**: `ng new [project-name] --package-manager [pkg-manager] --style [style] --ssr [ssr-bool] --defaults`
     - **Override (e.g., opt out of zoneless)**: `ng new [project-name] --package-manager [pkg-manager] --style [style] --ssr [ssr-bool] --zoneless false --defaults`
 3.  **Generate Project Manifest**: Write `PROJECT_MANIFEST.json` to the project root with all confirmed values from the discovery dialogue (see System Contract above). This manifest is consumed by all downstream sub-skills.
-4.  **Structural Scaffolding**: Run `scripts/scaffold_structure.sh` to create the `core/`, `shared/`, and `features/` hierarchy.
+4.  **Structural Scaffolding**: Run `scripts/scaffold_structure.sh` to create the full `core/`, `shared/`, and `features/` hierarchy (including all sub-directories as defined in Pattern 1).
 5.  **Environment files** (if requested): Run `ng generate environments` to generate the environment files.
 
 ### Phase 1.5: Production-Ready Setup Configuration
@@ -191,6 +420,7 @@ These configuration changes **cannot be scripted** because they modify complex J
    - Available NPM scripts table (`start`, `build`, `test`, `lint`, `lint:styles`, `format`)
    - Quality tools summary (ESLint, Stylelint, Prettier, Husky, Commitlint)
    - Conventional Commit format reference
+   - Architecture overview (Feature-First, signals, facades, lazy routes)
    - License placeholder
 
 ### Phase 1.5 Verification
@@ -224,5 +454,6 @@ After the foundational project and the quality layer (`angular-linters`) are com
 
 ## Resources
 
-- **scripts/scaffold_structure.sh**: Deterministic folder hierarchy generator.
+- **scripts/scaffold_structure.sh**: Deterministic folder hierarchy generator — creates the full `core/`, `shared/`, and `features/` tree.
 - Phase 1.5 tasks (path aliases, budgets, editorconfig) are handled by the Agent, not scripts, because they require intelligent JSON merging.
+- Architecture Patterns reference: see the **Angular 22 Architecture Patterns** section above.
