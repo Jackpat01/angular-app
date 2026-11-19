@@ -1,15 +1,15 @@
 import { Component, OnInit, inject, signal, DestroyRef, WritableSignal } from '@angular/core';
 import { CommonModule, NgOptimizedImage } from '@angular/common';
-import { UserService } from '../../services/user';
-import { PortalConfigService } from '../../services/portal-config';
-import { ARUMProxy_User } from '../../models/ARUMProxy_User';
-import { SessionStorageService } from '../../services/session-storage-service';
-import { ARUMRole } from '../../models/ARUMRole';
-import { ARUMUserProviders } from '../../models/ARUMUserProviders';
+import { UserService } from '../../core/services/user';
+import { PortalConfigService } from '../../core/services/portal-config';
+import { ARUMProxy_User } from '../../core/models/ARUMProxy_User';
+import { SessionStorageService } from '../../core/services/session-storage-service';
+import { ARUMRole } from '../../core/models/ARUMRole';
+import { ARUMUserProviders } from '../../core/models/ARUMUserProviders';
 import { Router, RouterLink, RouterOutlet } from '@angular/router';
-import { AppConfigService } from '../../services/app-config';
-import { UploadDownloadConfiguration } from '../../services/upload-download-configuration';
-import { LogoutService } from '../../services/logout.service';
+import { AppConfigService } from '../../core/services/app-config';
+import { UploadDownloadConfiguration } from '../../core/services/upload-download-configuration';
+import { LogoutService } from '../../core/services/logout.service';
 import { MatDialog } from '@angular/material/dialog';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import {HelpDialogComponent} from '../../dialogs/help-modal/help-modal';
@@ -34,7 +34,6 @@ export class BaseWithMenuLayout implements OnInit {
 
   private loginMessagesSignal = signal<string[]>([]);
 
-  // Feature access signals
   private canAccessOCRTSignal = signal<boolean>(false);
   private canAccessRateSettingSignal = signal<boolean>(false);
   private canAccessBulkProcessingViewSignal = signal<boolean>(false);
@@ -80,149 +79,64 @@ export class BaseWithMenuLayout implements OnInit {
     ['CLPA:View', this.canAccessCLPAViewSignal],
   ]);
 
-  get loginMessage(): string[] {
-    return this.loginMessagesSignal();
-  }
-
+  get loginMessage(): string[] { return this.loginMessagesSignal(); }
   get isNotShowAllPage(): boolean {
     const currentPath = this.router.url.split('?')[0];
     return currentPath !== '/bulletin-board/show-all';
   }
-  get canAccessOCRT(): boolean {
-    return this.canAccessOCRTSignal();
-  }
-  get canAccessRateSetting(): boolean {
-    return this.canAccessRateSettingSignal();
-  }
-
-  get canAccessBulkProcessingView(): boolean {
-    return this.canAccessBulkProcessingViewSignal();
-  }
-  get canAccessStatlogView(): boolean {
-    return this.canAccessStatlogViewSignal();
-  }
-  get canAccessStatlogConfiguration(): boolean {
-    return this.canAccessStatlogConfigurationSignal();
-  }
-  get canAccessStatlogAllProvidersEmail(): boolean {
-    return this.canAccessStatlogAllProvidersEmailSignal();
-  }
-  get canAccessOHFISettingsManagement(): boolean {
-    return this.canAccessOHFISettingsManagementSignal();
-  }
-  get canAccessLetterAutomation(): boolean {
-    return this.canAccessLetterAutomationSignal();
-  }
-  get canAccessPortalUpload(): boolean {
-    return this.canAccessPortalUploadSignal();
-  }
-  get canAccessPortalDownload(): boolean {
-    return this.canAccessPortalDownloadSignal();
-  }
-  get canAccessReportsARAP(): boolean {
-    return this.canAccessReportsARAPSignal();
-  }
-  get canAccessReportsMDS(): boolean {
-    return this.canAccessReportsMDSSignal();
-  }
-  get canAccessReportsMDSResidentListing(): boolean {
-    return this.canAccessReportsMDSResidentListingSignal();
-  }
-  get canAccessReportsSectionQ(): boolean {
-    return this.canAccessReportsSectionQSignal();
-  }
-  get canAccessReportsUploadDownload(): boolean {
-    return this.canAccessReportsUploadDownloadSignal();
-  }
-  get canAccessReportsMassUpload(): boolean {
-    return this.canAccessReportsMassUploadSignal();
-  }
-  get canAccessReportsCostReportSubmissionMonitoring(): boolean {
-    return this.canAccessReportsCostReportSubmissionMonitoringSignal();
-  }
-  get canAccessReportsCostReportDataWizard(): boolean {
-    return this.canAccessReportsCostReportDataWizardSignal();
-  }
-  get canAccessCLPAView(): boolean {
-    return this.canAccessCLPAViewSignal();
-  }
+  get canAccessOCRT(): boolean { return this.canAccessOCRTSignal(); }
+  get canAccessRateSetting(): boolean { return this.canAccessRateSettingSignal(); }
+  get canAccessBulkProcessingView(): boolean { return this.canAccessBulkProcessingViewSignal(); }
+  get canAccessStatlogView(): boolean { return this.canAccessStatlogViewSignal(); }
+  get canAccessStatlogConfiguration(): boolean { return this.canAccessStatlogConfigurationSignal(); }
+  get canAccessStatlogAllProvidersEmail(): boolean { return this.canAccessStatlogAllProvidersEmailSignal(); }
+  get canAccessOHFISettingsManagement(): boolean { return this.canAccessOHFISettingsManagementSignal(); }
+  get canAccessLetterAutomation(): boolean { return this.canAccessLetterAutomationSignal(); }
+  get canAccessPortalUpload(): boolean { return this.canAccessPortalUploadSignal(); }
+  get canAccessPortalDownload(): boolean { return this.canAccessPortalDownloadSignal(); }
+  get canAccessReportsARAP(): boolean { return this.canAccessReportsARAPSignal(); }
+  get canAccessReportsMDS(): boolean { return this.canAccessReportsMDSSignal(); }
+  get canAccessReportsMDSResidentListing(): boolean { return this.canAccessReportsMDSResidentListingSignal(); }
+  get canAccessReportsSectionQ(): boolean { return this.canAccessReportsSectionQSignal(); }
+  get canAccessReportsUploadDownload(): boolean { return this.canAccessReportsUploadDownloadSignal(); }
+  get canAccessReportsMassUpload(): boolean { return this.canAccessReportsMassUploadSignal(); }
+  get canAccessReportsCostReportSubmissionMonitoring(): boolean { return this.canAccessReportsCostReportSubmissionMonitoringSignal(); }
+  get canAccessReportsCostReportDataWizard(): boolean { return this.canAccessReportsCostReportDataWizardSignal(); }
+  get canAccessCLPAView(): boolean { return this.canAccessCLPAViewSignal(); }
   get canAccessReports(): boolean {
-    return (
-      this.canAccessReportsARAP ||
-      this.canAccessReportsUploadDownload ||
-      this.canAccessReportsMassUpload ||
-      this.canAccessReportsCostReportSubmissionMonitoring ||
-      this.canAccessReportsCostReportDataWizard ||
-      this.canAccessReportsMDS ||
-      this.canAccessReportsMDSResidentListing ||
-      this.canAccessReportsSectionQ
-    );
+    return this.canAccessReportsARAP || this.canAccessReportsUploadDownload ||
+      this.canAccessReportsMassUpload || this.canAccessReportsCostReportSubmissionMonitoring ||
+      this.canAccessReportsCostReportDataWizard || this.canAccessReportsMDS ||
+      this.canAccessReportsMDSResidentListing || this.canAccessReportsSectionQ;
   }
 
-  get sessionClassification() {
-    return this.session.classification;
-  }
-
-  get sessionIsNF() {
-    return this.session.isNF;
-  }
-
-  get sessionIsICF() {
-    return this.session.isICF;
-  }
-
-  get sessionIsState() {
-    return this.session.isState;
-  }
-
-  sessionGetUserHasRole(role: string): boolean {
-    return this.session.getUserHasRole(role);
-  }
-
-  get appVersion(): string {
-    return this.appConfig.getAppVersion() || '';
-  }
-
-  get appName(): string {
-    return this.portalConfig.getApplicationName() || '';
-  }
-
-  get classReplacementTerm(): string {
-    return this.portalConfig.getClassificationReplacementTerm();
-  }
-
-  get currentYear(): number {
-    return this.appConfig.getCurrentYear() || new Date().getFullYear();
-  }
+  get sessionClassification() { return this.session.classification; }
+  get sessionIsNF() { return this.session.isNF; }
+  get sessionIsICF() { return this.session.isICF; }
+  get sessionIsState() { return this.session.isState; }
+  sessionGetUserHasRole(role: string): boolean { return this.session.getUserHasRole(role); }
+  get appVersion(): string { return this.appConfig.getAppVersion() || ''; }
+  get appName(): string { return this.portalConfig.getApplicationName() || ''; }
+  get classReplacementTerm(): string { return this.portalConfig.getClassificationReplacementTerm(); }
+  get currentYear(): number { return this.appConfig.getCurrentYear() || new Date().getFullYear(); }
 
   get userName(): string {
     const user = this.storage.getItem<ARUMProxy_User>('arumUser');
-
-    if (user) {
-      return user.email.toUpperCase();
-    }
+    if (user) { return user.email.toUpperCase(); }
     return 'No UserName for User';
   }
 
-  get catalog(): string | null {
-    return this.storage.getItem('initialCatalogFromSession');
-  }
+  get catalog(): string | null { return this.storage.getItem('initialCatalogFromSession'); }
 
   get providerType(): string | null {
     const classification = this.session.classification;
     return classification === null ? null : classification.displayName;
   }
 
-  get currentRoleName(): string {
-    return this.currentRole?.roleName ?? 'No Provider Selected';
-  }
+  get currentRoleName(): string { return this.currentRole?.roleName ?? 'No Provider Selected'; }
 
-  get enableUpload(): boolean {
-    return this.uploadDownloadConfiguration.enableUpload();
-  }
-  get enableDownload(): boolean {
-    return this.uploadDownloadConfiguration.enableDownload();
-  }
+  get enableUpload(): boolean { return this.uploadDownloadConfiguration.enableUpload(); }
+  get enableDownload(): boolean { return this.uploadDownloadConfiguration.enableDownload(); }
 
   get currentRole(): ARUMRole | null {
     const arumUser = this.storage.getItem<ARUMProxy_User>('arumUser');
@@ -255,7 +169,6 @@ export class BaseWithMenuLayout implements OnInit {
     await this.portalConfig.waitForConfigLoad();
     this.loginMessagesSignal.set(this.portalConfig.retrieveLoginMessage());
 
-    // Load all feature access permissions using the featureAccessMap
     this.featureAccessMap.forEach((signal, featureName) => {
       this.session
         .canAccessFeature(featureName)
@@ -277,6 +190,7 @@ export class BaseWithMenuLayout implements OnInit {
       data: { email: supportEmail },
     });
   }
+
   logout(): void {
     this.logoutService.executeLogout('/');
   }

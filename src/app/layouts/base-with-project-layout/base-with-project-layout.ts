@@ -1,18 +1,17 @@
 import { Component, OnInit, inject, ChangeDetectionStrategy, signal } from '@angular/core';
 import { CommonModule, NgOptimizedImage } from '@angular/common';
-import { TitleService } from '../../services/title';
-import { AppConfigService } from '../../services/app-config';
-import { UserInfo, UserService } from '../../services/user';
-import { PortalConfigService } from '../../services/portal-config';
-import { SessionStorageService } from '../../services/session-storage-service';
-
-import { ARUMProxy_User } from '../../models/ARUMProxy_User';
-import { Classification } from '../../models/Classification';
-import { ARUMUserProviders } from '../../models/ARUMUserProviders';
-import { ARUMRole } from '../../models/ARUMRole';
+import { TitleService } from '../../core/services/title';
+import { AppConfigService } from '../../core/services/app-config';
+import { UserInfo, UserService } from '../../core/services/user';
+import { PortalConfigService } from '../../core/services/portal-config';
+import { SessionStorageService } from '../../core/services/session-storage-service';
+import { ARUMProxy_User } from '../../core/models/ARUMProxy_User';
+import { Classification } from '../../core/models/Classification';
+import { ARUMUserProviders } from '../../core/models/ARUMUserProviders';
+import { ARUMRole } from '../../core/models/ARUMRole';
 import { RouterLink, RouterOutlet } from '@angular/router';
-import { BaseReactiveComponent } from '../../shared/base-reactive.component';
-import { LogoutService } from '../../services/logout.service';
+import { BaseReactiveComponent } from '../../shared/base/base-reactive.component';
+import { LogoutService } from '../../core/services/logout.service';
 
 @Component({
   imports: [CommonModule, NgOptimizedImage, RouterOutlet, RouterLink],
@@ -31,41 +30,20 @@ export class BaseWithProjectLayout extends BaseReactiveComponent implements OnIn
   userInfo: UserInfo | null = null;
   private loginMessagesSignal = signal<string[]>([]);
 
-  get loginMessage(): string[] {
-    return this.loginMessagesSignal();
-  }
-
-  get appVersion(): string {
-    return this.appConfig.getAppVersion() || '';
-  }
-
-  get appName(): string {
-    return this.portalConfig.getApplicationName() || '';
-  }
-
-  get currentYear(): number {
-    return this.appConfig.getCurrentYear() || new Date().getFullYear();
-  }
-  get classReplacementTerm(): string {
-    return this.portalConfig.getClassificationReplacementTerm();
-  }
+  get loginMessage(): string[] { return this.loginMessagesSignal(); }
+  get appVersion(): string { return this.appConfig.getAppVersion() || ''; }
+  get appName(): string { return this.portalConfig.getApplicationName() || ''; }
+  get currentYear(): number { return this.appConfig.getCurrentYear() || new Date().getFullYear(); }
+  get classReplacementTerm(): string { return this.portalConfig.getClassificationReplacementTerm(); }
 
   get userName(): string {
     const user = this.storage.getItem<ARUMProxy_User>('arumUser');
-
-    if (user) {
-      return user.email.toUpperCase();
-    }
+    if (user) { return user.email.toUpperCase(); }
     return 'No UserName for User';
   }
 
-  get catalog(): string | null {
-    return this.storage.getItem('initialCatalogFromSession');
-  }
-
-  get userRole(): string {
-    return this.userInfo?.role || '';
-  }
+  get catalog(): string | null { return this.storage.getItem('initialCatalogFromSession'); }
+  get userRole(): string { return this.userInfo?.role || ''; }
 
   get providerType(): string | null {
     const classification = this.classification;
@@ -82,13 +60,8 @@ export class BaseWithProjectLayout extends BaseReactiveComponent implements OnIn
     return allClassifications[0];
   }
 
-  get projectName(): string {
-    return this.userInfo?.projectName || '';
-  }
-
-  get currentRoleName(): string {
-    return this.currentRole?.roleName ?? 'No Provider Selected';
-  }
+  get projectName(): string { return this.userInfo?.projectName || ''; }
+  get currentRoleName(): string { return this.currentRole?.roleName ?? 'No Provider Selected'; }
 
   get currentRole(): ARUMRole | null {
     const arumUser = this.storage.getItem<ARUMProxy_User>('arumUser');
