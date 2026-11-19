@@ -1,73 +1,60 @@
-import {Routes} from '@angular/router';
-import {authGuard} from './guards/auth.guard';
-import {projectSelectionGuard} from './guards/project-selection.guard';
+import { Routes } from '@angular/router';
+import { BaseLayout } from './layouts/base-layout/base-layout';
+import { BaseWithProjectLayout } from './layouts/base-with-project-layout/base-with-project-layout';
+import { BaseWithMenuLayout } from './layouts/base-with-menu-layout/base-with-menu-layout';
+import { Home } from './features/home/pages/home/home';
+import { Login } from './features/home/pages/login/login';
+import { ErrorPage } from './features/home/pages/error/error';
+import { AuthGuard } from './core/guards/auth.guard';
+import { AcceptTerms } from './features/home/pages/accept-terms/accept-terms';
+import { Projects } from './features/projects/pages/projects/projects';
+import { SetProjectComponent } from './features/projects/pages/set-project/set-project';
+import { ProjectSelectionGuard } from './features/projects/guards/project-selection.guard';
+import { ShowAll } from './features/bulletin-board/pages/show-all/show-all';
 
 export const routes: Routes = [
   {
     path: '',
-    loadComponent: () =>
-      import('./layouts/base-layout/base-layout').then(m => m.BaseLayout),
+    component: BaseLayout,
     children: [
       {
         path: '',
-        loadComponent: () =>
-          import('./pages/home/home').then(m => m.Home),
+        component: Home,
         children: [
-          {path: '', redirectTo: 'login', pathMatch: 'full'},
-          {
-            path: 'login',
-            loadComponent: () =>
-              import('./pages/home/login/login').then(m => m.Login),
-          },
-          {
-            path: 'accept',
-            loadComponent: () =>
-              import('./pages/home/accept-terms/accept-terms').then(m => m.AcceptTerms),
-          },
-          {
-            path: 'error',
-            loadComponent: () =>
-              import('./pages/home/error/error').then(m => m.ErrorPage),
-          },
+          { path: '', redirectTo: 'login', pathMatch: 'full' },
+          { path: 'login', component: Login },
+          { path: 'accept', component: AcceptTerms },
+          { path: 'error', component: ErrorPage },
         ],
       },
     ],
   },
   {
     path: '',
-    loadComponent: () =>
-      import('./layouts/base-with-project-layout/base-with-project-layout').then(
-        m => m.BaseWithProjectLayout,
-      ),
-    canActivate: [authGuard],
+    component: BaseWithProjectLayout,
+    canActivate: [AuthGuard],
     children: [
       {
         path: 'projects',
-        loadComponent: () =>
-          import('./pages/projects/projects').then(m => m.Projects),
-        data: {bodyClass: 'layout-projects'},
+        component: Projects,
+        data: { bodyClass: 'layout-projects' },
       },
       {
         path: 'projects/set-project',
-        loadComponent: () =>
-          import('./pages/projects/set-project/set-project').then(m => m.SetProjectComponent),
-        canActivate: [projectSelectionGuard],
+        component: SetProjectComponent,
+        canActivate: [ProjectSelectionGuard],
       },
     ],
   },
   {
     path: '',
-    loadComponent: () =>
-      import('./layouts/base-with-menu-layout/base-with-menu-layout').then(
-        m => m.BaseWithMenuLayout,
-      ),
-    canActivate: [authGuard],
+    component: BaseWithMenuLayout,
+    canActivate: [AuthGuard],
     children: [
       {
         path: 'bulletinBoard/showAll',
-        loadComponent: () =>
-          import('./pages/bulletin-board/show-all/show-all').then(m => m.ShowAll),
-      },
+        component: ShowAll,
+      }
     ],
   },
 ];

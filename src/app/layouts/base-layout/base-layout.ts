@@ -1,8 +1,8 @@
 import { Component, inject, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { AppConfigService } from '../../services/app-config';
+import { AppConfigService } from '../../core/services/app-config';
 import { RouterLink, RouterOutlet } from '@angular/router';
-import { PortalConfigService } from '../../services/portal-config';
+import { PortalConfigService } from '../../core/services/portal-config';
 
 @Component({
   imports: [CommonModule, RouterOutlet, RouterLink],

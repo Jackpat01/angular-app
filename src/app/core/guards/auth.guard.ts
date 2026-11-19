@@ -1,0 +1,25 @@
+import {Injectable, inject} from '@angular/core';
+import {ActivatedRouteSnapshot, CanActivate, Router, RouterStateSnapshot} from '@angular/router';
+import {AuthService} from '../auth/auth';
+
+@Injectable({
+  providedIn: 'root',
+})
+export class AuthGuard implements CanActivate {
+  private authService = inject(AuthService);
+  private router = inject(Router);
+
+  canActivate(
+    _route: ActivatedRouteSnapshot,
+    _state: RouterStateSnapshot
+  ): boolean {
+   // if (this.authService.isAuthenticated()) {
+      return true;
+  //   }
+  //
+  //   // Not authenticated - redirect to login
+  //   console.warn('Access denied - redirecting to login');
+  //   this.router.navigate(['/login'], {queryParams: {returnUrl: state.url}});
+  //   return false;
+   }
+}

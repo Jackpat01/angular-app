@@ -1,0 +1,17 @@
+.bulletin-table {
+  width: 90%;
+  height: 100%;
+  padding: 15px;
+  border-collapse: collapse;
+  border: 0;
+}
+
+.bulletin-table td {
+  padding: 0;
+  text-align: left;
+}
+
+.bulletin-table .label-col {
+  width: 10%;
+  white-space: nowrap;
+}
